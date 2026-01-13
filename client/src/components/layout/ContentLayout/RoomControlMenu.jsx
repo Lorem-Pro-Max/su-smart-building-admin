@@ -1,23 +1,21 @@
 import { CardButtonOpen, CardButtonClosed } from "@components/utils";
 import { DoorControlButton } from "../../../assets/icons";
 
-export function RoomHeaderMenu({
-  title,
-  floor,
-  closeButtonText,
-  openButtontext,
-}) {
+export function RoomControlMenu({ title, floor }) {
   return (
     <div className="bg-transparent h-max gap-6 flex flex-col">
       <div className="rounded-door-tab shadow-door-card h-door-card bg-white font-medium text-lg p-4 flex items-center justify-between">
         <h5 className="font-medium text-lg h-max">
-          {title} {floor}
+          ควบคุม{title} ชั้น {floor}
         </h5>
         <div className="flex gap-4">
-          <CardButtonOpen icon={<DoorControlButton />} text={openButtontext} />
+          <CardButtonOpen
+            icon={<DoorControlButton />}
+            text={`เปิด ${title}ทั้งหมด`}
+          />
           <CardButtonClosed
             icon={<DoorControlButton />}
-            text={closeButtonText}
+            text={`ปิด ${title}ทั้งหมด`}
           />
         </div>
       </div>
@@ -25,4 +23,4 @@ export function RoomHeaderMenu({
   );
 }
 
-export default RoomHeaderMenu;
+export default RoomControlMenu;

@@ -1,25 +1,12 @@
 import TabsMenu from "./TabsMenu";
 import PageHeader from "./PageHeader";
-import RoomHeaderMenu from "./RoomHeaderMenu";
+import RoomControlMenu from "./RoomControlMenu";
 
-function Container({
-  pageIcon,
-  pageTitle,
-  menuTitle,
-  closeButtonText,
-  openButtontext,
-}) {
+function Container({ pageIcon, pageTitle }) {
   return (
     <PageHeader pageIcon={pageIcon} pageTitle={pageTitle}>
       <TabsMenu>
-        {(floorNum) => (
-          <RoomHeaderMenu
-            floor={floorNum}
-            title={menuTitle}
-            closeButtonText={closeButtonText}
-            openButtontext={openButtontext}
-          />
-        )}
+        {(floorNum) => <RoomControlMenu floor={floorNum} title={pageTitle} />}
       </TabsMenu>
     </PageHeader>
   );
