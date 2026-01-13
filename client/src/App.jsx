@@ -1,10 +1,15 @@
-import Layout from "./components/layout/PageLayout";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Layout } from "@components/layout";
 
 function App() {
   return (
-    <Layout>
-      <></>
-    </Layout>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<div>Dashboard Home</div>} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 

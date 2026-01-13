@@ -10,7 +10,7 @@ export const SideBarMenuConfig = {
       itemBg: "tranparent",
       itemColor: "var(--color-sidebar-children-color)",
       itemBorderRadius: 0,
-      
+
       itemMarginInline: 0,
 
       activeBarBorderWidth: 0,
@@ -25,7 +25,7 @@ export const SideBarMenuConfig = {
 };
 
 export const SideBarTitleStyle =
-  "font-main text-sidebar-menu-font-size font-sidebar-title-weight text-sidebar-menu-title tracking-figma";
+  "font-main text-sidebar-menu-font-size font-medium text-sidebar-menu-title tracking-figma";
 
 export const SideBarChildrenStyle =
-  "ml-4 font-sidebar-children-weight text-sidebar-menu-font-size";
+  "ml-4 font-normal text-sidebar-menu-font-size";

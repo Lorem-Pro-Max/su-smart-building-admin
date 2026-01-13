@@ -1,7 +1,7 @@
 import {
   SideBarTitleStyle,
   SideBarChildrenStyle,
-} from "@styles/sidebarTheme.js";
+} from "@styles/themes/sidebarTheme.js"
 import {
   CalendarAntdIcon,
   SignalTowerAntdIcon,
@@ -83,7 +83,7 @@ function SideBarMenu() {
     <Menu
       theme="light"
       mode="inline"
-      defaultSelectedKeys={["1"]}
+      defaultSelectedKeys={["classroom-book"]}
       items={sidebarItems}
     />
   );

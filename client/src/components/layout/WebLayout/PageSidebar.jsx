@@ -1,6 +1,6 @@
 import { Layout, ConfigProvider } from "antd";
-import SideBarMenu from "@components/layout/SidebarItems.jsx";
-import { SideBarMenuConfig } from "@styles/SidebarTheme.js";
+import SideBarMenu from "./SidebarItems.jsx";
+import { SideBarMenuConfig } from "@styles/themes/SidebarTheme.js";
 const { Sider } = Layout;
 
 function SideBar({ collapsed }) {
@@ -11,7 +11,7 @@ function SideBar({ collapsed }) {
         collapsible
         collapsed={collapsed}
         width={266}
-        className="w-sidebar px-3.25 py-6 font-main"
+        className="px-3.25 py-6 font-main w-66.5"
         theme="light"
       >
         <SideBarMenu collapsed={collapsed} />

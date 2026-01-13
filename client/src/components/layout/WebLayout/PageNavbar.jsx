@@ -43,7 +43,7 @@ function NavbarRightMenu() {
 
 function Navbar({ onToggle }) {
   return (
-    <header className="bg-navbar-dark-green w-full h-navbar flex justify-center items-center shrink-0">
+    <header className="bg-navbar-dark-green w-full h-14 flex justify-center items-center shrink-0">
       <div className="flex w-full justify-between items-center px-7">
         <NavbarLeftMenu onToggle={onToggle} />
         <NavbarRightMenu />

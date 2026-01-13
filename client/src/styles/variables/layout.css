@@ -1,0 +1,19 @@
+@theme {
+  --color-navbar-dark-green: #002329;
+  --color-navbar-name-card: #00474f;
+
+  --text-sidebar-menu-font-size: 16px;
+
+  --color-sidebar-menu-title: #00474f;
+  --color-sidebar-children-color: #000000d9;
+  --color-sidebar-selected-children-bg: #e6fffb;
+  --color-sidebar-selected-children-bg-hover: #f7fcfc;
+  --color-sidebar-selected-children-text: #08979c;
+  --color-sidebar-selected-arrow: #000000d9;
+  --color-sidebar-menu-right-border: #13c2c2;
+}
+
+.ant-menu-item-selected::after {
+  border-right-color: var(--color-sidebar-menu-right-border) !important;
+  border-right-width: 3px !important;
+}

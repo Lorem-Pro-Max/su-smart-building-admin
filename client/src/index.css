@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./styles/variables/layout";
+@import "./styles/variables/doors-control";
 
 @font-face {
   font-family: "Kanit";
@@ -26,36 +28,20 @@
 
 @theme {
   --font-main: "Kanit", sans-serif;
-
-  --max-width-dashboard: 1158px;
-  --height-navbar: 56px;
-  --tracking-figma: 0.0025em;
-  --width-sidebar: 266px;
-
-  --text-sidebar-menu-font-size: 16px;
-
-  --font-weight-sidebar-title-weight: 500;
-  --font-weight-sidebar-children-weight: 400;
-
-  --color-navbar-dark-green: #002329;
-  --color-navbar-name-card: #00474f;
   --color-canvas-background: #f5f5f5;
-  --color-sidebar-menu-title: #00474f;
-  --color-sidebar-children-color: #000000d9;
-  --color-sidebar-selected-children-bg: #e6fffb;
-  --color-sidebar-selected-children-bg-hover: #f7fcfc;
-  --color-sidebar-selected-children-text: #08979c;
-  --color-sidebar-selected-arrow: #000000d9;
-  --color-sidebar-menu-right-border: #13c2c2;
+  --text-page-title: 24px;
+  --leading-page-title: 32px;
+  --tracking-figma: 0.025em;
+  --background-image-page-mint: linear-gradient(
+    120deg,
+    #ffffff 10%,
+    rgba(230, 255, 251, 0.7) 100%
+  );
+  --max-width-max-page-content: 1094px;
 }
 
 @layer base {
   html {
     font-family: var(--font-main);
   }
-}
-
-.ant-menu-item-selected::after {
-  border-right-color: var(--color-sidebar-menu-right-border) !important;
-  border-right-width: 3px !important;
 }
