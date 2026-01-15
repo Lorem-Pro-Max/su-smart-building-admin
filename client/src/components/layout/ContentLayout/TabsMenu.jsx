@@ -11,7 +11,7 @@ function TabsMenu({ children }) {
         ชั้นที่ {floorNum}
       </div>
     ),
-    children: children(floorNum),
+    children: typeof children === "function" ? children(floorNum) : children,
   }));
 
   return (
@@ -19,7 +19,7 @@ function TabsMenu({ children }) {
       <Tabs
         defaultActiveKey="floor-1"
         items={items}
-        className="door-tabs w-full h-14"
+        className="door-tabs w-full h-14 "
       />
     </ConfigProvider>
   );
