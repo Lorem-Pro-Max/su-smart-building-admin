@@ -5,3 +5,5 @@ export { UserIcon } from "./navbar/UserIcon";
 export { SuSceinceLogo } from "./logos/Silpakorn-science-logo";
 export { DoorControlTitleIcon } from "./doors-control/DoorControlIcon";
 export { DoorControlButton } from "./doors-control/DoorControlButton";
+export { ValvesControlIcon } from "./valve-control/ValvesControlIcon";
+export { ValvesControlButtonIcon } from "./valve-control/ValvesControlButtonIcon";

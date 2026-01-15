@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "./styles/variables/layout";
-@import "./styles/variables/doors-control";
+@import "./styles/variables/roomControl";
 
 @font-face {
   font-family: "Kanit";
@@ -26,6 +26,19 @@
   font-display: swap;
 }
 
+::-webkit-scrollbar {
+  width: 5px; /* width of the vertical scrollbar */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #e0e0e0; /* color of the scrollbar thumb */
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #f1f1f1; /* color of the scrollbar track */
+}
+
 @theme {
   --font-main: "Kanit", sans-serif;
   --color-canvas-background: #f5f5f5;
@@ -35,9 +48,9 @@
   --background-image-page-mint: linear-gradient(
     120deg,
     #ffffff 10%,
-    rgba(230, 255, 251, 0.7) 100%
+    rgba(230, 255, 251, 1) 100%
   );
-  --max-width-max-page-content: 1094px;
+  --max-width-max-page-content: 1150px;
 }
 
 @layer base {
