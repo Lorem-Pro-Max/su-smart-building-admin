@@ -1,12 +1,13 @@
 import {
   SideBarTitleStyle,
   SideBarChildrenStyle,
-} from "@styles/themes/sidebarTheme.js"
+} from "@styles/themes/sidebarTheme.js";
 import {
   CalendarAntdIcon,
   SignalTowerAntdIcon,
 } from "@components/common/IconConverter";
 import { Menu } from "antd";
+import { useNavigate } from "react-router-dom";
 
 const sidebarItems = [
   {
@@ -15,7 +16,7 @@ const sidebarItems = [
     label: <span className={SideBarTitleStyle}>ระบบจองห้องเรียน</span>,
     children: [
       {
-        key: "approve-booking",
+        key: "/approve-booking",
         label: <span className={SideBarChildrenStyle}>อนุมัติการจอง</span>,
       },
     ],
@@ -26,39 +27,39 @@ const sidebarItems = [
     label: <span className={SideBarTitleStyle}>ระบบอาคารอัจฉริยะ</span>,
     children: [
       {
-        key: "scheduling",
+        key: "/scheduling",
         label: <span className={SideBarChildrenStyle}>ตั้งเวลาเปิด-ปิด</span>,
       },
       {
-        key: "history",
+        key: "/history",
         label: <span className={SideBarChildrenStyle}>ประวัติ</span>,
       },
       {
-        key: "doors",
+        key: "/doors",
         label: <span className={SideBarChildrenStyle}>ประตู</span>,
       },
       {
-        key: "exhaust-fans",
+        key: "/exhaust-fans",
         label: <span className={SideBarChildrenStyle}>พัดลมดูดอากาศ</span>,
       },
       {
-        key: "lighting",
+        key: "/lighting",
         label: <span className={SideBarChildrenStyle}>แสงสว่าง</span>,
       },
       {
-        key: "temperature",
+        key: "/temperature",
         label: <span className={SideBarChildrenStyle}>อุณหภูมิ</span>,
       },
       {
-        key: "air-quality",
+        key: "/air-quality",
         label: <span className={SideBarChildrenStyle}>คุณภาพอากาศ</span>,
       },
       {
-        key: "water-system",
+        key: "/valves",
         label: <span className={SideBarChildrenStyle}>น้ำ</span>,
       },
       {
-        key: "electricity",
+        key: "/electricity",
         label: <span className={SideBarChildrenStyle}>กระแสไฟฟ้า</span>,
       },
     ],
@@ -69,7 +70,7 @@ const sidebarItems = [
     label: <span className={SideBarTitleStyle}>จัดการผู้ใช้งาน</span>,
     children: [
       {
-        key: "user-permissions",
+        key: "/user-permissions",
         label: (
           <span className={SideBarChildrenStyle}>กำหนดสิทธิ์ผู้ใช้งาน</span>
         ),
@@ -79,12 +80,14 @@ const sidebarItems = [
 ];
 
 function SideBarMenu() {
+  const navigate = useNavigate();
   return (
     <Menu
       theme="light"
       mode="inline"
-      defaultSelectedKeys={["classroom-book"]}
       items={sidebarItems}
+      onClick={(item) => navigate(item.key)}
+      defaultSelectedKeys={["/"]}
     />
   );
 }

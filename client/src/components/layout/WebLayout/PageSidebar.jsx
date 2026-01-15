@@ -11,7 +11,7 @@ function SideBar({ collapsed }) {
         collapsible
         collapsed={collapsed}
         width={266}
-        className="px-3.25 py-6 font-main w-66.5"
+        className="px-3.25 py-6 font-main w-66.5 overflow-y-auto"
         theme="light"
       >
         <SideBarMenu collapsed={collapsed} />
