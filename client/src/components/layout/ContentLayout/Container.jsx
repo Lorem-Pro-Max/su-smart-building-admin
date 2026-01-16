@@ -56,7 +56,7 @@ function Container({
       });
       setTimeout(() => {
         if (onRefresh) onRefresh();
-      }, 300);
+      }, 1000);
     } catch (error) {
       console.error("Single toggle failed", error);
     }
@@ -81,7 +81,7 @@ function Container({
       alert("Success!");
       setTimeout(() => {
         if (onRefresh) onRefresh();
-      }, 300);
+      }, 1000);
     } catch (error) {
       console.error("Backend communication failed", error);
     }
