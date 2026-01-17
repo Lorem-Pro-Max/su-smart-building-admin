@@ -1,4 +1,4 @@
-export const ValvesControlIcon = () => {
+export const ValvesControlTitleIcon = () => {
   return (
     <svg
       width="23"

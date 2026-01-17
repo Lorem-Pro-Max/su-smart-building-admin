@@ -1,6 +1,6 @@
 import { useIotDevices } from "../../hooks/useIotDevices";
 import Container from "@components/layout/ContentLayout/Container";
-import { ValvesControlIcon, ValvesControlButtonIcon } from "@assets/icons";
+import { ValvesControlTitleIcon, ValvesControlButtonIcon } from "@assets/icons";
 
 const VALVE_CONFIG = {
   actions: { on: "open", off: "close" },
@@ -16,7 +16,7 @@ function WaterControlPage() {
 
   return (
     <Container
-      pageIcon={<ValvesControlIcon />}
+      pageIcon={<ValvesControlTitleIcon />}
       pageButtonIcon={<ValvesControlButtonIcon />}
       pageTitle="วาล์ว"
       data={data}

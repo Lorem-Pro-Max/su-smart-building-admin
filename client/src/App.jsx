@@ -1,6 +1,10 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@components/layout";
-import { DoorControlPage, ValveControlPage } from "./pages";
+import {
+  DoorControlPage,
+  ValveControlPage,
+  ExhaustFanControlPage,
+} from "./pages";
 
 function App() {
   return (
@@ -10,6 +14,7 @@ function App() {
           <Route path="/" element={<div>Dashboard Home</div>} />
           <Route path="/doors" element={<DoorControlPage />} />
           <Route path="/valves" element={<ValveControlPage />} />
+          <Route path="/exhaust-fans" element={<ExhaustFanControlPage />} />
           <Route path="*" element={<></>} />
         </Route>
       </Routes>
