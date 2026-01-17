@@ -43,7 +43,7 @@ const sidebarItems = [
         label: <span className={SideBarChildrenStyle}>พัดลมดูดอากาศ</span>,
       },
       {
-        key: "/lighting",
+        key: "/lights",
         label: <span className={SideBarChildrenStyle}>แสงสว่าง</span>,
       },
       {

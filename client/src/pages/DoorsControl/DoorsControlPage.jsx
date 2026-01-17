@@ -1,5 +1,8 @@
 import Container from "@components/layout/ContentLayout/Container";
-import { DoorControlTitleIcon, DoorControlButton } from "../../assets/icons";
+import {
+  DoorsControlTitleIcon,
+  DoorsControlButtonIcon,
+} from "../../assets/icons";
 import { useIotDevices } from "../../hooks/useIotDevices";
 
 const DOOR_CONFIG = {
@@ -16,8 +19,8 @@ function DoorControlPage() {
 
   return (
     <Container
-      pageIcon={<DoorControlTitleIcon />}
-      pageButtonIcon={<DoorControlButton />}
+      pageIcon={<DoorsControlTitleIcon />}
+      pageButtonIcon={<DoorsControlButtonIcon />}
       pageTitle="ประตู"
       data={data}
       onRefresh={refresh}

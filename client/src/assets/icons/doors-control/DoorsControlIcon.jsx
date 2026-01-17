@@ -1,4 +1,4 @@
-export const DoorControlTitleIcon = () => {
+export const DoorsControlTitleIcon = () => {
   return (
     <svg
       width="24"

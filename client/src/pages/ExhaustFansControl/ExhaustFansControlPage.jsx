@@ -5,7 +5,7 @@ import {
   ExhaustFansControlButtonIcon,
 } from "@assets/icons";
 
-function ExhauseFanControlPage() {
+function ExhaustFansControlPage() {
   const VALVE_CONFIG = {
     actions: { on: "open", off: "close" },
     statusOn: "open",
@@ -29,4 +29,4 @@ function ExhauseFanControlPage() {
   );
 }
 
-export default ExhauseFanControlPage;
+export default ExhaustFansControlPage;

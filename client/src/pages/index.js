@@ -1,3 +1,4 @@
-export { default as DoorControlPage } from "./DoorControl/DoorControlPage";
-export { default as ValveControlPage } from "./ValveControl/ValveControlPage";
-export { default as ExhaustFanControlPage } from "./ExhaustFanControl/ExhauseFanControlPage.jsx";
+export { default as DoorsControlPage } from "./DoorsControl/DoorsControlPage.jsx";
+export { default as ValvesControlPage } from "./ValvesControl/ValvesControlPage.jsx";
+export { default as ExhaustFansControlPage } from "./ExhaustFansControl/ExhaustFansControlPage.jsx";
+export { default as LightsControlPage } from "./LightsControl/LightsControlPage.jsx";

@@ -4,12 +4,14 @@ export { BurgerIcon } from "./navbar/BurgerIcon";
 export { UserIcon } from "./navbar/UserIcon";
 export { SuSceinceLogo } from "./logos/Silpakorn-science-logo";
 
-export { DoorControlTitleIcon } from "./doors-control/DoorControlIcon";
-export { DoorControlButton } from "./doors-control/DoorControlButton";
+export { DoorsControlTitleIcon } from "./doors-control/DoorsControlIcon";
+export { DoorsControlButtonIcon } from "./doors-control/DoorsControlButtonIcon";
 
 export { ValvesControlTitleIcon } from "./valve-control/ValvesControlIcon";
 export { ValvesControlButtonIcon } from "./valve-control/ValvesControlButtonIcon";
 
-export { ExhaustFansControlButtonIcon } from "./exhaust-fans-control/ExhaustFansButton";
+export { ExhaustFansControlButtonIcon } from "./exhaust-fans-control/ExhaustFansButtonIcon";
 export { ExhaustFansControlTitleIcon } from "./exhaust-fans-control/ExhaustFansControlIcon";
 
+export { LightsControlButtonIcon } from "./lights-control/LightsFansButton";
+export { LightsControlTitleIcon } from "./lights-control/LightsControlIcon";
