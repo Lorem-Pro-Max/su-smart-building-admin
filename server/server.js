@@ -92,4 +92,24 @@ app.post("/api/control-all", async (req, res) => {
   }
 });
 
+app.get("/api/status/doors", async (req, res) => {
+  try {
+    const response = await axios.get(`${IOT_BASE_URL}/status/doors`);
+    res.json(response.data);
+  } catch (error) {
+    console.error("Failed to fetch doors:", error.message);
+    res.status(500).json({ error: "Failed to fetch door status" });
+  }
+});
+
+app.get("/api/status/valves", async (req, res) => {
+  try {
+    const response = await axios.get(`${IOT_BASE_URL}/status/valves`);
+    res.json(response.data);
+  } catch (error) {
+    console.error("Failed to fetch valves:", error.message);
+    res.status(500).json({ error: "Failed to fetch valve status" });
+  }
+});
+
 httpServer.listen(4000, () => console.log("Backend running on port 4000"));
