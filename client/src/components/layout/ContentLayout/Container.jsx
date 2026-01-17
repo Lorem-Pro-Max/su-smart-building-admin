@@ -64,7 +64,6 @@ function Container({
 
   const handleExecuteAction = async (floorNum, actionKey) => {
     const apiAction = config.actions[actionKey];
-
     const selected = selectedByFloor[floorNum] || [];
     const roomsObj = data[floorNum] || {};
     const allOnFloor = Object.keys(roomsObj);

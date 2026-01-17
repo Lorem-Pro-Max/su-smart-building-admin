@@ -7,7 +7,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" elementÍ={<div>Dashboard Home</div>} />
+          <Route path="/" element={<div>Dashboard Home</div>} />
           <Route path="/doors" element={<DoorControlPage />} />
           <Route path="/valves" element={<ValveControlPage />} />
           <Route path="*" element={<></>} />

@@ -1,5 +1,5 @@
 import { Tabs } from "antd";
-import { DoorControlConfig } from "@styles/themes/doorControlTheme";
+import { ContentLayoutTheme } from "@styles/themes/contentLayoutTheme";
 import { ConfigProvider } from "antd";
 
 function TabsMenu({ children }) {
@@ -15,11 +15,11 @@ function TabsMenu({ children }) {
   }));
 
   return (
-    <ConfigProvider theme={DoorControlConfig}>
+    <ConfigProvider theme={ContentLayoutTheme}>
       <Tabs
         defaultActiveKey="floor-1"
         items={items}
-        className="door-tabs w-full h-14 "
+        className="content-layout-tabs w-full h-14 "
       />
     </ConfigProvider>
   );

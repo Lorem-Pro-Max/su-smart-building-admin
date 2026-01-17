@@ -1,6 +1,6 @@
 import Container from "@components/layout/ContentLayout/Container";
-import { DoorControlTitleIcon, DoorControlButton } from "../assets/icons";
-import { useIotDevices } from "../hooks/useIotDevices";
+import { DoorControlTitleIcon, DoorControlButton } from "../../assets/icons";
+import { useIotDevices } from "../../hooks/useIotDevices";
 
 const DOOR_CONFIG = {
   actions: { on: "unlock", off: "lock" },
@@ -10,7 +10,7 @@ const DOOR_CONFIG = {
 
 function DoorControlPage() {
   const { data, refresh } = useIotDevices(
-    "http://localhost:3000/api/status/doors",
+    "http://localhost:4000/api/status/doors",
     "door_update"
   );
 
