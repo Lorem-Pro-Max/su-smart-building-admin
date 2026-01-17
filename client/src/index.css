@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "./styles/variables/layout";
-@import "./styles/variables/roomControl";
+@import "./styles/variables/webLayout";
+@import "./styles/variables/contentLayout";
 
 @font-face {
   font-family: "Kanit";

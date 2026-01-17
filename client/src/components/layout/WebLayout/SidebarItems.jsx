@@ -79,6 +79,8 @@ const sidebarItems = [
   },
 ];
 
+const rootSubmenuKeys = sidebarItems.map((item) => item.key);
+
 function SideBarMenu() {
   const navigate = useNavigate();
   return (
@@ -88,6 +90,7 @@ function SideBarMenu() {
       items={sidebarItems}
       onClick={(item) => navigate(item.key)}
       defaultSelectedKeys={["/"]}
+      defaultOpenKeys={rootSubmenuKeys}
     />
   );
 }

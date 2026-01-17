@@ -1,5 +1,4 @@
 import { CardButtonOpen, CardButtonClosed } from "@components/utils";
-import { DoorControlButton } from "@assets/icons";
 import { Checkbox, Segmented } from "antd";
 
 export function RoomControlMenu({
@@ -12,7 +11,7 @@ export function RoomControlMenu({
 }) {
   return (
     <div className="bg-transparent h-max gap-6 flex flex-col">
-      <div className="rounded-door-tab shadow-door-card h-door-card bg-white font-medium text-lg p-4 flex items-center justify-between">
+      <div className="rounded-content-layout-tab shadow-content-layout-card h-content-layout-card bg-white font-medium text-lg p-4 flex items-center justify-between">
         <h5 className="font-medium text-lg h-max">
           ควบคุม{title} ชั้น {floor}
         </h5>
@@ -59,7 +58,7 @@ export function RoomCard({
     status === statusOff ? "text-neutral-800 font-medium" : "";
 
   return (
-    <div className="bg-white h-23 w-full rounded-2xl flex items-center shadow-room-control-header pr-3">
+    <div className="bg-white h-23 w-full rounded-2xl flex items-center shadow-content-layout-header pr-3">
       <div className="w-full h-full pl-4 flex-40 flex items-center">
         <Checkbox checked={checked} onChange={onCheck} />
       </div>
@@ -96,7 +95,7 @@ export function RoomControlBody({
 }) {
   return (
     <div className="w-full h-full gap-6 flex flex-col ">
-      <div className="bg-room-control-header-row h-10 rounded-xl shadow-room-control-header flex w-full pr-3">
+      <div className="bg-content-layout-header-row h-10 rounded-xl shadow-content-layout-header flex w-full pr-3">
         <div className="w-full h-full pl-4 flex-40 flex items-center">
           <Checkbox
             onChange={onSelectAll}

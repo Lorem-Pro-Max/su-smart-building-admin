@@ -1,0 +1,18 @@
+@theme {
+  --padding-content-layout-y: 24px;
+  --padding-content-layout-x: 28px;
+  --radius-content-layout-tab: 16px;
+  --shadow-content-layout-card: 1px 2px 10px 0px rgba(54, 207, 201, 0.25);
+  --height-content-layout-card: 72px;
+
+  --color-content-layout-header-row: #57646d;
+  --shadow-content-layout-header: 1px 2px 10px 0px rgba(142, 142, 142, 0.25);
+}
+
+.ant-tabs-nav::before {
+  display: none !important;
+}
+
+.content-layout-tabs .ant-tabs-nav {
+  margin-bottom: 24px !important;
+}

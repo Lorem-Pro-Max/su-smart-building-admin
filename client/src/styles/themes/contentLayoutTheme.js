@@ -1,4 +1,4 @@
-export const DoorControlConfig = {
+export const ContentLayoutTheme = {
   token: {
     fontFamily: "var(--font-main)",
   },
