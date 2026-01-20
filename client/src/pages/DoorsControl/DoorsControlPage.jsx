@@ -1,20 +1,12 @@
 import Container from "@components/layout/ContentLayout/Container";
-import {
-  DoorsControlTitleIcon,
-  DoorsControlButtonIcon,
-} from "../../assets/icons";
-import { useIotDevices } from "../../hooks/useIotDevices";
-
-const DOOR_CONFIG = {
-  actions: { on: "unlock", off: "lock" },
-  statusOn: "unlocked",
-  statusOff: "locked",
-};
+import { DoorsControlTitleIcon, DoorsControlButtonIcon } from "@assets/icons";
+import { useDataFetch } from "@/hooks/useDataFetch";
+import { API_ENDPOINTS, DEVICE_CONFIGS } from "@config/devices";
 
 function DoorControlPage() {
-  const { data, refresh } = useIotDevices(
-    "http://localhost:4000/api/status/doors",
-    "door_update"
+  const { data, refresh } = useDataFetch(
+    API_ENDPOINTS.DOORS,
+    DEVICE_CONFIGS.DOORS.event
   );
 
   return (
@@ -24,7 +16,7 @@ function DoorControlPage() {
       pageTitle="ประตู"
       data={data}
       onRefresh={refresh}
-      config={DOOR_CONFIG}
+      config={DEVICE_CONFIGS.DOORS}
     />
   );
 }

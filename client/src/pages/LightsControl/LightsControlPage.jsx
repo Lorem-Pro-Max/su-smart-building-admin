@@ -1,17 +1,12 @@
-import { useIotDevices } from "../../hooks/useIotDevices";
+import { useDataFetch } from "@/hooks/useDataFetch";
 import Container from "@components/layout/ContentLayout/Container";
 import { LightsControlButtonIcon, LightsControlTitleIcon } from "@assets/icons";
+import { API_ENDPOINTS, DEVICE_CONFIGS } from "@config/devices";
 
 function LightControlPage() {
-  const VALVE_CONFIG = {
-    actions: { on: "open", off: "close" },
-    statusOn: "open",
-    statusOff: "closed",
-  };
-
-  const { data, refresh } = useIotDevices(
-    "http://localhost:4000/api/status/valves",
-    "valve_update"
+  const { data, refresh } = useDataFetch(
+    API_ENDPOINTS.DOORS,
+    DEVICE_CONFIGS.DOORS.event
   );
 
   return (
@@ -21,7 +16,7 @@ function LightControlPage() {
       pageTitle="แสงสว่าง"
       data={data}
       onRefresh={refresh}
-      config={VALVE_CONFIG}
+      config={DEVICE_CONFIGS.DOORS}
     />
   );
 }

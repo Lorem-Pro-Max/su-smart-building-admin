@@ -5,6 +5,7 @@ import {
   ValvesControlPage,
   ExhaustFansControlPage,
   LightsControlPage,
+  AirConditionersControlPage,
 } from "./pages";
 
 function App() {
@@ -17,6 +18,10 @@ function App() {
           <Route path="/valves" element={<ValvesControlPage />} />
           <Route path="/exhaust-fans" element={<ExhaustFansControlPage />} />
           <Route path="/lights" element={<LightsControlPage />} />
+          <Route
+            path="/air-conditioners"
+            element={<AirConditionersControlPage />}
+          ></Route>
           <Route path="*" element={<></>} />
         </Route>
       </Routes>

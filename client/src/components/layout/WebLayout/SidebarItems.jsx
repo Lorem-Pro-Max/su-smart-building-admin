@@ -47,7 +47,7 @@ const sidebarItems = [
         label: <span className={SideBarChildrenStyle}>แสงสว่าง</span>,
       },
       {
-        key: "/temperature",
+        key: "/air-conditioners",
         label: <span className={SideBarChildrenStyle}>อุณหภูมิ</span>,
       },
       {

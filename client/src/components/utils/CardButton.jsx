@@ -1,4 +1,5 @@
-import { Button } from "antd";
+import { Button, Popover } from "antd";
+import { useState } from "react";
 
 const textStyle = "text-base tracking-[0.005em] leading-6";
 
@@ -8,7 +9,11 @@ export function CardButtonOpen({ icon, text, loading = false }) {
       size="large"
       type="primary"
       color="primary"
-      style={{ background: "#08979C", border: 0, color: "#FFF" }}
+      style={{
+        background: "#13C2C2",
+        border: 0,
+        color: "#FFF",
+      }}
       icon={icon}
       ghost={false}
       danger={false}
@@ -25,7 +30,11 @@ export function CardButtonClosed({ icon, text, loading = false }) {
     <Button
       size="large"
       type="primary"
-      style={{ background: "#FA8C16", border: 0, color: "#FFF" }}
+      style={{
+        background: "#FA8C16",
+        border: 0,
+        color: "#FFF",
+      }}
       icon={icon}
       ghost={false}
       danger={false}
@@ -36,3 +45,4 @@ export function CardButtonClosed({ icon, text, loading = false }) {
     </Button>
   );
 }
+

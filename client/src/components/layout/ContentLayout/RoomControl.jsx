@@ -21,8 +21,8 @@ export function RoomControlMenu({
               icon={ButtonIcon}
               text={
                 selectedCount > 0
-                  ? `เปิด${title}ที่เลือก (${selectedCount})`
-                  : `เปิด${title}ทั้งหมด`
+                  ? `เปิด ${title}ที่เลือก (${selectedCount})`
+                  : `เปิด ${title}ทั้งหมด`
               }
             />
           </div>
@@ -32,8 +32,8 @@ export function RoomControlMenu({
               icon={ButtonIcon}
               text={
                 selectedCount > 0
-                  ? `ปิด${title}ที่เลือก (${selectedCount})`
-                  : `ปิด${title}ทั้งหมด`
+                  ? `ปิด ${title}ที่เลือก (${selectedCount})`
+                  : `ปิด ${title}ทั้งหมด`
               }
             />
           </div>
@@ -47,41 +47,54 @@ export function RoomCard({
   checked,
   onCheck,
   roomName,
-  status,
-  onStatusChange,
-  statusOn,
-  statusOff,
+  isOn,
+  onToggle,
+  children,
 }) {
-  const unlockedTextStyle =
-    status === statusOn ? "text-green-600 font-medium" : "";
-  const lockedTextStyle =
-    status === statusOff ? "text-neutral-800 font-medium" : "";
+  const unlockedTextStyle = isOn ? "text-green-600 font-medium" : "";
+  const lockedTextStyle = !isOn ? "text-neutral-800 font-medium" : "";
 
   return (
-    <div className="bg-white h-23 w-full rounded-2xl flex items-center shadow-content-layout-header pr-3">
-      <div className="w-full h-full pl-4 flex-40 flex items-center">
-        <Checkbox checked={checked} onChange={onCheck} />
+    <div className="bg-white h-23 w-full rounded-2xl flex items-center shadow-content-layout-header ">
+      <div className="w-full h-full flex-40 flex ">
+        <div className="w-full flex justify-center items-center pl-4">
+          <Checkbox checked={checked} onChange={onCheck} />
+        </div>
       </div>
-      <div className="text-lg text-black h-full flex-817 flex items-center pl-2.5">
-        <p>{roomName || "ชื่อห้อง"}</p>
+      <div
+        className={`text-lg text-black h-full ${
+          children ? "flex-580" : "flex-817"
+        } flex items-center`}
+      >
+        <div className=" pl-2.5">
+          <p>{roomName || "ชื่อห้อง"}</p>
+        </div>
       </div>
-      <div className="text-lg text-black h-full flex-237 flex items-center pl-2 py-5">
-        <Segmented
-          value={status}
-          onChange={onStatusChange}
-          className="w-38.25 h-full"
-          options={[
-            {
-              label: <span className={unlockedTextStyle}>เปิด</span>,
-              value: statusOn,
-            },
-            {
-              label: <span className={lockedTextStyle}>ปิด</span>,
-              value: statusOff,
-            },
-          ]}
-          style={{ overflow: "hidden" }}
-        />
+
+      {children && (
+        <div className="flex-236 w-max h-full flex items-center">
+          <div className="pl-2">{children}</div>
+        </div>
+      )}
+      <div className="text-lg text-black h-full flex-237 flex items-center ">
+        <div className="pl-2 py-5 h-full">
+          <Segmented
+            value={isOn ? "on" : "off"}
+            onChange={(val) => onToggle(val === "on")}
+            className="w-38.25 h-13"
+            options={[
+              {
+                label: <span className={unlockedTextStyle}>เปิด</span>,
+                value: "on",
+              },
+              {
+                label: <span className={lockedTextStyle}>ปิด</span>,
+                value: "off",
+              },
+            ]}
+            style={{ overflow: "hidden" }}
+          />
+        </div>
       </div>
     </div>
   );
@@ -92,22 +105,40 @@ export function RoomControlBody({
   onSelectAll,
   isAllSelected,
   isIndeterminate,
+  extraColumnTitle,
 }) {
   return (
-    <div className="w-full h-full gap-6 flex flex-col ">
-      <div className="bg-content-layout-header-row h-10 rounded-xl shadow-content-layout-header flex w-full pr-3">
-        <div className="w-full h-full pl-4 flex-40 flex items-center">
-          <Checkbox
-            onChange={onSelectAll}
-            checked={isAllSelected}
-            indeterminate={isIndeterminate}
-          />
+    <div className="w-full h-full gap-6 flex flex-col">
+      <div className="bg-content-layout-header-row h-10 rounded-xl shadow-content-layout-header flex w-full">
+        <div className="w-full h-full flex-40 flex items-center">
+          <div className="w-full flex justify-center items-center pl-4">
+            <Checkbox
+              onChange={onSelectAll}
+              checked={isAllSelected}
+              indeterminate={isIndeterminate}
+            />
+          </div>
         </div>
-        <div className="text-lg text-white h-full flex-817 flex items-center pl-2.5">
-          <p>ชื่อห้องเรียน/ห้องประชุม</p>
+        <div
+          className={`text-lg text-white h-full ${
+            extraColumnTitle ? "flex-580" : "flex-817"
+          } flex items-center`}
+        >
+          <div className="pl-2.5">
+            <p>ชื่อห้องเรียน/ห้องประชุม</p>
+          </div>
         </div>
-        <div className="text-lg text-white h-full flex-237 flex items-center pl-2.5">
-          <p>สถานะ</p>
+        {extraColumnTitle ? (
+          <div className="text-lg text-white h-full flex-237 flex items-center">
+            <div className="pl-2.5">
+              <p>{extraColumnTitle}</p>
+            </div>
+          </div>
+        ) : null}
+        <div className="text-lg text-white h-full flex-237 flex items-center">
+          <div className="pl-2.5">
+            <p>สถานะ</p>
+          </div>
         </div>
       </div>
       {children}

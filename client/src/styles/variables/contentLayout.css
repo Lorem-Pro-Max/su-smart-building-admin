@@ -7,6 +7,8 @@
 
   --color-content-layout-header-row: #57646d;
   --shadow-content-layout-header: 1px 2px 10px 0px rgba(142, 142, 142, 0.25);
+
+  --color-temperature-button: #e6f4ff;
 }
 
 .ant-tabs-nav::before {

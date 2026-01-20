@@ -1,29 +1,24 @@
-import { useIotDevices } from "../../hooks/useIotDevices";
+import { useDataFetch } from "@/hooks/useDataFetch";
 import Container from "@components/layout/ContentLayout/Container";
 import { ValvesControlTitleIcon, ValvesControlButtonIcon } from "@assets/icons";
+import { API_ENDPOINTS, DEVICE_CONFIGS } from "@config/devices";
 
-const VALVE_CONFIG = {
-  actions: { on: "open", off: "close" },
-  statusOn: "open",
-  statusOff: "closed",
-};
-
-function WaterControlPage() {
-  const { data, refresh } = useIotDevices(
-    "http://localhost:4000/api/status/valves",
-    "valve_update"
+function ValvesControlPage() {
+  const { data, refresh } = useDataFetch(
+    API_ENDPOINTS.VALVES,
+    DEVICE_CONFIGS.VALVES.event
   );
 
   return (
     <Container
       pageIcon={<ValvesControlTitleIcon />}
       pageButtonIcon={<ValvesControlButtonIcon />}
-      pageTitle="วาล์ว"
+      pageTitle="น้ำ"
       data={data}
       onRefresh={refresh}
-      config={VALVE_CONFIG}
+      config={DEVICE_CONFIGS.VALVES}
     />
   );
 }
 
-export default WaterControlPage;
+export default ValvesControlPage;
