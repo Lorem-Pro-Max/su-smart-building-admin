@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
+import { BASE_URL } from "../config/devices";
 
-const socket = io("http://localhost:4000");
+const socket = io(BASE_URL);
 
-export function useIotDevices(apiEndpoint, socketEvent) {
+export function useDataFetch(apiEndpoint, socketEvent) {
   const [data, setData] = useState({});
 
   const processData = (rawItems) => {
