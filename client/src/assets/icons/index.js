@@ -15,3 +15,5 @@ export { ExhaustFansControlTitleIcon } from "./exhaust-fans-control/ExhaustFansC
 
 export { LightsControlButtonIcon } from "./lights-control/LightsFansButton";
 export { LightsControlTitleIcon } from "./lights-control/LightsControlIcon";
+
+export { AirConditionerTemperatureButtonIcon } from "./air-conditioners-control/AirConditionerTemperatureButtonIcon";
