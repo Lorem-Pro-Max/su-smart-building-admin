@@ -1,25 +1,20 @@
-import { useDataFetch } from "@/hooks/useDataFetch";
 import Container from "@components/layout/ContentLayout/Container";
 import {
   ExhaustFansControlTitleIcon,
   ExhaustFansControlButtonIcon,
 } from "@assets/icons";
-import { API_ENDPOINTS, DEVICE_CONFIGS } from "@config/devices";
+import { useExhaustFans } from "@hooks/pageHooks/useExhaustFans";
 
 function ExhaustFansControlPage() {
-  const { data, refresh } = useDataFetch(
-    API_ENDPOINTS.DOORS,
-    DEVICE_CONFIGS.DOORS.event
-  );
+  const { dataState, control } = useExhaustFans();
 
   return (
     <Container
       pageIcon={<ExhaustFansControlTitleIcon />}
       pageButtonIcon={<ExhaustFansControlButtonIcon />}
       pageTitle="พัดลมดูดอากาศ"
-      data={data}
-      onRefresh={refresh}
-      config={DEVICE_CONFIGS.DOORS}
+      dataState={dataState}
+      control={control}
     />
   );
 }

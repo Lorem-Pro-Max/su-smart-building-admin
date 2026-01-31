@@ -1,5 +1,6 @@
-import { CardButtonOpen, CardButtonClosed } from "@components/utils";
+import { CardButton } from "@components/utils";
 import { Checkbox, Segmented } from "antd";
+import { RoomNotFoundIcon } from "../../../assets/icons";
 
 export function RoomControlMenu({
   title,
@@ -17,8 +18,9 @@ export function RoomControlMenu({
         </h5>
         <div className="flex gap-4">
           <div onClick={onOpen} className="cursor-pointer">
-            <CardButtonOpen
+            <CardButton
               icon={ButtonIcon}
+              bgColor={"#13C2C2"}
               text={
                 selectedCount > 0
                   ? `เปิด ${title}ที่เลือก (${selectedCount})`
@@ -28,8 +30,9 @@ export function RoomControlMenu({
           </div>
 
           <div onClick={onClose} className="cursor-pointer">
-            <CardButtonClosed
+            <CardButton
               icon={ButtonIcon}
+              bgColor={"#FA8C16"}
               text={
                 selectedCount > 0
                   ? `ปิด ${title}ที่เลือก (${selectedCount})`
@@ -147,7 +150,14 @@ export function RoomControlBody({
 }
 
 export function RoomNotFound() {
-  return <div></div>;
+  return (
+    <div className="w-full h-full flex justify-center">
+      <div className="flex flex-col items-center">
+        <RoomNotFoundIcon />
+        <p className="text-lg">ไม่มีอุปกรณ์ในชั้นนี้</p>
+      </div>
+    </div>
+  );
 }
 
 export function RoomControl({ children }) {

@@ -1,0 +1,13 @@
+@theme {
+  --shadow-graph-container: 1px 2px 10px 0px rgba(142, 142, 142, 0.25);
+  --background-image-graph-total-usage-gradient-blue: linear-gradient(
+    89deg,
+    #f9fffe 8.77%,
+    #eefffc 97.71%
+  );
+  --background-image-graph-total-usage-gradient-orange: linear-gradient(
+    89deg,
+    #fffdf9 8.77%,
+    #fffbe6 97.71%
+  );
+}

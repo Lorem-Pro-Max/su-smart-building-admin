@@ -12,7 +12,6 @@ export const SideBarMenuConfig = {
       itemBorderRadius: 0,
 
       itemMarginInline: 0,
-
       activeBarBorderWidth: 0,
       activeBarWidth: 4,
 
