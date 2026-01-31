@@ -1,115 +1,17 @@
-import express from "express";
-import axios from "axios";
-import cors from "cors";
 import { createServer } from "http";
-import { Server } from "socket.io";
-import { io as ioClient } from "socket.io-client";
+import app from "./src/app.js"; 
+import { initSocket } from "./src/utils/socketManager.js";
+import { syncAllDevices } from "./src/services/syncService.js"; 
+import dotenv from "dotenv";
 
-const app = express();
+dotenv.config(); 
+
+const PORT = process.env.PORT || 4000;
 const httpServer = createServer(app);
 
-const io = new Server(httpServer, {
-  cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
-  },
+initSocket(httpServer, syncAllDevices); 
+
+httpServer.listen(PORT, () => {
+  console.log(`Backend running on port ${PORT}`);
+  console.log(`Socket.io ready`);
 });
-
-app.use(cors());
-app.use(express.json());
-
-const IOT_BASE_URL = "http://127.0.0.1:3000/api";
-const iotSocket = ioClient("http://127.0.0.1:3000");
-
-const broadcastUpdate = async () => {
-  try {
-    const doors = await axios.get(`${IOT_BASE_URL}/status/doors`);
-    io.emit("door_update", doors.data.data);
-    const valves = await axios.get(`${IOT_BASE_URL}/status/valves`);
-    io.emit("valve_update", valves.data.data);
-
-    console.log(">> Synced both Doors & Valves");
-  } catch (err) {
-    console.error("Broadcast failed:", err.message);
-  }
-};
-
-iotSocket.on("connect", () => console.log("Connected to IoT (3000)"));
-iotSocket.on("connect_error", (err) =>
-  console.log("IoT Connection Error:", err.message)
-);
-
-iotSocket.onAny((eventName) => {
-  console.log(`Event '${eventName}' received from IoT`);
-  broadcastUpdate();
-});
-
-io.on("connection", (socket) => {
-  console.log("Frontend connected:", socket.id);
-});
-
-app.post("/api/batch-control", async (req, res) => {
-  const { deviceIds, action } = req.body;
-
-  if (!deviceIds || !deviceIds.length)
-    return res.status(400).json({ error: "No devices" });
-
-  const isDoor = ["lock", "unlock"].includes(action);
-  const endpointType = isDoor ? "door" : "valve";
-
-  console.log(`Batch ${action} on ${endpointType}s:`, deviceIds);
-
-  try {
-    const results = await Promise.all(
-      deviceIds.map((id) =>
-        axios
-          .post(`${IOT_BASE_URL}/control/${endpointType}/${id}`, { action })
-          .then((r) => ({ id, status: "success" }))
-          .catch((e) => ({ id, status: "failed", error: e.message }))
-      )
-    );
-
-    res.json({ message: "Batch complete", results });
-    await broadcastUpdate();
-  } catch (error) {
-    res.status(500).json({ error: "Server error", details: error.message });
-  }
-});
-
-app.post("/api/control-all", async (req, res) => {
-  const { action } = req.body;
-
-  const isDoor = ["lock", "unlock"].includes(action);
-  const endpointType = isDoor ? "doors" : "valves";
-
-  try {
-    console.log(`Global ${action} on ${endpointType}`);
-    await axios.post(`${IOT_BASE_URL}/control/${endpointType}/all`, { action });
-    res.json({ success: true });
-    await broadcastUpdate();
-  } catch (error) {
-    res.status(500).json({ error: "Control all failed" });
-  }
-});
-
-app.get("/api/status/doors", async (req, res) => {
-  try {
-    const response = await axios.get(`${IOT_BASE_URL}/status/doors`);
-    res.json(response.data);
-  } catch (error) {
-    console.error("Failed to fetch doors:", error.message);
-    res.status(500).json({ error: "Failed to fetch door status" });
-  }
-});
-
-app.get("/api/status/valves", async (req, res) => {
-  try {
-    const response = await axios.get(`${IOT_BASE_URL}/status/valves`);
-    res.json(response.data);
-  } catch (error) {
-    console.error("Failed to fetch valves:", error.message);
-    res.status(500).json({ error: "Failed to fetch valve status" });
-  }
-});
-
-httpServer.listen(4000, () => console.log("Backend running on port 4000"));
