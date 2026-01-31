@@ -1,19 +1,30 @@
-export const BASE_URL = import.meta.env.VITE_DEV_BACKEND_BASE_URL;
-
-export const API_ENDPOINTS = {
-  DOORS: `${BASE_URL}/api/status/doors`,
-  VALVES: `${BASE_URL}/api/status/valves`,
-};
-
 export const DEVICE_CONFIGS = {
   DOORS: {
+    type: "doors",
     actions: { on: "unlock", off: "lock" },
-    deviceStatus: { on: "unlocked", off: "locked"},
-    event: "door_update",
+    deviceStatus: { on: "unlocked", off: "locked" },
   },
   VALVES: {
+    type: "valves",
     actions: { on: "open", off: "close" },
-    deviceStatus: { on: "open", off: "closed"},
-    event: "valve_update",
+    deviceStatus: { on: "open", off: "closed" },
+  },
+  ELECTRICITY: {
+    type: "electricity",
+  },
+  AC: {
+    type: "ac",
+    actions: { on: "on", off: "off" },
+    deviceStatus: { on: "on", off: "off" },
+  },
+  LIGHTS: {
+    type: "lights",
+    actions: { on: "on", off: "off" },
+    deviceStatus: { on: "on", off: "off" },
+  },
+  EXHAUST_FANS: {
+    type: "exhaustfans",
+    actions: { on: "on", off: "off" },
+    deviceStatus: { on: "on", off: "off" },
   },
 };

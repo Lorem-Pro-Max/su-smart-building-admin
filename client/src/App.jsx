@@ -6,6 +6,7 @@ import {
   ExhaustFansControlPage,
   LightsControlPage,
   AirConditionersControlPage,
+  ElectricityPage,
 } from "./pages";
 
 function App() {
@@ -15,13 +16,15 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<div>Dashboard Home</div>} />
           <Route path="/doors" element={<DoorsControlPage />} />
-          <Route path="/valves" element={<ValvesControlPage />} />
-          <Route path="/exhaust-fans" element={<ExhaustFansControlPage />} />
           <Route path="/lights" element={<LightsControlPage />} />
+          <Route path="/exhaust-fans" element={<ExhaustFansControlPage />} />
+          <Route path="/valves" element={<ValvesControlPage />} />
           <Route
             path="/air-conditioners"
             element={<AirConditionersControlPage />}
-          ></Route>
+          />
+          <Route path="/electricity" element={<ElectricityPage />} />
+
           <Route path="*" element={<></>} />
         </Route>
       </Routes>

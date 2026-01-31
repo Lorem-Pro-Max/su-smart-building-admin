@@ -17,3 +17,11 @@ export { LightsControlButtonIcon } from "./lights-control/LightsFansButton";
 export { LightsControlTitleIcon } from "./lights-control/LightsControlIcon";
 
 export { AirConditionerTemperatureButtonIcon } from "./air-conditioners-control/AirConditionerTemperatureButtonIcon";
+export { AirConditionerButtonIcon } from "./air-conditioners-control/AirConditionerButtonIcon";
+export { AirConditionerTitleIcon } from "./air-conditioners-control/AirConditionerTitleIcon";
+
+export { ElectricityTitleIcon } from "./electricity/ElectricityTitleIcon";
+export { TotalUsageIconBlue } from "./graph-container/TotalUsageIconBlue";
+export { TotalUsageIconOrange } from "./graph-container/TotalUsageIconOrange";
+
+export { RoomNotFoundIcon } from "./roomNotFoundIcon";

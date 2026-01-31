@@ -1,22 +1,17 @@
-import { useDataFetch } from "@/hooks/useDataFetch";
 import Container from "@components/layout/ContentLayout/Container";
 import { LightsControlButtonIcon, LightsControlTitleIcon } from "@assets/icons";
-import { API_ENDPOINTS, DEVICE_CONFIGS } from "@config/devices";
+import { useLights } from "@/hooks/pageHooks/useLights";
 
 function LightControlPage() {
-  const { data, refresh } = useDataFetch(
-    API_ENDPOINTS.DOORS,
-    DEVICE_CONFIGS.DOORS.event
-  );
+  const { dataState, control } = useLights();
 
   return (
     <Container
       pageIcon={<LightsControlTitleIcon />}
       pageButtonIcon={<LightsControlButtonIcon />}
       pageTitle="แสงสว่าง"
-      data={data}
-      onRefresh={refresh}
-      config={DEVICE_CONFIGS.DOORS}
+      dataState={dataState}
+      control={control}
     />
   );
 }

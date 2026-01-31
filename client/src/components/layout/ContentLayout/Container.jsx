@@ -1,4 +1,3 @@
-import { useDeviceControl } from "@hooks/useDeviceControl";
 import TabsMenu from "./TabsMenu";
 import PageHeader from "./PageHeader";
 import {
@@ -9,25 +8,22 @@ import {
   RoomNotFound,
 } from "./RoomControl";
 import React from "react";
+import { useDeviceSelection } from "@hooks/devices/useDeviceSelection";
 
 function Container({
   pageIcon,
   pageButtonIcon,
   pageTitle,
-  data = {},
-  onRefresh,
-  config,
+  dataState = {},
+  control,
   alternatePageTitle = "",
   extraColumnTitle = null,
   extraColumn = null,
 }) {
-  const {
-    selectedByFloor,
-    handleSelectAll,
-    handleSelectRoom,
-    handleSingleToggle,
-    handleExecuteAction,
-  } = useDeviceControl(data, config, onRefresh);
+  const { data } = dataState;
+  const { handleExecuteAction, handleSingleToggle } = control;
+  const { selectedByFloor, handleSelectAll, handleSelectRoom } =
+    useDeviceSelection(data);
 
   return (
     <PageHeader
@@ -40,8 +36,16 @@ function Container({
           const roomsObj = data[floorNum] || {};
           const rooms = Object.values(roomsObj);
           const selected = selectedByFloor[floorNum] || [];
+          const allRoomIdsOnFloor = rooms.map((room) => room.id);
+
+          console.log(`Floor ${floorNum}`, roomsObj);
 
           if (rooms.length === 0) return <RoomNotFound />;
+
+          const isAllSelected =
+            rooms.length > 0 && selected.length === rooms.length;
+          const isIndeterminate =
+            selected.length > 0 && selected.length < rooms.length;
 
           return (
             <RoomControl>
@@ -50,17 +54,23 @@ function Container({
                 ButtonIcon={pageButtonIcon}
                 floor={floorNum}
                 selectedCount={selected.length}
-                onOpen={() => handleExecuteAction(floorNum, "on")}
-                onClose={() => handleExecuteAction(floorNum, "off")}
+                onOpen={() =>
+                  handleExecuteAction(
+                    selected.length > 0 ? selected : allRoomIdsOnFloor,
+                    "on",
+                  )
+                }
+                onClose={() =>
+                  handleExecuteAction(
+                    selected.length > 0 ? selected : allRoomIdsOnFloor,
+                    "off",
+                  )
+                }
               />
               <RoomControlBody
                 onSelectAll={(e) => handleSelectAll(floorNum, e.target.checked)}
-                isAllSelected={
-                  rooms.length > 0 && selected.length === rooms.length
-                }
-                isIndeterminate={
-                  selected.length > 0 && selected.length < rooms.length
-                }
+                isAllSelected={isAllSelected}
+                isIndeterminate={isIndeterminate}
                 extraColumnTitle={extraColumnTitle}
               >
                 {rooms.map((room) => (
@@ -69,7 +79,7 @@ function Container({
                     roomName={`ห้อง ${room.id}`}
                     checked={selected.includes(room.id)}
                     onCheck={() => handleSelectRoom(floorNum, room.id)}
-                    isOn={room.status === config.deviceStatus.on}
+                    isOn={room.isOn}
                     onToggle={(isOn) => handleSingleToggle(room.id, isOn)}
                   >
                     {extraColumn && React.cloneElement(extraColumn, { room })}
