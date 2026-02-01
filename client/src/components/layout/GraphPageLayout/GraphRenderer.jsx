@@ -3,7 +3,6 @@ import { Line, Area } from "@ant-design/plots";
 import { full30MinDomain, visibleTicks, getColor } from "@components/utils";
 
 const transformChartData = (usageData) => {
-  console.log("yi", usageData);
 
   const roomsDictionary = usageData;
   if (!roomsDictionary) return [];

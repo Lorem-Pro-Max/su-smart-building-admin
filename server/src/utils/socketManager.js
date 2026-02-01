@@ -6,7 +6,12 @@ const IOT_SOCKET_URL = "http://127.0.0.1:3000";
 
 export const initSocket = (server, refreshAllStatus) => {
   io = new Server(server, {
-    cors: { origin: "*", methods: ["GET", "POST"] },
+    cors: {
+      origin: ["https://ssb.slwlabs.dev", "http://localhost:5173"],
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
+    allowEIO3: true,
   });
 
   const iotSocket = ioClient(IOT_SOCKET_URL);
