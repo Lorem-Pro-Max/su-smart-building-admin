@@ -8,6 +8,7 @@ import {
   AirConditionersControlPage,
   ElectricityPage,
 } from "./pages";
+import ApproveBookingPage from "./pages/ApproveBookingPage/ApproveBooking";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             element={<AirConditionersControlPage />}
           />
           <Route path="/electricity" element={<ElectricityPage />} />
+          <Route path="/approve-booking" element={<ApproveBookingPage />} />
 
           <Route path="*" element={<></>} />
         </Route>
