@@ -1,14 +1,14 @@
 import { DownOutlined } from "@ant-design/icons";
 import { Dropdown, Space, ConfigProvider } from "antd";
-import { GraphPageDropdownTheme } from "@styles/themes/graphPageDropdownTheme";
+import { CommonDropdownTheme } from "@styles/themes/commonDropdownTheme";
 
-export function GraphDropdown({ items = [], currentItem, onSelect }) {
+export function CommonDropdown({ items = [], currentItem, onSelect }) {
   const activeItem = items.find((item) => item.key === currentItem);
   const displayLabel =
     activeItem?.label || (items.length > 0 ? items[0].label : "กำลังโหลด...");
 
   return (
-    <ConfigProvider theme={GraphPageDropdownTheme}>
+    <ConfigProvider theme={CommonDropdownTheme}>
       <Dropdown
         menu={{
           items,
