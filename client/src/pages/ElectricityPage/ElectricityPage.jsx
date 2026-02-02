@@ -5,7 +5,7 @@ import { useElectricity } from "@hooks/pageHooks/useElectricity";
 function ElectricityPage() {
   const { graphService } = useElectricity();
   const displayConfig = {
-    multiTabs: true,
+    multiTabs: false,
     hasRooms: true,
   };
   return (
