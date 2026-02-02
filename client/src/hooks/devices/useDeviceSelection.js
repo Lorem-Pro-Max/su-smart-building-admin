@@ -11,7 +11,7 @@ export function useDeviceSelection(data = {}) {
       Object.keys(newSelection).forEach((floor) => {
         const currentSelected = newSelection[floor] || [];
         const availableIds = Object.keys(data[floor] || {});
-        const filtered = currentSelected[floor].filter((id) =>
+        const filtered = currentSelected.filter((id) =>
           availableIds.includes(id),
         );
 

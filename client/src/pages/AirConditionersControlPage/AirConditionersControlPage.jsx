@@ -4,7 +4,7 @@ import {
   AirConditionerButtonIcon,
   AirConditionerTemperatureButtonIcon,
 } from "@assets/icons";
-import { useTemperatureControl } from "@/hooks/useTemperatureControl";
+// import { useTemperatureControl } from "@/hooks/useTemperatureControl";
 import TemperatureButton from "@components/utils/TemperatureButton";
 import { useAc } from "@hooks/pageHooks/useAc";
 

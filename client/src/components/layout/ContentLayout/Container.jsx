@@ -38,8 +38,6 @@ function Container({
           const selected = selectedByFloor[floorNum] || [];
           const allRoomIdsOnFloor = rooms.map((room) => room.id);
 
-          console.log(`Floor ${floorNum}`, roomsObj);
-
           if (rooms.length === 0) return <RoomNotFound />;
 
           const isAllSelected =
