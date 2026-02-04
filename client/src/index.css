@@ -5,6 +5,14 @@
 @import "./styles/variables/airQualityPage.css";
 
 @font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: "Kanit";
   src: url("/fonts/Kanit-Light.ttf") format("truetype");
   font-weight: 300;
@@ -37,19 +45,20 @@
 }
 
 ::-webkit-scrollbar {
-  width: 5px; 
+  width: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #e0e0e0; 
+  background-color: #e0e0e0;
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background-color: #f1f1f1; 
+  background-color: #f1f1f1;
 }
 
 @theme {
+  --font-main: "Kanit", sans-serif;
   --font-sans: "Kanit", sans-serif;
   --color-canvas-background: #f5f5f5;
   --text-page-title: 24px;

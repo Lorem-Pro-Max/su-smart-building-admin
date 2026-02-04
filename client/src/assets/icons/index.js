@@ -27,3 +27,4 @@ export { TotalUsageIconOrange } from "./graph-container/TotalUsageIconOrange";
 export { RoomNotFoundIcon } from "./roomNotFoundIcon";
 
 export { AirQualityTitleIcon } from "./air-quality/AirQualityTitleIcon";
+export { HistoryPageTitleIcon } from "./history-page/HistoryPageTitleIcon";

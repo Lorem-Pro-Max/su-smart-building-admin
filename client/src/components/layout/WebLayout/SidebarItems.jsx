@@ -7,7 +7,7 @@ import {
   SignalTowerAntdIcon,
 } from "@components/common/IconConverter";
 import { Menu } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const sidebarItems = [
   {
@@ -27,7 +27,7 @@ const sidebarItems = [
     label: <span className={SideBarTitleStyle}>ระบบอาคารอัจฉริยะ</span>,
     children: [
       {
-        key: "/scheduling",
+        key: "/device-scheduling",
         label: <span className={SideBarChildrenStyle}>ตั้งเวลาเปิด-ปิด</span>,
       },
       {
@@ -83,13 +83,17 @@ const rootSubmenuKeys = sidebarItems.map((item) => item.key);
 
 function SideBarMenu() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const activeKey =
+    location.pathname === "/" ? "/approve-booking" : location.pathname;
+
   return (
     <Menu
       theme="light"
       mode="inline"
       items={sidebarItems}
       onClick={(item) => navigate(item.key)}
-      defaultSelectedKeys={["/"]}
+      selectedKeys={[activeKey]}
       defaultOpenKeys={rootSubmenuKeys}
     />
   );

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@components/layout";
 import {
   DoorsControlPage,
@@ -8,6 +8,7 @@ import {
   AirConditionersControlPage,
   ElectricityPage,
   AirQualityPage,
+  HistoryPage,
 } from "./pages";
 import ApproveBookingPage from "./pages/ApproveBookingPage/ApproveBooking";
 
@@ -16,7 +17,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<div>Dashboard Home</div>} />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/device-scheduling" element={<></>} />
           <Route path="/doors" element={<DoorsControlPage />} />
           <Route path="/lights" element={<LightsControlPage />} />
           <Route path="/exhaust-fans" element={<ExhaustFansControlPage />} />
@@ -28,8 +30,11 @@ function App() {
           <Route path="/air-quality" element={<AirQualityPage />} />
           <Route path="/electricity" element={<ElectricityPage />} />
           <Route path="/approve-booking" element={<ApproveBookingPage />} />
-
-          <Route path="*" element={<></>} />
+          <Route path="/user-permissions" element={<></>} />
+          <Route
+            path="*"
+            element={<Navigate to="/approve-booking" replace />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>

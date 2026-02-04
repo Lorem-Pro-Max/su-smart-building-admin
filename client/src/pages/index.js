@@ -3,5 +3,6 @@ export { default as ValvesControlPage } from "./ValvesControlPage/ValvesControlP
 export { default as ExhaustFansControlPage } from "./ExhaustFansControlPage/ExhaustFansControlPage.jsx";
 export { default as LightsControlPage } from "./LightsControlPage/LightsControlPage.jsx";
 export { default as AirConditionersControlPage } from "./AirConditionersControlPage/AirConditionersControlPage.jsx";
-export { default as ElectricityPage } from "./ElectricityPage/ElectricityPage.jsx"
-export { default as AirQualityPage} from "./AirQualityPage/AirQualityPage.jsx"
+export { default as ElectricityPage } from "./ElectricityPage/ElectricityPage.jsx";
+export { default as AirQualityPage } from "./AirQualityPage/AirQualityPage.jsx";
+export { default as HistoryPage } from "./HistoryPage/HistoryPage.jsx";
