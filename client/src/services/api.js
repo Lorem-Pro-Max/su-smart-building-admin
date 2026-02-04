@@ -2,7 +2,7 @@ import axios from "axios";
 import { socket } from "../services/socket";
 
 const BASE_URL = import.meta.env.PROD
-  ? import.meta.env.VITE_PROD_BACKEND_BASE_URL 
+  ? import.meta.env.VITE_PROD_BACKEND_BASE_URL
   : import.meta.env.VITE_DEV_BACKEND_BASE_URL;
 
 const apiClient = axios.create({

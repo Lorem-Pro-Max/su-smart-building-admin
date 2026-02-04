@@ -6,12 +6,13 @@ import {
   TotalUsageIconBlue,
 } from "@assets/icons";
 
+const displayConfig = {
+  multiTabs: true,
+  defaultPage: "control",
+};
+
 function ValvesControlPage() {
   const { dataState, control, graphService } = useValves();
-  const displayConfig = {
-    multiTabs: true,
-    hasRooms: true,
-  };
 
   return (
     <GraphPageContainer
