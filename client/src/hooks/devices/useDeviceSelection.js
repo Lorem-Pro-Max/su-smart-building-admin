@@ -10,12 +10,15 @@ export function useDeviceSelection(data = {}) {
 
       Object.keys(newSelection).forEach((floor) => {
         const currentSelected = newSelection[floor] || [];
-        const availableIds = Object.keys(data[floor] || {});
+
+        const floorRooms = data[floor] || [];
+        const availableIds = floorRooms.map((room) => String(room.id));
+
         const filtered = currentSelected.filter((id) =>
-          availableIds.includes(id),
+          availableIds.includes(String(id)),
         );
 
-        if (filtered.length !== newSelection[floor].length) {
+        if (filtered.length !== currentSelected.length) {
           newSelection[floor] = filtered;
           hasChanged = true;
         }
@@ -47,5 +50,12 @@ export function useDeviceSelection(data = {}) {
     });
   };
 
-  return { selectedByFloor, handleSelectAll, handleSelectRoom };
+  const clearSelection = (floorNum) => {
+    setSelectedByFloor((prev) => ({
+      ...prev,
+      [floorNum]: [],
+    }));
+  };
+
+  return { selectedByFloor, handleSelectAll, handleSelectRoom, clearSelection };
 }

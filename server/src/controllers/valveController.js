@@ -20,9 +20,11 @@ export const getValvesStatus = async (req, res) => {
 export const batchControl = async (req, res) => {
   const { deviceIds, action } = req.body;
   try {
-    const results = await IoTService.executeBatch("valve", deviceIds, action);
-    emitDeviceUpdate("valves", { type: "batch", results });
-    res.json({ success: true, results });
+    await IoTService.executeBatch("valve", deviceIds, action);
+    const rawData = await IoTService.fetchStatus("valves");
+    const groupedData = groupDevicesByFloor(rawData);
+    emitDeviceUpdate("valves", groupedData); 
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

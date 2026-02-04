@@ -1,4 +1,4 @@
-import { GraphDropdown } from "@components/utils";
+import { CommonDropdown } from "@components/utils";
 import { DaysGraphRenderer, HoursGraphRenderer } from "@components/layout";
 import { getColor } from "@components/utils";
 
@@ -32,7 +32,7 @@ export function DaysGraph({
         <div className="flex gap-4">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-400">ชั้น</span>
-            <GraphDropdown
+            <CommonDropdown
               items={floorsItems}
               currentItem={selection.dailyFloor}
               onSelect={setDailyFloor}
@@ -41,7 +41,7 @@ export function DaysGraph({
           {roomsItems && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-400">ห้อง</span>
-              <GraphDropdown
+              <CommonDropdown
                 items={roomsItems}
                 currentItem={selection.dailyRoom}
                 onSelect={setDailyRoom}
@@ -97,7 +97,7 @@ export function HoursGraph({
         <div className="flex gap-4">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-400 w-max">วันที่</span>
-            <GraphDropdown
+            <CommonDropdown
               items={datesItmes}
               currentItem={selection.hourlyDate}
               onSelect={setHourlyDate}
@@ -105,7 +105,7 @@ export function HoursGraph({
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-400">ชั้น</span>
-            <GraphDropdown
+            <CommonDropdown
               items={floorsItems}
               currentItem={selection.hourlyFloor}
               onSelect={setHourlyFloor}
@@ -114,7 +114,7 @@ export function HoursGraph({
           {roomsItems && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-400">ห้อง</span>
-              <GraphDropdown
+              <CommonDropdown
                 items={roomsItems}
                 currentItem={selection.hourlyRoom}
                 onSelect={setHourlyRoom}

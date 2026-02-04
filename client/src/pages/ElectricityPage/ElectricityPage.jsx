@@ -2,12 +2,13 @@ import { GraphPageContainer } from "@components/layout";
 import { ElectricityTitleIcon, TotalUsageIconOrange } from "@assets/icons";
 import { useElectricity } from "@hooks/pageHooks/useElectricity";
 
+const displayConfig = {
+  multiTabs: false,
+  defaultPage: "dashboard"
+};
+
 function ElectricityPage() {
   const { graphService } = useElectricity();
-  const displayConfig = {
-    multiTabs: false,
-    hasRooms: true,
-  };
   return (
     <GraphPageContainer
       pageIcon={<ElectricityTitleIcon />}

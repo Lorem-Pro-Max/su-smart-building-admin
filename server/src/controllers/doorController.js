@@ -20,7 +20,6 @@ export const batchControl = async (req, res) => {
     const rawData = await IoTService.fetchStatus("doors");
     const groupedData = groupDevicesByFloor(rawData);
     emitDeviceUpdate("doors", groupedData);
-
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });

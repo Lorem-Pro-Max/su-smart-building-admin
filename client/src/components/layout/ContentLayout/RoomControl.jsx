@@ -56,7 +56,7 @@ export function RoomCard({
 }) {
   const unlockedTextStyle = isOn ? "text-green-600 font-medium" : "";
   const lockedTextStyle = !isOn ? "text-neutral-800 font-medium" : "";
-
+  
   return (
     <div className="bg-white h-23 w-full rounded-2xl flex items-center shadow-content-layout-header ">
       <div className="w-full h-full flex-40 flex ">

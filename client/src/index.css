@@ -2,6 +2,15 @@
 @import "./styles/variables/webLayout";
 @import "./styles/variables/contentLayout";
 @import "./styles/variables/graphLayout";
+@import "./styles/variables/airQualityPage.css";
+
+@font-face {
+  font-family: "Kanit";
+  src: url("/fonts/Kanit-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
 
 @font-face {
   font-family: "Kanit";

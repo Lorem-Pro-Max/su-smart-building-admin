@@ -22,7 +22,7 @@ function Container({
 }) {
   const { data } = dataState;
   const { handleExecuteAction, handleSingleToggle } = control;
-  const { selectedByFloor, handleSelectAll, handleSelectRoom } =
+  const { selectedByFloor, handleSelectAll, handleSelectRoom, clearSelection } =
     useDeviceSelection(data);
 
   return (
@@ -40,6 +40,8 @@ function Container({
 
           if (rooms.length === 0) return <RoomNotFound />;
 
+          console.log("SELECTED", selected);
+
           const isAllSelected =
             rooms.length > 0 && selected.length === rooms.length;
           const isIndeterminate =
@@ -52,18 +54,22 @@ function Container({
                 ButtonIcon={pageButtonIcon}
                 floor={floorNum}
                 selectedCount={selected.length}
-                onOpen={() =>
-                  handleExecuteAction(
-                    selected.length > 0 ? selected : allRoomIdsOnFloor,
-                    "on",
-                  )
-                }
-                onClose={() =>
-                  handleExecuteAction(
-                    selected.length > 0 ? selected : allRoomIdsOnFloor,
-                    "off",
-                  )
-                }
+                onOpen={() => {
+                  const ids =
+                    selected.length > 0 ? selected : allRoomIdsOnFloor;
+                  handleExecuteAction(ids, "on");
+                  setTimeout(() => {
+                    clearSelection(floorNum);
+                  }, 500);
+                }}
+                onClose={() => {
+                  const ids =
+                    selected.length > 0 ? selected : allRoomIdsOnFloor;
+                  handleExecuteAction(ids, "off");
+                  setTimeout(() => {
+                    clearSelection(floorNum);
+                  }, 500);
+                }}
               />
               <RoomControlBody
                 onSelectAll={(e) => handleSelectAll(floorNum, e.target.checked)}
