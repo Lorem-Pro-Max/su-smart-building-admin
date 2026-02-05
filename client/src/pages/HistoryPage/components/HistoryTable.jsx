@@ -37,6 +37,7 @@ const columns = [
     dataIndex: "time",
     key: "time",
     width: "8%",
+    render: (text) => <span className="text-[#1890FF]">{text}</span>,
   },
   {
     title: "ผู้ดำเนินการ",
@@ -116,7 +117,7 @@ function HistoryTable() {
           body: {
             cell: {
               fontSize: "14px",
-              fontWeight: "400",
+              fontWeight: "300",
               fontFamily: "var(--font-main)",
               color: "#000000E0",
             },
