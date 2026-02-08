@@ -21,80 +21,83 @@ function Container({
   extraColumn = null,
 }) {
   const { data } = dataState;
-  const { handleExecuteAction, handleSingleToggle } = control;
+  const { handleExecuteAction, handleSingleToggle, contextHolder } = control;
   const { selectedByFloor, handleSelectAll, handleSelectRoom, clearSelection } =
     useDeviceSelection(data);
-
+  
   return (
-    <PageHeader
-      pageIcon={pageIcon}
-      pageTitle={pageTitle}
-      alternatePageTitle={alternatePageTitle}
-    >
-      <TabsMenu>
-        {(floorNum) => {
-          const roomsObj = data[floorNum] || {};
-          const rooms = Object.values(roomsObj);
-          const selected = selectedByFloor[floorNum] || [];
-          const allRoomIdsOnFloor = rooms.map((room) => room.id);
+    <>
+      {contextHolder}
+      <PageHeader
+        pageIcon={pageIcon}
+        pageTitle={pageTitle}
+        alternatePageTitle={alternatePageTitle}
+      >
+        <TabsMenu>
+          {(floorNum) => {
+            const roomsObj = data[floorNum] || {};
+            const rooms = Object.values(roomsObj);
+            const selected = selectedByFloor[floorNum] || [];
+            const allRoomIdsOnFloor = rooms.map((room) => room.id);
 
-          if (rooms.length === 0) return <RoomNotFound />;
+            if (rooms.length === 0) return <RoomNotFound />;
 
-          console.log("SELECTED", selected);
+            const isAllSelected =
+              rooms.length > 0 && selected.length === rooms.length;
+            const isIndeterminate =
+              selected.length > 0 && selected.length < rooms.length;
 
-          const isAllSelected =
-            rooms.length > 0 && selected.length === rooms.length;
-          const isIndeterminate =
-            selected.length > 0 && selected.length < rooms.length;
-
-          return (
-            <RoomControl>
-              <RoomControlMenu
-                title={pageTitle}
-                ButtonIcon={pageButtonIcon}
-                floor={floorNum}
-                selectedCount={selected.length}
-                onOpen={() => {
-                  const ids =
-                    selected.length > 0 ? selected : allRoomIdsOnFloor;
-                  handleExecuteAction(ids, "on");
-                  setTimeout(() => {
-                    clearSelection(floorNum);
-                  }, 500);
-                }}
-                onClose={() => {
-                  const ids =
-                    selected.length > 0 ? selected : allRoomIdsOnFloor;
-                  handleExecuteAction(ids, "off");
-                  setTimeout(() => {
-                    clearSelection(floorNum);
-                  }, 500);
-                }}
-              />
-              <RoomControlBody
-                onSelectAll={(e) => handleSelectAll(floorNum, e.target.checked)}
-                isAllSelected={isAllSelected}
-                isIndeterminate={isIndeterminate}
-                extraColumnTitle={extraColumnTitle}
-              >
-                {rooms.map((room) => (
-                  <RoomCard
-                    key={room.id}
-                    roomName={`ห้อง ${room.id}`}
-                    checked={selected.includes(room.id)}
-                    onCheck={() => handleSelectRoom(floorNum, room.id)}
-                    isOn={room.isOn}
-                    onToggle={(isOn) => handleSingleToggle(room.id, isOn)}
-                  >
-                    {extraColumn && React.cloneElement(extraColumn, { room })}
-                  </RoomCard>
-                ))}
-              </RoomControlBody>
-            </RoomControl>
-          );
-        }}
-      </TabsMenu>
-    </PageHeader>
+            return (
+              <RoomControl>
+                <RoomControlMenu
+                  title={pageTitle}
+                  ButtonIcon={pageButtonIcon}
+                  floor={floorNum}
+                  selectedCount={selected.length}
+                  onOpen={() => {
+                    const ids =
+                      selected.length > 0 ? selected : allRoomIdsOnFloor;
+                    handleExecuteAction(ids, "on");
+                    setTimeout(() => {
+                      clearSelection(floorNum);
+                    }, 500);
+                  }}
+                  onClose={() => {
+                    const ids =
+                      selected.length > 0 ? selected : allRoomIdsOnFloor;
+                    handleExecuteAction(ids, "off");
+                    setTimeout(() => {
+                      clearSelection(floorNum);
+                    }, 500);
+                  }}
+                />
+                <RoomControlBody
+                  onSelectAll={(e) =>
+                    handleSelectAll(floorNum, e.target.checked)
+                  }
+                  isAllSelected={isAllSelected}
+                  isIndeterminate={isIndeterminate}
+                  extraColumnTitle={extraColumnTitle}
+                >
+                  {rooms.map((room) => (
+                    <RoomCard
+                      key={room.id}
+                      roomName={`ห้อง ${room.id}`}
+                      checked={selected.includes(room.id)}
+                      onCheck={() => handleSelectRoom(floorNum, room.id)}
+                      isOn={room.isOn}
+                      onToggle={(isOn) => handleSingleToggle(room.id, isOn)}
+                    >
+                      {extraColumn && React.cloneElement(extraColumn, { room })}
+                    </RoomCard>
+                  ))}
+                </RoomControlBody>
+              </RoomControl>
+            );
+          }}
+        </TabsMenu>
+      </PageHeader>
+    </>
   );
 }
 

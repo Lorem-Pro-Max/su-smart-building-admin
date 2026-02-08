@@ -18,3 +18,56 @@
 .content-layout-tabs .ant-tabs-nav {
   margin-bottom: 24px !important;
 }
+
+.ant-segmented {
+  background-color: #f5f5f5 !important;
+  border-radius: 16px !important;
+  border: 3px solid #ededed;
+  width: 153px;
+  height: 52px;
+  overflow: hidden;
+}
+
+.ant-segmented-item-selected {
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+.ant-segmented-item:first-child.ant-segmented-item-selected {
+  border-radius: 12px 0px 0px 12px !important;
+}
+
+.ant-segmented-item:last-child.ant-segmented-item-selected {
+  border-radius: 0px 12px 12px 0px !important;
+}
+
+.ant-segmented-item:first-child {
+  border-radius: 12px 0px 0px 12px !important;
+}
+
+.ant-segmented-item:last-child {
+  border-radius: 0px 12px 12px 0px !important;
+}
+
+.ant-segmented-item:hover::after,
+.ant-segmented-item:hover {
+  background-color: transparent !important;
+}
+
+.ant-segmented-item:not(.ant-segmented-item-selected):hover
+  .ant-segmented-item-label {
+  color: #262626 !important;
+  cursor: pointer;
+}
+
+.ant-segmented-thumb {
+  background: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.ant-segmented-item-selected:hover {
+  background-color: #ffffff !important;
+  cursor: default;
+}
+

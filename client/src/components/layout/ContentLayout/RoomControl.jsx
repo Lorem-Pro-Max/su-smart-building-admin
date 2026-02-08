@@ -56,7 +56,7 @@ export function RoomCard({
 }) {
   const unlockedTextStyle = isOn ? "text-green-600 font-medium" : "";
   const lockedTextStyle = !isOn ? "text-neutral-800 font-medium" : "";
-  
+
   return (
     <div className="bg-white h-23 w-full rounded-2xl flex items-center shadow-content-layout-header ">
       <div className="w-full h-full flex-40 flex ">
@@ -80,23 +80,24 @@ export function RoomCard({
         </div>
       )}
       <div className="text-lg text-black h-full flex-237 flex items-center ">
-        <div className="pl-2 py-5 h-full">
-          <Segmented
-            value={isOn ? "on" : "off"}
-            onChange={(val) => onToggle(val === "on")}
-            className="w-38.25 h-13"
-            options={[
-              {
-                label: <span className={unlockedTextStyle}>เปิด</span>,
-                value: "on",
-              },
-              {
-                label: <span className={lockedTextStyle}>ปิด</span>,
-                value: "off",
-              },
-            ]}
-            style={{ overflow: "hidden" }}
-          />
+        <div className="pl-2 pr-4 py-5 h-full w-full">
+          <div className="w-38.25 h-13">
+            <Segmented
+              value={isOn ? "on" : "off"}
+              onChange={(val) => onToggle(val === "on")}
+              className="w-full h-full"
+              options={[
+                {
+                  label: <span className={unlockedTextStyle}>เปิด</span>,
+                  value: "on",
+                },
+                {
+                  label: <span className={lockedTextStyle}>ปิด</span>,
+                  value: "off",
+                },
+              ]}
+            />
+          </div>
         </div>
       </div>
     </div>

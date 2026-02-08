@@ -1,4 +1,5 @@
-export { CalendarIcon } from "./sidebar/calendarIcon";
+export { CalendarIcon } from "./sidebar/CalendarIcon"
+export { PeopleIcon } from "./sidebar/PeopleIcon"
 export { SignalTowerIcon } from "./sidebar/SignalTowerIcon";
 export { BurgerIcon } from "./navbar/BurgerIcon";
 export { UserIcon } from "./navbar/UserIcon";

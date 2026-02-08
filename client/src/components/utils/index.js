@@ -8,3 +8,4 @@ export {
   AVAILABLE_DATES,
   AVAILABLE_FLOORS,
 } from "./graphConfig";
+export { LoadingScreen } from "./LoadingScreen";

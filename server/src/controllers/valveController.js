@@ -23,10 +23,10 @@ export const batchControl = async (req, res) => {
     await IoTService.executeBatch("valve", deviceIds, action);
     const rawData = await IoTService.fetchStatus("valves");
     const groupedData = groupDevicesByFloor(rawData);
-    emitDeviceUpdate("valves", groupedData); 
+    emitDeviceUpdate("valves", groupedData);
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -37,13 +37,12 @@ export const controlAll = async (req, res) => {
     emitDeviceUpdate("valves", { type: "global", action });
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
 export const getMetadata = (req, res) => {
   const data = metaWithRoom;
-
   if (!data) return res.status(404).json({ error: "Valve metadata not found" });
   res.json({ data: data });
 };

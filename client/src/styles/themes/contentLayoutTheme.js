@@ -18,9 +18,10 @@ export const ContentLayoutTheme = {
       colorPrimaryHover: "#13C2C2",
     },
     Segmented: {
-      controlHeight: 51,
+      controlHeight: 48,
       fontSize: 16,
-      controlPaddingHorizontal: 26.5,
+      controlPaddingHorizontal: 26,
+      trackPadding: 0
     },
   },
 };

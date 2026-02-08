@@ -39,7 +39,7 @@ export const batchControl = async (req, res) => {
     emitDeviceUpdate("ac", groupedData);
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
