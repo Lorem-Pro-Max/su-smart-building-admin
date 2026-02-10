@@ -1,7 +1,7 @@
-import { useDeviceServices } from "@hooks/devices/useDeviceServices";
-import { useDeviceControl } from "@hooks/devices/useDeviceControl";
-import { useGraphServices } from "@hooks/graph/useGraphServices";
+import { useDeviceServices } from "../devices/useDeviceServices";
+import { useDeviceControl } from "../devices/useDeviceControl";
 import { valveService } from "@services/deviceService";
+import { useGraphServices } from "@hooks/graph/useGraphServices";
 import { DEVICE_CONFIGS } from "../../config/devices";
 
 export function useValves() {
@@ -13,6 +13,6 @@ export function useValves() {
   return {
     dataState: state,
     control: control,
-    graphService: graphService
+    graphService: graphService,
   };
 }

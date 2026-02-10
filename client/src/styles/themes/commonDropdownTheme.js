@@ -1,4 +1,4 @@
-export const GraphPageDropdownTheme = {
+export const CommonDropdownTheme = {
   token: {
     fontFamily: "var(--font-main)",
   },

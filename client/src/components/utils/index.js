@@ -1,6 +1,6 @@
 export { CardButton } from "./CardButton";
 export { HeaderButton } from "./HeaderButton";
-export { GraphDropdown } from "./GraphDropdown";
+export { CommonDropdown } from "./CommonDropdown";
 export { getColor } from "./GraphColorsPalette";
 export { full30MinDomain, visibleTicks } from "./GraphTimeDomain";
 export {

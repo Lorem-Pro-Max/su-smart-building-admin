@@ -33,9 +33,11 @@ export const setTemperature = async (req, res) => {
 export const batchControl = async (req, res) => {
   const { deviceIds, action } = req.body;
   try {
-    const results = await IoTService.executeBatch("ac", deviceIds, action);
-    emitDeviceUpdate("ac", { type: "batch", results });
-    res.json({ success: true, results });
+    await IoTService.executeBatch("ac", deviceIds, action);
+    const rawData = await IoTService.fetchStatus("ac");
+    const groupedData = groupDevicesByFloor(rawData);
+    emitDeviceUpdate("ac", groupedData);
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
