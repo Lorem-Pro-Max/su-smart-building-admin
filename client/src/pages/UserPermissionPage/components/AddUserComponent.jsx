@@ -58,9 +58,6 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
 
       if (isEdit) {
         const payload = buildUpdatePayload(values);
-        console.log({ payload });
-        console.log({ values });
-        console.log({ editData });
 
         await updateUser(editData.key, payload);
         notification.success({ message: "แก้ไขข้อมูลผู้ใช้งานสำเร็จ" });
@@ -78,13 +75,13 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
           status: 1,
         });
 
-        notification.success({ message: "ลบข้อมูลผู้ใช้งานสำเร็จ" });
+        notification.success({ message: "เพิ่มผู้ใช้งานสำเร็จ" });
       }
 
       onSuccess?.();
     } catch (err) {
       console.error(err);
-      notification.error({ message: "โหลดข้อมูลไม่สำเร็จ" });
+      notification.error({ message: "เกิดข้อผิดพลาด" });
     } finally {
       setLoading(false);
     }
@@ -132,10 +129,10 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
 
               <Button
                 type="primary"
-                className="mt-[30px] bg-teal-500"
+                className="mt-[30px] !bg-[#13C2C2]"
                 onClick={handleGeneratePassword}
               >
-                สุ่มรหัส
+                กำหนดรหัสผ่าน
               </Button>
             </div>
           )}
@@ -175,14 +172,19 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
         </Form.Item>
 
         <div className="flex justify-end gap-4 mt-20">
-          <Button className="px-10 h-12 rounded-xl" onClick={onCancel}>
+          <Button
+            className="px-10 h-12 rounded-xl w-[260px]  h-[50px]"
+            onClick={onCancel}
+          >
             ยกเลิก
           </Button>
 
           <Button
             htmlType="submit"
             loading={loading}
-            className="px-10 h-12 rounded-xl bg-teal-500 text-white border-none"
+            variant="solid"
+            color="cyan"
+            className="px-10 h-12 rounded-xl w-[260px] text-white border-none h-[50px]"
           >
             ยืนยัน
           </Button>

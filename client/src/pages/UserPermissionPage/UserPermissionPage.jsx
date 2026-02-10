@@ -4,7 +4,7 @@ import DeleteConfirmModal from "./components/DeleteModal";
 
 import { getUsers, updateUser } from "../../services/user";
 
-import { Table, Button, Flex, Spin, message } from "antd";
+import { Table, Button, Flex, Spin, notification } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 function UserPermissionPage() {
@@ -37,9 +37,8 @@ function UserPermissionPage() {
       setLoading(true);
       const res = await getUsers();
       setUsers(mapUsers(res?.data));
-    } catch (err) {
-      console.error(err);
-      message.error("โหลดผู้ใช้งานไม่สำเร็จ");
+    } catch {
+      notification.error("เกิดข้อผิดพลาด");
     } finally {
       setLoading(false);
     }
@@ -55,12 +54,11 @@ function UserPermissionPage() {
     try {
       setLoading(true);
       await updateUser(deleteUserId, { status: 2 });
-      message.success("ลบผู้ใช้งานสำเร็จ");
+      notification.success({ message: "ลบข้อมูลผู้ใช้งานสำเร็จ" });
       setDeleteUserId(null);
       await fetchUsers();
-    } catch (err) {
-      console.error(err);
-      message.error("ลบผู้ใช้งานไม่สำเร็จ");
+    } catch {
+      notification.error("เกิดข้อผิดพลาด");
     } finally {
       setLoading(false);
     }
@@ -116,7 +114,8 @@ function UserPermissionPage() {
 
             <Button
               icon={<PlusOutlined />}
-              className="border-[#36CFC9] text-[#36CFC9] hover:!border-[#2bb8b2] hover:!text-[#2bb8b2] w-[146px] h-[56px]"
+              variant="outlined"
+              color="cyan"
               onClick={() => setIsOpenCreateUser(true)}
             >
               เพิ่มผู้ใช้งาน
@@ -149,6 +148,7 @@ function UserPermissionPage() {
           onSuccess={() => {
             setIsOpenCreateUser(false);
             setEditUser(null);
+
             fetchUsers();
           }}
           onCancel={() => {

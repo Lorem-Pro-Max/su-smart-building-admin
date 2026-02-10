@@ -123,8 +123,12 @@ function ApproveBookingPage() {
     if (!config) return null;
 
     return (
-      <Tag className="!w-[70px] !text-center !m-0" color={config.color}>
-        {config.label}
+      <Tag
+        className="!w-[70px] !text-center !m-0"
+        color={config.color}
+        variant="outlined"
+      >
+        <p className="text-[#000000A6]">{config.label}</p>
       </Tag>
     );
   };
