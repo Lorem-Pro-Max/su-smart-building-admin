@@ -1,241 +1,256 @@
-import { useState } from "react";
-import { Divider, Table } from "antd";
-import { Button, Tag, Flex, notification } from "antd";
+import { useEffect, useState } from "react";
+import { Table, Button, Tag, Flex, notification } from "antd";
 import BookingModal from "./components/BookingModal";
 import DeclinedModal from "./components/DeclinedModal";
 import DuplicatedModal from "./components/DuplicatedModal";
-
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
-import { CheckCircleFilled } from "@ant-design/icons";
+import dayjs from "dayjs";
+import {
+  getBookings,
+  updateBookingStatus,
+  getBookingById,
+} from "../../services/booking";
 
-const data = [
-  {
-    key: "1",
-    date: "18/12/25",
-    title: "สสารรอบตัว",
-    bookDate: "27/12/25",
-    time: "09:00 - 12:00 น.",
-    floor: "ชั้น 3",
-    room: "Conference A",
-    bookingStatus: "WAITING",
-    bookName: "John Brown",
-    status: "Approved",
-  },
-  {
-    key: "2",
-    date: "18/12/25",
-    title: "ระบบนิเวศจำลอง 1",
-    bookDate: "27/12/25",
-    time: "10:00 - 12:00 น.",
-    floor: "ชั้น 4",
-    room: "Conference A1",
-    bookingStatus: "Approved",
-    bookName: "John Brown",
-    status: "Nutthawara K. 26/12/25",
-  },
-  {
-    key: "3",
-    date: "18/12/25",
-    title: "ระบบนิเวศจำลอง 1",
-    bookDate: "27/12/25",
-    time: "10:00 - 12:00 น.",
-    floor: "ชั้น 4",
-    room: "Conference A1",
-    bookingStatus: "DUPLICATED",
-    bookName: "John Brown",
-    status: "Nutthawara K. 26/12/25",
-  },
-];
+export const BookingStatusEnum = Object.freeze({
+  PENDING: "pending",
+  APPROVED: "approved",
+  REJECTED_BY_ADMIN: "rejectedByAdmin",
+  CANCELED_BY_ADMIN: "canceledByAdmin",
+  CHECKED_IN: "checked-in",
+  COMPLETED: "completed",
+  CANCELED_BY_USER: "canceledByUser",
+});
 
-const rowSelection = {
-  onChange: (selectedRowKeys, selectedRows) => {
-    console.log(
-      `selectedRowKeys: ${selectedRowKeys}`,
-      "selectedRows: ",
-      selectedRows,
-    );
-  },
-  getCheckboxProps: (record) => ({
-    disabled: record.name === "Disabled User",
-    name: record.name,
-  }),
+const STATUS_MAP = {
+  approved: { label: "อนุมัติ", color: "#52C41A" },
+  completed: { label: "อนุมัติ", color: "#52C41A" },
+  pending: { label: "รออนุมัติ", color: "#FAAD14" },
+  canceledByAdmin: { label: "ยกเลิก", color: "#F0F0F0" },
+  rejectedByAdmin: { label: "ปฏิเสธ", color: "red" },
+  canceledByUser: { label: "ยกเลิก", color: "#F0F0F0" },
+  "checked-in": { label: "อนุมัติ", color: "#52C41A" },
 };
+
 function ApproveBookingPage() {
-  const [selectionType] = useState("checkbox");
   const [isOpenConfirmModal, setIsOpenConfirmModal] = useState(false);
   const [isOpenDeclinedModal, setIsOpenDeclinedModal] = useState(false);
   const [isOpenDuplicatedModal, setIsOpenDuplicatedModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [tableData, setTableData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleConfirmDecline = () => {
-    notification.success({
-      message: "ไม่อนุมัติการจองสำเร็จ",
-      description: "ระบบได้ส่งการแจ้งเตือนและเหตุผลไปยังผู้จองเรียบร้อยแล้ว",
-      placement: "topRight",
-      icon: <CheckCircleFilled style={{ color: "#52C41A", fontSize: 20 }} />,
-      className: "!border !border-[#B7EB8F] !bg-[#F6FFED]",
-    });
-
-    setIsOpenDeclinedModal(false);
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      const res = await getBookings({ page: 1, limit: 10 });
+      setTableData(res?.data || []);
+    } catch (err) {
+      console.error(err);
+      notification.error({ message: "โหลดข้อมูลไม่สำเร็จ" });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleConfirmApprove = () => {
-    notification.open({
-      message: "อนุมัติการจองเรียบร้อยแล้ว",
-      placement: "topRight",
-      type: "success",
-      icon: <CheckCircleFilled style={{ color: "#52C41A", fontSize: 20 }} />,
-      className: "!border !border-[#B7EB8F] !bg-[#F6FFED]",
-    });
+  useEffect(() => {
+    fetchBookings();
+  }, []);
 
-    setIsOpenConfirmModal(false);
+  const handleUpdateStatus = async (
+    bookingId,
+    status,
+    reason = "",
+    cancelId = null,
+  ) => {
+    if (!bookingId) return;
+
+    try {
+      setLoading(true);
+      await updateBookingStatus(bookingId, status, reason, cancelId);
+
+      setTableData((prev) =>
+        prev.map((item) =>
+          item.id === bookingId ? { ...item, status } : item,
+        ),
+      );
+
+      notification.success({
+        message:
+          status === "rejectedByAdmin"
+            ? "ไม่อนุมัติการจองสำเร็จ"
+            : "อนุมัติการจองเรียบร้อยแล้ว",
+        description: cancelId
+          ? "ระบบได้ส่งข้อความแจ้งยกเลิกไปยังรายการที่จองซ้ำซ้อนแล้ว"
+          : "ระบบได้ส่งการแจ้งเตือนและเหตุผลไปยังผู้จองเรียบร้อยแล้ว",
+      });
+    } catch {
+      notification.error({ message: "อัปเดตสถานะไม่สำเร็จ" });
+    } finally {
+      setLoading(false);
+      setIsOpenConfirmModal(false);
+      setIsOpenDeclinedModal(false);
+      setSelectedBooking(null);
+      setIsOpenDuplicatedModal(false);
+    }
   };
 
-  const handleConfirmDuplicated = () => {
-    notification.success({
-      message: "อนุมัติการจองเรียบร้อยแล้ว",
-      description: "ระบบได้ส่งข้อความแจ้งยกเลิกไปยังรายการที่จองซ้ำซ้อนแล้ว",
-      placement: "topRight",
-      icon: <CheckCircleFilled style={{ color: "#52C41A", fontSize: 20 }} />,
-      className: "!border !border-[#B7EB8F] !bg-[#F6FFED]",
-    });
+  const clickGetConfirmBooking = async (bookingId) => {
+    try {
+      const result = await getBookingById(bookingId);
 
-    setIsOpenDuplicatedModal(false);
+      setSelectedBooking(result.data);
+      if (result.data.duplicate) {
+        setIsOpenDuplicatedModal(true);
+      } else {
+        setIsOpenConfirmModal(true);
+      }
+    } catch {
+      notification.error({ message: "เกิดข้อผิดพลาด" });
+    }
+  };
+
+  const clickGetDeclineBooking = async (bookingId) => {
+    try {
+      const result = await getBookingById(bookingId);
+      setSelectedBooking(result.data);
+      setIsOpenDeclinedModal(true);
+    } catch {
+      notification.error({ message: "เกิดข้อผิดพลาด" });
+    }
+  };
+  const renderStatusTag = (status) => {
+    const config = STATUS_MAP[status];
+    if (!config) return null;
+
+    return (
+      <Tag className="!w-[70px] !text-center !m-0" color={config.color}>
+        {config.label}
+      </Tag>
+    );
   };
 
   const columns = [
     {
       title: "วันที่ทำรายการ",
-      dataIndex: "date",
+      render: (_, record) => dayjs(record.createdAt).format("DD/MM/YY"),
     },
-    {
-      title: "ชื่อการเรียน/ประชุม",
-      dataIndex: "title",
-    },
+    { title: "ชื่อการเรียน/ประชุม", dataIndex: "meetingName" },
     {
       title: "วันที่จอง",
-      dataIndex: "bookDate",
-      render: (text) => {
-        return <span className="font-medium">{text}</span>;
-      },
+      render: (_, record) => (
+        <span className="font-medium">
+          {dayjs(record.startTime).format("DD/MM/YY")}
+        </span>
+      ),
     },
     {
       title: "เวลา",
-      dataIndex: "time",
-      render: (text) => {
-        return <span className="font-medium text-[#08979C]">{text}</span>;
-      },
+      render: (_, record) => (
+        <span className="font-medium text-[#08979C]">
+          {dayjs(record.startTime).format("HH:mm")} -{" "}
+          {dayjs(record.endTime).format("HH:mm")} น.
+        </span>
+      ),
     },
+    { title: "ชั้น", dataIndex: "floor" },
+    { title: "ห้อง", dataIndex: "title" },
+    { title: "สถานะ", dataIndex: "status", render: renderStatusTag },
+    { title: "ชื่อผู้จอง", dataIndex: "bookingBy" },
     {
-      title: "ชั้น",
-      dataIndex: "floor",
-    },
-    {
-      title: "ห้อง",
-      dataIndex: "room",
-    },
-    {
-      title: "สถานะ",
-      dataIndex: "bookingStatus",
-      render: (status) => {
-        if (status === "Approved") {
+      title: "การดำเนินการ",
+      render: (_, record) => {
+        if (record.status !== "pending") {
           return (
-            <Tag
-              color="#52C41A"
-              variant="outlined"
-              className="w-18.5 h-7 flex items-center justify-center leading-none p-0"
-            >
-              <span className="flex items-center justify-center w-full h-full font-normal text-[14px] text-[#000000A6]">
-                อนุมัติ
-              </span>
-            </Tag>
+            <div>
+              <p className="text-[14px]">{record.actionBy ?? "-"}</p>
+              <p className="text-[14px]">
+                {record.bookingDate?.replaceAll("-", "/") ?? "-"}
+              </p>
+            </div>
           );
         }
 
-        if (status === "WAITING" || status === "DUPLICATED") {
-          return (
-            <Tag
-              color="#FAAD14"
-              variant="outlined"
-              className="w-18.5 h-7 flex items-center justify-center leading-none p-0"
+        return (
+          <Flex gap="small">
+            <Button
+              type="primary"
+              loading={loading}
+              disabled={loading}
+              style={{ backgroundColor: "#13C2C2" }}
+              icon={<CheckOutlined />}
+              onClick={() => {
+                clickGetConfirmBooking(record.id);
+              }}
             >
-              <span className="flex items-center justify-center w-full h-full font-normal text-[14px] text-[#000000A6]">
-                รออนุมัติ
-              </span>
-            </Tag>
-          );
-        }
-      },
-    },
-    {
-      title: "ชื่อผู้จอง",
-      dataIndex: "bookName",
-    },
-    {
-      title: "สถานะ",
-      dataIndex: "status",
-      render: (text, status) => {
-        if (
-          status.bookingStatus === "WAITING" ||
-          status.bookingStatus === "DUPLICATED"
-        ) {
-          return (
-            <Flex gap="small">
-              <Button
-                type="primary"
-                style={{ backgroundColor: "#13C2C2" }}
-                icon={<CheckOutlined />}
-                onClick={() => {
-                  if (status.bookingStatus === "WAITING") {
-                    setIsOpenConfirmModal(true);
-                  } else {
-                    setIsOpenDuplicatedModal(true);
-                  }
-                }}
-              >
-                อนุมัติ
-              </Button>
-              <Button
-                type="primary"
-                danger
-                icon={<CloseOutlined />}
-                onClick={() => setIsOpenDeclinedModal(true)}
-              >
-                ปฏิเสธ
-              </Button>
-            </Flex>
-          );
-        }
+              อนุมัติ
+            </Button>
 
-        return <span>{text}</span>;
+            <Button
+              danger
+              loading={loading}
+              disabled={loading}
+              icon={<CloseOutlined />}
+              onClick={() => {
+                clickGetDeclineBooking(record.id);
+              }}
+            >
+              ปฏิเสธ
+            </Button>
+          </Flex>
+        );
       },
     },
   ];
 
   return (
     <>
+      <h3 className="text-lg font-semibold flex items-center gap-2 ml-4 mt-4 mb-8">
+        <img
+          src="src/assets/icons/approve-booking/approve-title.svg"
+          alt="approve"
+          className="w-[20px] h-[20px]"
+        />
+        อนุมัติการจอง
+      </h3>
+
       <DuplicatedModal
         open={isOpenDuplicatedModal}
         onCancel={() => setIsOpenDuplicatedModal(false)}
-        onConfirm={handleConfirmDuplicated}
+        selectedBooking={selectedBooking}
+        onConfirm={() =>
+          handleUpdateStatus(
+            selectedBooking?.booking.id,
+            "approved",
+            "duplicated",
+            selectedBooking?.conflicts.id,
+          )
+        }
       />
+
       <BookingModal
         open={isOpenConfirmModal}
         onCancel={() => setIsOpenConfirmModal(false)}
-        onConfirm={handleConfirmApprove}
+        selectedBooking={selectedBooking}
+        onConfirm={() =>
+          handleUpdateStatus(selectedBooking?.booking.id, "approved")
+        }
       />
+
       <DeclinedModal
         open={isOpenDeclinedModal}
         onCancel={() => setIsOpenDeclinedModal(false)}
-        onConfirm={handleConfirmDecline}
+        selectedBooking={selectedBooking}
+        onConfirm={() =>
+          handleUpdateStatus(selectedBooking?.booking.id, "rejectedByAdmin")
+        }
       />
-      <div>
-        <Divider />
-        <Table
-          rowSelection={{ type: selectionType, ...rowSelection }}
-          columns={columns}
-          dataSource={data}
-        />
-      </div>
+
+      <Table
+        columns={columns}
+        dataSource={tableData}
+        loading={loading}
+        rowKey="id"
+      />
     </>
   );
 }

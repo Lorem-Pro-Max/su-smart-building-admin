@@ -9,6 +9,7 @@ import {
   ElectricityPage,
 } from "./pages";
 import ApproveBookingPage from "./pages/ApproveBookingPage/ApproveBooking";
+import UserPermissionPage from "./pages/UserPermissionPage/UserPermissionPage";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           />
           <Route path="/electricity" element={<ElectricityPage />} />
           <Route path="/approve-booking" element={<ApproveBookingPage />} />
+          <Route path="/user-permissions" element={<UserPermissionPage />} />
 
           <Route path="*" element={<></>} />
         </Route>
