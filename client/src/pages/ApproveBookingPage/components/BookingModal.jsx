@@ -1,6 +1,23 @@
 import { Modal } from "antd";
+import dayjs from "dayjs";
 
-function BookingModal({ open = true, onCancel, onConfirm }) {
+function BookingModal({ open, onCancel, onConfirm, selectedBooking }) {
+  const booking = selectedBooking?.booking;
+  const bookingDate = booking?.startTime
+    ? dayjs(booking.startTime).format("DD MMM YYYY")
+    : "-";
+
+  const bookingTime =
+    booking?.startTime && booking?.endTime
+      ? `${dayjs(booking.startTime).format("HH:mm")} – ${dayjs(
+          booking.endTime,
+        ).format("HH:mm")} น.`
+      : "-";
+
+  const createdDate = booking?.createdAt
+    ? dayjs(booking.createdAt).format("DD/MM/YY")
+    : "-";
+
   return (
     <Modal
       open={open}
@@ -29,48 +46,49 @@ function BookingModal({ open = true, onCancel, onConfirm }) {
           </div>
 
           <div className="px-4 py-3 text-left text-sm space-y-2">
-            <p className="text-[18px] font-bold">ระบบบันทึกจอง 1</p>
+            <p className="text-[18px] font-bold">
+              {booking?.meetingName || "-"}
+            </p>
 
             <div className="flex items-center gap-2 text-gray-600">
               <img
                 src="src/assets/icons/approve-booking/calendar.svg"
-                alt="approve"
+                alt="calendar"
                 className="w-[24px] h-[24px]"
               />
-              <span className="text-[16px]">27 Dec 2025</span>
+              <span className="text-[16px]">{bookingDate}</span>
             </div>
 
             <div className="flex items-center gap-2 text-gray-600">
               <img
                 src="src/assets/icons/approve-booking/time.svg"
-                alt="approve"
+                alt="time"
                 className="w-[24px] h-[24px]"
               />
-              <span className="text-[16px] text-[#08979C]">
-                08:00 – 09:00 น.
-              </span>
+              <span className="text-[16px] text-[#08979C]">{bookingTime}</span>
             </div>
 
             <div className="flex items-start gap-2 text-gray-600">
               <img
                 src="src/assets/icons/approve-booking/room.svg"
-                alt="approve"
+                alt="room"
                 className="w-[24px] h-[24px]"
               />
 
               <div className="flex flex-col gap-2">
-                <span className="text-[16px]">ห้องเรียน 5</span>
+                <span className="text-[16px]">{booking?.title || "-"}</span>
                 <span className="text-[16px]">
-                  ชั้น 4 อาคารการเรียนการสอนและปฏิบัติการ
+                  ชั้น {booking?.floor || "-"}
                 </span>
               </div>
             </div>
 
             <p className="text-[14px] text-gray-400 mt-2">
-              ดวงจันทร์ จันทร์กระจ่าง
+              {booking?.bookingBy || "-"}
             </p>
+
             <p className="text-[14px] text-gray-400 mt-2">
-              วันที่ทำรายการ 17/12/25
+              วันที่ทำรายการ {createdDate}
             </p>
           </div>
         </div>
@@ -85,7 +103,7 @@ function BookingModal({ open = true, onCancel, onConfirm }) {
 
           <button
             className="flex-1 bg-teal-400 text-white rounded-lg py-2 hover:bg-teal-500 text-[18px] font-bold"
-            onClick={onConfirm}
+            onClick={() => onConfirm?.(booking)}
           >
             ยืนยัน
           </button>
