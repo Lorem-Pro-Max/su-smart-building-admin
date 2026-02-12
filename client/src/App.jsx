@@ -11,6 +11,7 @@ import {
   HistoryPage,
 } from "./pages";
 import ApproveBookingPage from "./pages/ApproveBookingPage/ApproveBooking";
+import UserPermissionPage from "./pages/UserPermissionPage/UserPermissionPage";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
             path="*"
             element={<Navigate to="/approve-booking" replace />}
           />
+
         </Route>
       </Routes>
     </BrowserRouter>
