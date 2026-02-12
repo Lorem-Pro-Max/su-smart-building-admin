@@ -1,30 +1,30 @@
 export const DEVICE_CONFIGS = {
   DOORS: {
     type: "doors",
-    actions: { on: "unlock", off: "lock" },
-    deviceStatus: { on: "unlocked", off: "locked" },
+    actions: { on: true, off: false },
+    deviceStatus: { on: true, off: false },
   },
   VALVES: {
     type: "valves",
-    actions: { on: "open", off: "close" },
-    deviceStatus: { on: "open", off: "closed" },
+    actions: { on: true, off: false },
+    deviceStatus: { on: true, off: false },
   },
   ELECTRICITY: {
     type: "electricity",
   },
   AC: {
     type: "ac",
-    actions: { on: "on", off: "off" },
-    deviceStatus: { on: "on", off: "off" },
+    actions: { on: true, off: false },
+    deviceStatus: { on: true, off: false },
   },
   LIGHTS: {
     type: "lights",
-    actions: { on: "on", off: "off" },
-    deviceStatus: { on: "on", off: "off" },
+    actions: { on: true, off: false },
+    deviceStatus: { on: true, off: false },
   },
   EXHAUST_FANS: {
     type: "exhaustfans",
-    actions: { on: "on", off: "off" },
-    deviceStatus: { on: "on", off: "off" },
+    actions: { on: true, off: false },
+    deviceStatus: { on: true, off: false },
   },
 };

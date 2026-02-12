@@ -5,18 +5,19 @@ export function useDeviceControl(config, onRefresh, service) {
     stack: { threshold: 0 },
   });
 
-  const openNotification = (type, apiAction, length) => {
-    api[type]({
-      title: "ล้มเหลว",
-      description: `${apiAction == "on" ? "เปิด" : "ปิด"} สำหรับ ${length} ห้อง`,
-      duration: 1.5,
-      styles: {
-        root: {
-          backgroundColor: type == "success" ? "#F6FFED" : "#FFE5E5",
-        },
-      },
-    });
-  };
+const openNotification = (type, message) => {
+  const description = typeof message === 'object' ? (message.message || "An unexpected error occurred") : message;
+
+  api[type]({
+    title: "ล้มเหลว",
+    description: String(description),
+    duration: 5,
+    placement: "topRight",
+    style: {
+      backgroundColor: type === "success" ? "#F6FFED" : "#FFE5E5",
+    },
+  });
+};
 
   const handleSingleToggle = async (roomId, isTurningOn) => {
     const action = isTurningOn ? config.actions.on : config.actions.off;
@@ -24,13 +25,13 @@ export function useDeviceControl(config, onRefresh, service) {
       const response = await service.batchControl([roomId], action);
       const { data } = response;
 
-      if (data?.success || response.status === 200) {
+      if (data.success == true) {
         setTimeout(() => onRefresh?.(), 800);
       } else {
-        throw new Error(data?.error || "Unknown device error");
+        openNotification("error", data.error);
       }
     } catch (error) {
-      openNotification("error", error);
+      openNotification("error", error.message || "การเชื่อมต่อล้มเหลว");
     }
   };
 

@@ -1,11 +1,12 @@
 import * as IoTService from "../services/iotService.js";
-import { emitDeviceUpdate } from "../utils/socketManager.js";
-import { groupDevicesByFloor } from "../utils/responseFormatter.js";
+import { emitDeviceUpdate } from "../services/socketService.js";
+import { formatProductionUpdate } from "../utils/responseFormatter.js";
 
 export const getExhaustFansStatus = async (req, res) => {
   try {
-    const data = await IoTService.fetchStatus("exhaustFans");
-    const groupedData = groupDevicesByFloor(data);
+    const data = await IoTService.fetchStatusByType("exhaustFans");
+    const groupedData = formatProductionUpdate(data);
+
     res.json({ data: groupedData });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -15,15 +16,30 @@ export const getExhaustFansStatus = async (req, res) => {
 export const batchControl = async (req, res) => {
   const { deviceIds, action } = req.body;
   try {
-    const results = await IoTService.executeBatch(
-      "exhaustFan",
+    const result = await IoTService.executeBatch(
+      "exhaustFans",
       deviceIds,
       action,
     );
-    emitDeviceUpdate("exhaustfans", { type: "batch", results });
-    res.json({ success: true, results });
+    const returnedData = result[0];
+
+    if (returnedData.status != 200 || returnedData.data.success !== true) {
+      res.json({
+        success: false,
+        error:
+          returnedData.data.error ||
+          returnedData.data.result.error ||
+          "Internal Error: Please try again later",
+      });
+      return;
+    }
+
+    const data = await IoTService.fetchStatusByType("exhaustFans");
+    const groupedData = formatProductionUpdate(data);
+    emitDeviceUpdate("exhaustFans", groupedData);
+    res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 

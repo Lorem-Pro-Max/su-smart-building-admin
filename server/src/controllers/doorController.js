@@ -1,5 +1,5 @@
 import * as IoTService from "../services/iotService.js";
-import { emitDeviceUpdate } from "../utils/socketManager.js";
+import { emitDeviceUpdate } from "../services/socketService.js";
 import { groupDevicesByFloor } from "../utils/responseFormatter.js";
 
 export const getDoorsStatus = async (req, res) => {

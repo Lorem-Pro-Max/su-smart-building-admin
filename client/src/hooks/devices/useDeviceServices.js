@@ -6,7 +6,7 @@ const normalizeDeviceData = (data, onStatus) => {
       floor,
       Object.values(rooms).map((room) => ({
         ...room,
-        isOn: room.status === onStatus,
+        isOn: room.status.power === onStatus,
       })),
     ]),
   );

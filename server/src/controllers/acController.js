@@ -1,14 +1,13 @@
 import * as IoTService from "../services/iotService.js";
-import { emitDeviceUpdate } from "../utils/socketManager.js";
+import { emitDeviceUpdate } from "../services/socketService.js";
 import { groupDevicesByFloor } from "../utils/responseFormatter.js";
+import { formatProductionUpdate } from "../utils/responseFormatter.js";
 
 export const getAcStatus = async (req, res) => {
   try {
-    const data = await IoTService.fetchStatus("ac");
-    const groupedData = groupDevicesByFloor(data);
-
+    const data = await IoTService.fetchStatusByType("ac");
+    const groupedData = formatProductionUpdate(data);
     res.json({ data: groupedData });
-    res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -33,9 +32,22 @@ export const setTemperature = async (req, res) => {
 export const batchControl = async (req, res) => {
   const { deviceIds, action } = req.body;
   try {
-    await IoTService.executeBatch("ac", deviceIds, action);
-    const rawData = await IoTService.fetchStatus("ac");
-    const groupedData = groupDevicesByFloor(rawData);
+    const result = await IoTService.executeBatch("ac", deviceIds, action);
+    const returnedData = result[0];
+
+    if (returnedData.status != 200 || returnedData.data.success !== true) {
+      res.json({
+        success: false,
+        error:
+          returnedData.data.error ||
+          returnedData.data.result.error ||
+          "Internal Error: Please try again later",
+      });
+      return;
+    }
+
+    const data = await IoTService.fetchStatusByType("ac");
+    const groupedData = formatProductionUpdate(data);
     emitDeviceUpdate("ac", groupedData);
     res.json({ success: true });
   } catch (error) {
