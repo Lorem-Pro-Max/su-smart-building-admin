@@ -13,6 +13,7 @@ const app = express();
 app.use(
   cors({ origin: ["https://ssb.slwlabs.dev", "http://localhost:5173", "*"] }),
 );
+
 app.use(express.json());
 
 app.use("/api/doors", doorRoutes);

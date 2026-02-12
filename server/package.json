@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "dev": "nodemon --env-file=.env.development server.js",
+    "start": "nodemon --env-file=.env.production server.js"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "pg": "^8.18.0",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3"
   },

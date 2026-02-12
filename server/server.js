@@ -1,15 +1,16 @@
 import { createServer } from "http";
 import app from "./src/app.js"; 
-import { initSocket } from "./src/utils/socketManager.js";
-import { syncAllDevices } from "./src/services/syncService.js"; 
-import dotenv from "dotenv";
+import { initSocket } from "./src/config/socket.js";
+import {
+  initHardwareListener,
+  syncAllDevices,
+} from "./src/services/socketService.js";
 
-dotenv.config(); 
-
-const PORT = process.env.PORT || 4000;
+const PORT = 4000;
 const httpServer = createServer(app);
 
-initSocket(httpServer, syncAllDevices); 
+initSocket(httpServer);
+initHardwareListener(syncAllDevices);
 
 httpServer.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
