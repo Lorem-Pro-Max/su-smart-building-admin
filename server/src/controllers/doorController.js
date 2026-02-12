@@ -1,5 +1,5 @@
 import * as IoTService from "../services/iotService.js";
-import { emitDeviceUpdate } from "../utils/socketManager.js";
+import { emitDeviceUpdate } from "../services/socketService.js";
 import { groupDevicesByFloor } from "../utils/responseFormatter.js";
 
 export const getDoorsStatus = async (req, res) => {
@@ -22,7 +22,7 @@ export const batchControl = async (req, res) => {
     emitDeviceUpdate("doors", groupedData);
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 

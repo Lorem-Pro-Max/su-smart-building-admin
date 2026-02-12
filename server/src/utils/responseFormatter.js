@@ -1,3 +1,5 @@
+import { deviceCache } from "../services/socketService.js";
+
 export const groupDevicesByFloor = (response) => {
   if (!response) return {};
 
@@ -6,7 +8,7 @@ export const groupDevicesByFloor = (response) => {
   if (
     response.data &&
     typeof response.data === "object" &&
-    !Array.isArray(response.data)
+    Array.isArray(response.data)
   ) {
     list = Object.values(response.data);
   } else if (response.data && Array.isArray(response.data)) {
@@ -36,3 +38,27 @@ export const groupDevicesByFloor = (response) => {
 
   return grouped;
 };
+
+export const formatProductionUpdate = (iotStatusData) => {
+  const grouped = {};
+
+  for (const [id, status] of Object.entries(iotStatusData)) {
+    const meta = deviceCache[id];
+
+    if (meta) {
+      const { floor, title, type } = meta;
+      if (!grouped[floor]) grouped[floor] = [];
+
+      grouped[floor].push({
+        id: id,
+        name: title,
+        type: type,
+        status: status,
+        floor: floor,
+      });
+    }
+  }
+
+  return grouped;
+};
+

@@ -17,3 +17,30 @@
   border-right-color: var(--color-sidebar-menu-right-border) !important;
   border-right-width: 3px !important;
 }
+
+.ant-menu-inline-collapsed .ant-menu-item-selected,
+.ant-menu-inline-collapsed .ant-menu-submenu-selected {
+  background-color: #fffbe6 !important;
+  color: #faad14 !important;
+  border-radius: 8px !important;
+}
+
+.ant-menu-inline-collapsed .ant-menu-item-selected .anticon,
+.ant-menu-inline-collapsed
+  .ant-menu-submenu-selected
+  .ant-menu-submenu-title
+  .anticon {
+  color: #faad14 !important;
+}
+
+.ant-menu-inline-collapsed .ant-menu-item:hover,
+.ant-menu-inline-collapsed .ant-menu-submenu-title:hover {
+  background-color: #fffbe6ad !important;
+  border-radius: 8px !important;
+}
+
+.ant-menu-inline-collapsed .ant-menu-item:hover .anticon,
+.ant-menu-inline-collapsed .ant-menu-submenu-title:hover .anticon {
+  color: #faad14aa !important;
+}
+

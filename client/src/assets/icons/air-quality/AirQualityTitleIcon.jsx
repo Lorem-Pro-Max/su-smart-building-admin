@@ -32,8 +32,8 @@ export const AirQualityTitleIcon = () => {
           y2="10.7276"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#FAAD14" />
-          <stop offset="1" stop-color="#38CFC8" />
+          <stop stopColor="#FAAD14" />
+          <stop offset="1" stopColor="#38CFC8" />
         </linearGradient>
         <linearGradient
           id="paint1_linear_282_28484"
@@ -43,8 +43,8 @@ export const AirQualityTitleIcon = () => {
           y2="14.2514"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#FAAD14" />
-          <stop offset="1" stop-color="#38CFC8" />
+          <stop stopColor="#FAAD14" />
+          <stop offset="1" stopColor="#38CFC8" />
         </linearGradient>
         <linearGradient
           id="paint2_linear_282_28484"
@@ -54,8 +54,8 @@ export const AirQualityTitleIcon = () => {
           y2="22.0411"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#FAAD14" />
-          <stop offset="1" stop-color="#38CFC8" />
+          <stop stopColor="#FAAD14" />
+          <stop offset="1" stopColor="#38CFC8" />
         </linearGradient>
         <linearGradient
           id="paint3_linear_282_28484"
@@ -65,8 +65,8 @@ export const AirQualityTitleIcon = () => {
           y2="16.7143"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#FAAD14" />
-          <stop offset="1" stop-color="#38CFC8" />
+          <stop stopColor="#FAAD14" />
+          <stop offset="1" stopColor="#38CFC8" />
         </linearGradient>
       </defs>
     </svg>

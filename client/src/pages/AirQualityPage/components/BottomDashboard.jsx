@@ -33,7 +33,7 @@ function AirQualityItem() {
 
 function BottomDashboard() {
   return (
-    <div className="min-h-280 h-full w-full bg-bottom-section-gradient flex flex-col">
+    <div className="h-full w-full flex flex-col">
       <div className="w-full h-22 px-7 py-6 flex justify-between">
         <h3 className="font-medium text-2xl">จัดอันดับคุณภาพอากาศ</h3>
         <div className="flex w-max h-10 gap-4">

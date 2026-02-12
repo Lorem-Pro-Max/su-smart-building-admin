@@ -10,10 +10,9 @@ const __dirname = path.dirname(__filename);
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    port: 5173,
-    // host: "0.0.0.0",
-    host: "127.0.0.1",
-    // allowedHosts: ["ssb.slwlabs.dev"],
+    port: 7185,
+    host: "0.0.0.0",
+    // allowedHosts: [".slwlabs.dev"],
     // hmr: {
     //   clientPort: 443,
     //   host: "ssb.slwlabs.dev",

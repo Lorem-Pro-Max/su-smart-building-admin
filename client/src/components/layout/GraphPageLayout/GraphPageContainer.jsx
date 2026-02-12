@@ -13,6 +13,7 @@ import {
 } from "@components/layout";
 import { useDeviceSelection } from "@hooks/devices/useDeviceSelection";
 import { useGraphSelection } from "@hooks/graph/useGraphSelection";
+import { LoadingScreen } from "@components/utils";
 
 function GraphPageContainer({
   pageIcon,
@@ -25,7 +26,7 @@ function GraphPageContainer({
   totalUsageIcon,
   alternateTitle,
 }) {
-  const { data } = dataState;
+  const { data, isLoading } = dataState;
   const { multiTabs, defaultPage } = displayConfig;
   const { handleExecuteAction, handleSingleToggle } = control;
   const { selectedByFloor, handleSelectAll, handleSelectRoom, clearSelection } =

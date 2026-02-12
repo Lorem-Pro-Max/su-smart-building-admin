@@ -6,13 +6,13 @@ function DoorControlPage() {
   const { dataState, control } = useDoors();
 
   return (
-    <Container
-      pageIcon={<DoorsControlTitleIcon />}
-      pageButtonIcon={<DoorsControlButtonIcon />}
-      pageTitle="ประตู"
-      dataState={dataState}
-      control={control}
-    />
+      <Container
+        pageIcon={<DoorsControlTitleIcon />}
+        pageButtonIcon={<DoorsControlButtonIcon />}
+        pageTitle="ประตู"
+        dataState={dataState}
+        control={control}
+        />
   );
 }
 

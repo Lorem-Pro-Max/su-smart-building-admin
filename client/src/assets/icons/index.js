@@ -1,4 +1,5 @@
-export { CalendarIcon } from "./sidebar/calendarIcon";
+export { CalendarIcon } from "./sidebar/CalendarIcon"
+export { PeopleIcon } from "./sidebar/PeopleIcon"
 export { SignalTowerIcon } from "./sidebar/SignalTowerIcon";
 export { BurgerIcon } from "./navbar/BurgerIcon";
 export { UserIcon } from "./navbar/UserIcon";
@@ -27,3 +28,4 @@ export { TotalUsageIconOrange } from "./graph-container/TotalUsageIconOrange";
 export { RoomNotFoundIcon } from "./roomNotFoundIcon";
 
 export { AirQualityTitleIcon } from "./air-quality/AirQualityTitleIcon";
+export { HistoryPageTitleIcon } from "./history-page/HistoryPageTitleIcon";

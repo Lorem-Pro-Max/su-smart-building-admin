@@ -1,9 +1,8 @@
 import { useMemo } from "react";
 import { Line, Area } from "@ant-design/plots";
-import { full30MinDomain, visibleTicks, getColor } from "@components/utils";
+import { full30MinDomain, visibleTicks } from "@components/utils";
 
 const transformChartData = (usageData) => {
-
   const roomsDictionary = usageData;
   if (!roomsDictionary) return [];
   const chartData = [];
@@ -58,9 +57,9 @@ export function DaysGraphRenderer({ data, measurementUnit, colorList }) {
     padding: "auto",
     legend: false,
     scale: {
-      x: { range: [0, 1] },
+      x: { range: [0, 1], padding: 0.25 },
+      color: { range: colorList },
     },
-    color: colorList,
     smooth: true,
     axis: {
       x: { tick: false, line: false },
@@ -99,12 +98,15 @@ export function HoursGraphRenderer({ data, measurementUnit, colorList }) {
     yField: "value",
     colorField: "label",
     seriesField: "label",
-    color: colorList,
     padding: "auto",
     autoFit: true,
     legend: false,
+    stack: false,
     scale: {
-      x: { domain: full30MinDomain },
+      x: { domain: full30MinDomain, padding: 0.4 },
+      color: {
+        range: colorList,
+      },
     },
     tooltip: {
       showMarkers: true,
@@ -117,11 +119,13 @@ export function HoursGraphRenderer({ data, measurementUnit, colorList }) {
         },
       ],
     },
+
     style: {
-      fillOpacity: roomCount > 1 ? 0.15 : 0.4,
+      fillOpacity: 0.15,
     },
-    line: { style: { lineWidth: 1.5 } },
-    point: { sizeField: 2, shape: "circle" },
+
+    line: { style: { lineWidth: 1 } },
+    point: { sizeField: 1.3, shape: "circle" },
     axis: {
       x: {
         line: false,

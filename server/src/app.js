@@ -10,9 +10,8 @@ import electricityRoutes from "./routes/electricityRoutes.js";
 
 const app = express();
 
-app.use(
-  cors({ origin: ["https://ssb.slwlabs.dev", "http://localhost:5173", "*"] }),
-);
+app.use(cors("*"));
+
 app.use(express.json());
 
 app.use("/api/doors", doorRoutes);

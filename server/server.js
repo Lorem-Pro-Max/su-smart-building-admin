@@ -1,17 +1,19 @@
 import { createServer } from "http";
-import app from "./src/app.js"; 
-import { initSocket } from "./src/utils/socketManager.js";
-import { syncAllDevices } from "./src/services/syncService.js"; 
-import dotenv from "dotenv";
+import app from "./src/app.js";
+import { initSocket } from "./src/config/socket.js";
+import {
+  initHardwareListener,
+  syncAllDevices,
+  initializeDeviceMapping,
+} from "./src/services/socketService.js";
 
-dotenv.config(); 
-
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.SERVER_PORT;
 const httpServer = createServer(app);
 
-initSocket(httpServer, syncAllDevices); 
+initSocket(httpServer);
+initHardwareListener(syncAllDevices);
+initializeDeviceMapping();
 
 httpServer.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
-  console.log(`Socket.io ready`);
 });
