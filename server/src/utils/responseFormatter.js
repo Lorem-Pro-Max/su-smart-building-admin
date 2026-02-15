@@ -1,45 +1,6 @@
 import { deviceCache } from "../services/socketService.js";
 
-export const groupDevicesByFloor = (response) => {
-  if (!response) return {};
-
-  let list = [];
-
-  if (
-    response.data &&
-    typeof response.data === "object" &&
-    Array.isArray(response.data)
-  ) {
-    list = Object.values(response.data);
-  } else if (response.data && Array.isArray(response.data)) {
-    list = response.data;
-  } else if (Array.isArray(response)) {
-    list = response;
-  }
-
-  const grouped = {};
-
-  list.forEach((device) => {
-    const id = parseInt(device.id, 10);
-
-    let floor = 1;
-
-    if (!isNaN(id)) {
-      if (id >= 100) {
-        floor = Math.floor(id / 100);
-      } else {
-        floor = Math.ceil(id / 10);
-      }
-    }
-
-    if (!grouped[floor]) grouped[floor] = [];
-    grouped[floor].push(device);
-  });
-
-  return grouped;
-};
-
-export const formatProductionUpdate = (iotStatusData) => {
+export const formatDeviceUpdate = (iotStatusData) => {
   const grouped = {};
 
   for (const [id, status] of Object.entries(iotStatusData)) {
@@ -62,3 +23,98 @@ export const formatProductionUpdate = (iotStatusData) => {
   return grouped;
 };
 
+export const formatDoorsUpdate = (iotStatusData) => {
+  const grouped = {};
+
+  for (const [id, status] of Object.entries(iotStatusData)) {
+    const meta = deviceCache[id];
+
+    if (meta) {
+      const { floor, title, type } = meta;
+      if (!grouped[floor]) grouped[floor] = [];
+
+      grouped[floor].push({
+        id: id,
+        name: title,
+        type: type,
+        status: {
+          ...status,
+          power:
+            status.door1_state === "OPEN" && status.door2_state === "OPEN"
+              ? true
+              : false,
+        },
+        floor: floor,
+      });
+    }
+  }
+
+  return grouped;
+};
+
+export const formatDeviceMetadata = (deviceIds) => {
+  const metadata = {
+    available_floors: [],
+    available_rooms: {},
+  };
+
+  for (const id of deviceIds) {
+    const meta = deviceCache[id];
+
+    if (meta) {
+      const { floor, title } = meta;
+      const floorKey = `floor_${floor}`;
+
+      if (!metadata.available_rooms[floorKey]) {
+        metadata.available_rooms[floorKey] = [];
+      }
+      metadata.available_rooms[floorKey].push({
+        key: id,
+        label: title,
+      });
+
+      const floorExists = metadata.available_floors.some(
+        (item) => item.key === floorKey,
+      );
+
+      if (!floorExists) {
+        metadata.available_floors.push({
+          key: floorKey,
+          label: `ชั้น ${floor}`,
+        });
+      }
+    }
+  }
+  metadata.available_floors.sort((a, b) => a.key.localeCompare(b.key));
+  return metadata;
+};
+
+export const formatRankingData = (type, rawAqList, orderBy) => {
+  const typeMapping = {
+    pm25: "PM 2.5",
+    pm10: "PM 10",
+    temp: "Temp",
+    co: "CO",
+    co2: "CO2",
+    smoke: "Smoke",
+  };
+
+  const enriched = rawAqList.map((item) => {
+    const id = Object.keys(item)[0];
+    const value = item[id];
+    const meta = deviceCache[id];
+
+    return {
+      id,
+      type: type,
+      value: value[type],
+      type_title: typeMapping[type],
+      room_title: meta?.title || null,
+      floor: meta?.floor || null,
+    };
+  });
+
+  return enriched.sort((a, b) =>
+    orderBy === "best" ? a.value - b.value : b.value - a.value,
+  );
+};

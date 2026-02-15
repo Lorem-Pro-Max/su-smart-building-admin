@@ -22,7 +22,6 @@ export const initSocket = (server) => {
   return io;
 };
 
-
 export const getIO = () => {
   if (!io) {
     throw new Error(

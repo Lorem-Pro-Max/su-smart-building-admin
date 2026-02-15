@@ -1,7 +1,7 @@
 export const DEVICE_CONFIGS = {
   DOORS: {
     type: "doors",
-    actions: { on: true, off: false },
+    actions: { on: "open", off: "close" },
     deviceStatus: { on: true, off: false },
   },
   VALVES: {
@@ -26,5 +26,8 @@ export const DEVICE_CONFIGS = {
     type: "exhaustfans",
     actions: { on: true, off: false },
     deviceStatus: { on: true, off: false },
+  },
+  AIR_QUALITY: {
+    type: "air-quality",
   },
 };

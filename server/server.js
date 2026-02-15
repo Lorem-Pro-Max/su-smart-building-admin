@@ -3,7 +3,6 @@ import app from "./src/app.js";
 import { initSocket } from "./src/config/socket.js";
 import {
   initHardwareListener,
-  syncAllDevices,
   initializeDeviceMapping,
 } from "./src/services/socketService.js";
 
@@ -11,7 +10,7 @@ const PORT = process.env.SERVER_PORT;
 const httpServer = createServer(app);
 
 initSocket(httpServer);
-initHardwareListener(syncAllDevices);
+initHardwareListener();
 initializeDeviceMapping();
 
 httpServer.listen(PORT, () => {

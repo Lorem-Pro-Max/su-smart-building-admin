@@ -12,12 +12,12 @@ export default defineConfig({
   server: {
     port: 7185,
     host: "0.0.0.0",
-    // allowedHosts: [".slwlabs.dev"],
-    // hmr: {
-    //   clientPort: 443,
-    //   host: "ssb.slwlabs.dev",
-    //   protocol: "wss",
-    // },
+    allowedHosts: [".slwlabs.dev"],
+    hmr: {
+      clientPort: 443,
+      host: "ssb.slwlabs.dev",
+      protocol: "wss",
+    },
   },
   resolve: {
     alias: {

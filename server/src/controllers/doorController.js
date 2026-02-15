@@ -1,41 +1,13 @@
-import * as IoTService from "../services/iotService.js";
-import { emitDeviceUpdate } from "../services/socketService.js";
-import { groupDevicesByFloor } from "../utils/responseFormatter.js";
+import {
+  getStatusHandler,
+  handleBatchCommand,
+} from "../utils/controllerWrapper.js";
+import { formatDoorsUpdate } from "../utils/responseFormatter.js";
 
-export const getDoorsStatus = async (req, res) => {
-  try {
-    const data = await IoTService.fetchStatus("doors");
-    const groupedData = groupDevicesByFloor(data);
+const deviceType = "doors";
 
-    res.json({ data: groupedData });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-export const batchControl = async (req, res) => {
-  const { deviceIds, action } = req.body;
-  try {
-    await IoTService.executeBatch("door", deviceIds, action);
-    const rawData = await IoTService.fetchStatus("doors");
-    const groupedData = groupDevicesByFloor(rawData);
-    emitDeviceUpdate("doors", groupedData);
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-export const controlAll = async (req, res) => {
-  const { action } = req.body;
-  try {
-    await IoTService.executeGlobal("doors", action);
-    const rawData = await IoTService.fetchStatus("doors");
-    const groupedData = groupDevicesByFloor(rawData);
-    emitDeviceUpdate("doors", groupedData);
-
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+export const getDoorsStatus = getStatusHandler(deviceType, formatDoorsUpdate);
+export const doorsBatchControl = handleBatchCommand(
+  deviceType,
+  "executeDoorAction",
+);
