@@ -5,9 +5,9 @@ let io;
 export const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: ["https://ssb.slwlabs.dev", "http://localhost:5173"],
-      methods: ["GET", "POST"],
-      credentials: true,
+      origin: ["http://localhost:7185"],
+      methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+      credentials: false,
     },
     allowEIO3: true,
   });
@@ -22,12 +22,9 @@ export const initSocket = (server) => {
   return io;
 };
 
-
 export const getIO = () => {
   if (!io) {
-    throw new Error(
-      "Socket client has not been initialized.",
-    );
+    throw new Error("Socket client has not been initialized.");
   }
   return io;
 };

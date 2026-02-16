@@ -4,6 +4,7 @@ import {
   createMetaFetch,
   createUsageFetchWithRooms,
   createUsageFetchWithoutRooms,
+  createSensorDataFetch,
 } from "./api.js";
 
 import { DEVICE_CONFIGS } from "../config/devices.js";
@@ -38,4 +39,9 @@ export const acService = {
 export const exhaustFanService = {
   ...createDeviceActions(DEVICE_CONFIGS.EXHAUST_FANS.type),
   ...createDeviceDataFetch(DEVICE_CONFIGS.EXHAUST_FANS.type),
+};
+
+export const AirQualityService = {
+  ...createMetaFetch(DEVICE_CONFIGS.AIR_QUALITY.type),
+  ...createSensorDataFetch(DEVICE_CONFIGS.AIR_QUALITY.type),
 };

@@ -7,10 +7,16 @@ import acRoutes from "./routes/acRoutes.js";
 import exhaustFanRoutes from "./routes/exhaustFanRoutes.js";
 import lightRoutes from "./routes/lightRoutes.js";
 import electricityRoutes from "./routes/electricityRoutes.js";
+import airQualityRoutes from "./routes/airQualityRoutes.js";
 
 const app = express();
 
-app.use(cors("*"));
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
 
@@ -20,6 +26,7 @@ app.use("/api/electricity", electricityRoutes);
 app.use("/api/ac", acRoutes);
 app.use("/api/lights", lightRoutes);
 app.use("/api/exhaustfans", exhaustFanRoutes);
+app.use("/api/air-quality", airQualityRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });

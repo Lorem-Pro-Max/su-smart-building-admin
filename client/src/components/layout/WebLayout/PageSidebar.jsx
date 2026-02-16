@@ -1,6 +1,6 @@
 import { Layout, ConfigProvider } from "antd";
 import SideBarMenu from "./SidebarItems.jsx";
-import { SideBarMenuConfig } from "@styles/themes/SidebarTheme.js";
+import { SideBarMenuConfig } from "@styles/themes/sidebarTheme.js";
 const { Sider } = Layout;
 
 function SideBar({ collapsed }) {

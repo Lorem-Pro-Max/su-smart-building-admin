@@ -41,10 +41,29 @@ export const createDeviceDataFetch = (device) => ({
   },
 });
 
+export const createSensorDataFetch = (device) => ({
+  getSensorRoomData: async (id) => {
+    const response = await apiClient.get(`/${device}/room/${id}`);
+    return response.data;
+  },
+
+  getSensorRankedData: async (type, orderby) => {
+    const response = await apiClient.get(
+      `/${device}/sensor/ranking?type=${type}&orderby=${orderby}`,
+    );
+    return response.data;
+  },
+});
+
 export const createMetaFetch = (device) => ({
   getMetadata: async () => {
     const data = await apiClient.get(`/${device}/usage/metadata`, {});
     return data.data.data;
+  },
+
+  getSensorMetadata: async () => {
+    const data = await apiClient.get(`/${device}/sensor/metadata`, {});
+    return data.data;
   },
 });
 

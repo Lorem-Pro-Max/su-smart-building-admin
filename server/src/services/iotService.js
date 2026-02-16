@@ -8,11 +8,7 @@ const mapping = {
   lights: "sw",
   doors: "door",
   sensors: "sensor",
-};
-
-export const fetchStatus = async (deviceType) => {
-  const response = await axios.get(`${IOT_BASE_URL}/status/${deviceType}`);
-  return response.data;
+  valves: "water",
 };
 
 export const fetchStatusByType = async (deviceType) => {
@@ -22,8 +18,12 @@ export const fetchStatusByType = async (deviceType) => {
   return response.data || {};
 };
 
-export const executeBatch = async (type, ids, action, value = null) => {
+export const fetchDeviceList = async (deviceType) => {
+  const response = await axios.get(`${IOT_BASE_URL}/control/${deviceType}/all`);
+  return response.data || {};
+};
 
+export const executeBatch = async (type, ids, action, value = null) => {
   return await Promise.all(
     ids.map((id) =>
       axios
@@ -40,10 +40,34 @@ export const executeBatch = async (type, ids, action, value = null) => {
   );
 };
 
-export const executeGlobal = async (type, action, value = null) => {
-  const response = await axios.post(`${IOT_BASE_URL}/control/${type}/all`, {
-    action,
-    value,
-  });
-  return response.data;
+export const executeDoorAction = async (type, ids, action) => {
+  const indices = [1, 2];
+
+  const batchResults = await Promise.all(
+    ids.map(async (deviceId) => {
+      const doorResults = await Promise.all(
+        indices.map((index) =>
+          axios
+            .post(`${IOT_BASE_URL}/control/door/${deviceId}/${index}/${action}`)
+            .then((r) => ({ status: r.status, data: r.data }))
+            .catch((e) => ({
+              status: "failed",
+              data: { success: false, error: e.message },
+            }))
+        )
+      );
+
+      const doorSuccessful = doorResults.every((r) => r.status === 200);
+      return { status: doorSuccessful ? 200 : 500, success: doorSuccessful };
+    })
+  );
+
+  const allDoorsSuccessful = batchResults.every((r) => r.success);
+  
+  return [
+    {
+      status: allDoorsSuccessful ? 200 : 500,
+      data: { success: allDoorsSuccessful },
+    },
+  ];
 };

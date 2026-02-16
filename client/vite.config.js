@@ -8,17 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig({
+  base: "/admin-dashboard",
   plugins: [react(), tailwindcss()],
-  server: {
-    port: 7185,
-    host: "0.0.0.0",
-    // allowedHosts: [".slwlabs.dev"],
-    // hmr: {
-    //   clientPort: 443,
-    //   host: "ssb.slwlabs.dev",
-    //   protocol: "wss",
-    // },
-  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

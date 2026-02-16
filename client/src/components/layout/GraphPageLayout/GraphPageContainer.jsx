@@ -26,7 +26,7 @@ function GraphPageContainer({
   totalUsageIcon,
   alternateTitle,
 }) {
-  const { data, isLoading } = dataState;
+  const { data } = dataState;
   const { multiTabs, defaultPage } = displayConfig;
   const { handleExecuteAction, handleSingleToggle } = control;
   const { selectedByFloor, handleSelectAll, handleSelectRoom, clearSelection } =
@@ -123,7 +123,7 @@ function GraphPageContainer({
                       {rooms.map((room) => (
                         <RoomCard
                           key={room.id}
-                          roomName={`ห้อง ${room.id}`}
+                          roomName={room.name}
                           checked={selected.includes(room.id)}
                           onCheck={() => handleSelectRoom(floorNum, room.id)}
                           isOn={room.isOn}

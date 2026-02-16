@@ -1,45 +1,15 @@
-import * as IoTService from "../services/iotService.js";
-import { emitDeviceUpdate } from "../services/socketService.js";
-import { groupDevicesByFloor } from "../utils/responseFormatter.js";
+
 import {
   valveDailyUsageData,
   valveHourlyUsageData,
 } from "../data/valveMockData.js";
 import { metaWithRoom } from "../data/mockMeta.js";
+import { getStatusHandler, handleBatchCommand } from "../utils/controllerWrapper.js"
 
-export const getValvesStatus = async (req, res) => {
-  try {
-    const data = await IoTService.fetchStatus("valves");
-    const groupedData = groupDevicesByFloor(data);
-    res.json({ data: groupedData });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+const device_type = "valves"
 
-export const batchControl = async (req, res) => {
-  const { deviceIds, action } = req.body;
-  try {
-    await IoTService.executeBatch("valve", deviceIds, action);
-    const rawData = await IoTService.fetchStatus("valves");
-    const groupedData = groupDevicesByFloor(rawData);
-    emitDeviceUpdate("valves", groupedData);
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-export const controlAll = async (req, res) => {
-  const { action } = req.body;
-  try {
-    await IoTService.executeGlobal("valves", action);
-    emitDeviceUpdate("valves", { type: "global", action });
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
+export const getValvesStatus = getStatusHandler(device_type)
+export const ValvesBatchControl = handleBatchCommand(device_type)
 
 export const getMetadata = (req, res) => {
   const data = metaWithRoom;
