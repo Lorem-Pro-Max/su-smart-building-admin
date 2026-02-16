@@ -15,7 +15,7 @@ import UserPermissionPage from "./pages/UserPermissionPage/UserPermissionPage";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/admin-dashboard">
       <Routes>
         <Route element={<Layout />}>
           <Route path="/history" element={<HistoryPage />} />
@@ -31,12 +31,11 @@ function App() {
           <Route path="/air-quality" element={<AirQualityPage />} />
           <Route path="/electricity" element={<ElectricityPage />} />
           <Route path="/approve-booking" element={<ApproveBookingPage />} />
-          <Route path="/user-permissions" element={<></>} />
+          <Route path="/user-permissions" element={<UserPermissionPage />} />
           <Route
             path="*"
             element={<Navigate to="/approve-booking" replace />}
           />
-
         </Route>
       </Routes>
     </BrowserRouter>
