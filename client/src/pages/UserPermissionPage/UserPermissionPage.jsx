@@ -38,7 +38,7 @@ function UserPermissionPage() {
       const res = await getUsers();
       setUsers(mapUsers(res?.data));
     } catch {
-      notification.error("เกิดข้อผิดพลาด");
+      notification.error({ message: "เกิดข้อผิดพลาด" });
     } finally {
       setLoading(false);
     }
@@ -58,7 +58,7 @@ function UserPermissionPage() {
       setDeleteUserId(null);
       await fetchUsers();
     } catch {
-      notification.error("เกิดข้อผิดพลาด");
+      notification.error({ message: "เกิดข้อผิดพลาด" });
     } finally {
       setLoading(false);
     }

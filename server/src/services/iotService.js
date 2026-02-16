@@ -15,6 +15,7 @@ export const fetchStatusByType = async (deviceType) => {
   const response = await axios.get(
     `${IOT_BASE_URL}/control/${mapping[deviceType]}/all`,
   );
+
   return response.data || {};
 };
 
@@ -53,17 +54,17 @@ export const executeDoorAction = async (type, ids, action) => {
             .catch((e) => ({
               status: "failed",
               data: { success: false, error: e.message },
-            }))
-        )
+            })),
+        ),
       );
 
       const doorSuccessful = doorResults.every((r) => r.status === 200);
       return { status: doorSuccessful ? 200 : 500, success: doorSuccessful };
-    })
+    }),
   );
 
   const allDoorsSuccessful = batchResults.every((r) => r.success);
-  
+
   return [
     {
       status: allDoorsSuccessful ? 200 : 500,
