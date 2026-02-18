@@ -1,4 +1,4 @@
-import { Modal, Tabs, Button, notification } from "antd";
+import { Modal, Tabs, Button, notification, Spin } from "antd";
 import { useState, useEffect } from "react";
 import { getAllBooking } from "../../../services/schedule";
 
@@ -80,21 +80,27 @@ function RoomSelectModal({ open, onClose, onSelect }) {
     >
       <h3 className="text-sm font-semibold mb-6">เลือกห้องหรือพื้นที่</h3>
 
-      <Tabs
-        className="room-tabs"
-        color="cyan"
-        items={floorList.map((floor) => ({
-          key: String(floor),
-          label: (
-            <span className="text-[16px] font-medium">ชั้นที่ {floor}</span>
-          ),
-          children: (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
-              {roomsByFloor[floor].map((room) => renderRoomCard(room))}
-            </div>
-          ),
-        }))}
-      />
+      {loading ? (
+        <div className="flex justify-center py-10">
+          <Spin />
+        </div>
+      ) : (
+        <Tabs
+          className="room-tabs"
+          color="cyan"
+          items={floorList.map((floor) => ({
+            key: String(floor),
+            label: (
+              <span className="text-[16px] font-medium">ชั้นที่ {floor}</span>
+            ),
+            children: (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
+                {roomsByFloor[floor].map((room) => renderRoomCard(room))}
+              </div>
+            ),
+          }))}
+        />
+      )}
 
       <div className="flex flex-col sm:flex-row gap-4 mt-8">
         <Button className="flex-1 h-12" onClick={onClose}>

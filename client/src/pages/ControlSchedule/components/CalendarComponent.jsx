@@ -9,7 +9,7 @@ function CalendarComponent({ selectedDate, setSelectedDate, data }) {
     (data || []).forEach((item) => {
       if (!item.start_dateTime) return;
 
-      const date = dayjs(item.start_dateTime).format("YYYY-MM-DD");
+      const date = dayjs(item.schedules[0].action_time).format("YYYY-MM-DD");
 
       if (!map[date]) map[date] = [];
 
@@ -40,6 +40,7 @@ function CalendarComponent({ selectedDate, setSelectedDate, data }) {
 
   const cellRender = (current) => {
     const date = current.format("YYYY-MM-DD");
+
     const dayEvents = events[date] || [];
     const isSelected = selectedDate === date;
 

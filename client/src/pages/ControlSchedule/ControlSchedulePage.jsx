@@ -134,6 +134,7 @@ function ControlSchedulePage() {
             onClose={() => {
               setSelectedDate(null);
               setIsOpenCreateEvent(false);
+              fetchSchedule();
             }}
           />
         </div>
