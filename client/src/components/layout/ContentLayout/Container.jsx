@@ -7,7 +7,6 @@ import {
   RoomCard,
   RoomNotFound,
 } from "./RoomControl";
-import React from "react";
 import { useDeviceSelection } from "@hooks/devices/useDeviceSelection";
 
 function Container({
@@ -17,14 +16,13 @@ function Container({
   dataState = {},
   control,
   alternatePageTitle = "",
-  extraColumnTitle = null,
   extraColumn = null,
 }) {
   const { data } = dataState;
   const { handleExecuteAction, handleSingleToggle, contextHolder } = control;
   const { selectedByFloor, handleSelectAll, handleSelectRoom, clearSelection } =
     useDeviceSelection(data);
-  
+
   return (
     <>
       {contextHolder}
@@ -77,19 +75,26 @@ function Container({
                   }
                   isAllSelected={isAllSelected}
                   isIndeterminate={isIndeterminate}
-                  extraColumnTitle={extraColumnTitle}
+                  extraColumnTitle={extraColumn?.title ?? null}
                 >
                   {rooms.map((room) => (
                     <RoomCard
                       key={room.id}
+                      id={room.id}
                       roomName={room.name}
                       checked={selected.includes(room.id)}
                       onCheck={() => handleSelectRoom(floorNum, room.id)}
                       isOn={room.isOn}
                       onToggle={(isOn) => handleSingleToggle(room.id, isOn)}
-                    >
-                      {extraColumn && React.cloneElement(extraColumn, { room })}
-                    </RoomCard>
+                      extraColumnDevice={
+                        extraColumn && {
+                          device: extraColumn?.device,
+                          extraValue:
+                            room.status[extraColumn.extraValue] ?? null,
+                          extraControl: extraColumn?.extraControl,
+                        }
+                      }
+                    ></RoomCard>
                   ))}
                 </RoomControlBody>
               </RoomControl>

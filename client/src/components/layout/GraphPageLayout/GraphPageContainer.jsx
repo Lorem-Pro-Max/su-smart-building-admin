@@ -13,7 +13,6 @@ import {
 } from "@components/layout";
 import { useDeviceSelection } from "@hooks/devices/useDeviceSelection";
 import { useGraphSelection } from "@hooks/graph/useGraphSelection";
-import { LoadingScreen } from "@components/utils";
 
 function GraphPageContainer({
   pageIcon,
@@ -28,7 +27,7 @@ function GraphPageContainer({
 }) {
   const { data } = dataState;
   const { multiTabs, defaultPage } = displayConfig;
-  const { handleExecuteAction, handleSingleToggle } = control;
+  const { handleExecuteAction, handleSingleToggle, contextHolder } = control;
   const { selectedByFloor, handleSelectAll, handleSelectRoom, clearSelection } =
     useDeviceSelection(data);
 
@@ -48,97 +47,102 @@ function GraphPageContainer({
     currentPage === "dashboard" ? graphService.graphState.metadata || {} : {};
 
   return (
-    <GraphPageHeader
-      pageIcon={pageIcon}
-      pageTitle={pageTitle}
-      multiTabs={multiTabs}
-      onSwitchPage={setCurrentPage}
-      currentPage={currentPage}
-    >
-      <div key="page-content-wrapper" className="w-full h-full">
-        {currentPage === "dashboard" ? (
-          <GraphContainer key="dashboard-view">
-            <DaysGraph
-              title={pageTitle}
-              data={graphService.graphState.daily.data}
-              selectionService={selectionService}
-              metadata={metadata}
-              alternateTitle={alternateTitle}
-            />
-            <HoursGraph
-              title={pageTitle}
-              data={graphService.graphState.hourly.data}
-              selectionService={selectionService}
-              totalUsageIcon={totalUsageIcon}
-              metadata={metadata}
-              alternateTitle={alternateTitle}
-            />
-          </GraphContainer>
-        ) : (
-          <div key="control-view">
-            <TabsMenu>
-              {(floorNum) => {
-                const roomsObj = data[floorNum] || {};
-                const rooms = Object.values(roomsObj);
-                const selected = selectedByFloor[floorNum] || [];
-                const allRoomIdsOnFloor = rooms.map((room) => room.id);
+    <>
+      {contextHolder}
+      <GraphPageHeader
+        pageIcon={pageIcon}
+        pageTitle={pageTitle}
+        multiTabs={multiTabs}
+        onSwitchPage={setCurrentPage}
+        currentPage={currentPage}
+      >
+        <div key="page-content-wrapper" className="w-full h-full">
+          {currentPage === "dashboard" ? (
+            <GraphContainer key="dashboard-view">
+              <DaysGraph
+                title={pageTitle}
+                data={graphService.graphState.daily.data}
+                selectionService={selectionService}
+                metadata={metadata}
+                alternateTitle={alternateTitle}
+              />
+              <HoursGraph
+                title={pageTitle}
+                data={graphService.graphState.hourly.data}
+                selectionService={selectionService}
+                totalUsageIcon={totalUsageIcon}
+                metadata={metadata}
+                alternateTitle={alternateTitle}
+              />
+            </GraphContainer>
+          ) : (
+            <div key="control-view">
+              <TabsMenu>
+                {(floorNum) => {
+                  const roomsObj = data[floorNum] || {};
+                  const rooms = Object.values(roomsObj);
+                  const selected = selectedByFloor[floorNum] || [];
+                  const allRoomIdsOnFloor = rooms.map((room) => room.id);
 
-                if (rooms.length === 0) return <RoomNotFound />;
+                  if (rooms.length === 0) return <RoomNotFound />;
 
-                const isAllSelected =
-                  rooms.length > 0 && selected.length === rooms.length;
-                const isIndeterminate =
-                  selected.length > 0 && selected.length < rooms.length;
-                return (
-                  <RoomControl>
-                    <RoomControlMenu
-                      title={pageTitle}
-                      ButtonIcon={pageButtonIcon}
-                      floor={floorNum}
-                      selectedCount={selected.length}
-                      onOpen={() => {
-                        const ids =
-                          selected.length > 0 ? selected : allRoomIdsOnFloor;
-                        handleExecuteAction(ids, "on");
-                        setTimeout(() => {
-                          clearSelection(floorNum);
-                        }, 500);
-                      }}
-                      onClose={() => {
-                        const ids =
-                          selected.length > 0 ? selected : allRoomIdsOnFloor;
-                        handleExecuteAction(ids, "off");
-                        setTimeout(() => {
-                          clearSelection(floorNum);
-                        }, 500);
-                      }}
-                    />
-                    <RoomControlBody
-                      onSelectAll={(e) =>
-                        handleSelectAll(floorNum, e.target.checked)
-                      }
-                      isAllSelected={isAllSelected}
-                      isIndeterminate={isIndeterminate}
-                    >
-                      {rooms.map((room) => (
-                        <RoomCard
-                          key={room.id}
-                          roomName={room.name}
-                          checked={selected.includes(room.id)}
-                          onCheck={() => handleSelectRoom(floorNum, room.id)}
-                          isOn={room.isOn}
-                          onToggle={(isOn) => handleSingleToggle(room.id, isOn)}
-                        />
-                      ))}
-                    </RoomControlBody>
-                  </RoomControl>
-                );
-              }}
-            </TabsMenu>
-          </div>
-        )}
-      </div>
-    </GraphPageHeader>
+                  const isAllSelected =
+                    rooms.length > 0 && selected.length === rooms.length;
+                  const isIndeterminate =
+                    selected.length > 0 && selected.length < rooms.length;
+                  return (
+                    <RoomControl>
+                      <RoomControlMenu
+                        title={pageTitle}
+                        ButtonIcon={pageButtonIcon}
+                        floor={floorNum}
+                        selectedCount={selected.length}
+                        onOpen={() => {
+                          const ids =
+                            selected.length > 0 ? selected : allRoomIdsOnFloor;
+                          handleExecuteAction(ids, "on");
+                          setTimeout(() => {
+                            clearSelection(floorNum);
+                          }, 500);
+                        }}
+                        onClose={() => {
+                          const ids =
+                            selected.length > 0 ? selected : allRoomIdsOnFloor;
+                          handleExecuteAction(ids, "off");
+                          setTimeout(() => {
+                            clearSelection(floorNum);
+                          }, 500);
+                        }}
+                      />
+                      <RoomControlBody
+                        onSelectAll={(e) =>
+                          handleSelectAll(floorNum, e.target.checked)
+                        }
+                        isAllSelected={isAllSelected}
+                        isIndeterminate={isIndeterminate}
+                      >
+                        {rooms.map((room) => (
+                          <RoomCard
+                            key={room.id}
+                            roomName={room.name}
+                            checked={selected.includes(room.id)}
+                            onCheck={() => handleSelectRoom(floorNum, room.id)}
+                            isOn={room.isOn}
+                            onToggle={(isOn) =>
+                              handleSingleToggle(room.id, isOn)
+                            }
+                          />
+                        ))}
+                      </RoomControlBody>
+                    </RoomControl>
+                  );
+                }}
+              </TabsMenu>
+            </div>
+          )}
+        </div>
+      </GraphPageHeader>
+    </>
   );
 }
 
