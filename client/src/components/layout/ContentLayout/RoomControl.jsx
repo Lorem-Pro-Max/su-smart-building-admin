@@ -1,6 +1,7 @@
 import { CardButton } from "@components/utils";
 import { Checkbox, Segmented } from "antd";
 import { RoomNotFoundIcon } from "../../../assets/icons";
+import TemperatureButton from "@pages/AirConditionersControlPage/components/TemperatureButton.jsx";
 
 export function RoomControlMenu({
   title,
@@ -48,14 +49,23 @@ export function RoomControlMenu({
 
 export function RoomCard({
   checked,
+  id,
   onCheck,
   roomName,
   isOn,
   onToggle,
-  children,
+  extraColumnDevice,
 }) {
   const unlockedTextStyle = isOn ? "text-green-600 font-medium" : "";
   const lockedTextStyle = !isOn ? "text-neutral-800 font-medium" : "";
+
+  let ComponentToRender;
+  let extraColumnMap;
+
+  if (extraColumnDevice) {
+    extraColumnMap = { ac: TemperatureButton };
+    ComponentToRender = extraColumnMap[extraColumnDevice.device];
+  }
 
   return (
     <div className="bg-white h-23 w-full rounded-2xl flex items-center shadow-content-layout-header ">
@@ -66,7 +76,7 @@ export function RoomCard({
       </div>
       <div
         className={`text-lg text-black h-full ${
-          children ? "flex-580" : "flex-817"
+          extraColumnDevice ? "flex-580" : "flex-817"
         } flex items-center`}
       >
         <div className=" pl-2.5">
@@ -74,9 +84,17 @@ export function RoomCard({
         </div>
       </div>
 
-      {children && (
+      {extraColumnDevice && (
         <div className="flex-236 w-max h-full flex items-center">
-          <div className="pl-2">{children}</div>
+          <div className="pl-2">
+            {
+              <ComponentToRender
+                roomTemp={extraColumnDevice.extraValue}
+                roomId={id}
+                control={extraColumnDevice.extraControl}
+              />
+            }
+          </div>
         </div>
       )}
       <div className="text-lg text-black h-full flex-237 flex items-center ">

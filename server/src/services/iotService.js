@@ -72,3 +72,11 @@ export const executeDoorAction = async (type, ids, action) => {
     },
   ];
 };
+
+export const executeAcTempAdjustment = async (acId, targetTemp) => {
+  const response = await axios.post(
+    `${IOT_BASE_URL}/control/ac/${acId}/command`,
+    { temp: targetTemp },
+  );
+  return response.data || {};
+};

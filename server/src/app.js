@@ -35,7 +35,7 @@ app.use("/api", roomBookingRoutes);
 app.use("/api", userRoute);
 
 app.use((req, res) => {
-  res.status(404).json({ error: "Route not found" });
+  return res.status(404).json({ error: "Route not found" });
 });
 
 export default app;

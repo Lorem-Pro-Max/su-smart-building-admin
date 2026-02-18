@@ -12,8 +12,8 @@ export const createDeviceActions = (device) => ({
   batchControl: (deviceIds, action, value) =>
     apiClient.post(`/${device}/batch-control`, { deviceIds, action, value }),
 
-  controlAll: (action, value) =>
-    apiClient.post(`/${device}/control-all`, { action, value }),
+  acTempControl: (deviceId, temp) =>
+    apiClient.post(`/ac/temp-control`, { device_id: deviceId, temp: temp }),
 });
 
 export const createDeviceDataFetch = (device) => ({
