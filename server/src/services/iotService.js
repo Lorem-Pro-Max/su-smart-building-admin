@@ -15,6 +15,7 @@ export const fetchStatusByType = async (deviceType) => {
   const response = await axios.get(
     `${IOT_BASE_URL}/control/${mapping[deviceType]}/all`,
   );
+
   return response.data || {};
 };
 

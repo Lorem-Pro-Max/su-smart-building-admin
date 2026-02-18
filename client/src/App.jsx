@@ -12,6 +12,7 @@ import {
 } from "./pages";
 import ApproveBookingPage from "./pages/ApproveBookingPage/ApproveBooking";
 import UserPermissionPage from "./pages/UserPermissionPage/UserPermissionPage";
+import ControlSchedulePage from "./pages/ControlSchedule/ControlSchedulePage";
 
 function App() {
   return (
@@ -19,7 +20,7 @@ function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/history" element={<HistoryPage />} />
-          <Route path="/device-scheduling" element={<></>} />
+          <Route path="/device-scheduling" element={<ControlSchedulePage />} />
           <Route path="/doors" element={<DoorsControlPage />} />
           <Route path="/lights" element={<LightsControlPage />} />
           <Route path="/exhaust-fans" element={<ExhaustFansControlPage />} />
