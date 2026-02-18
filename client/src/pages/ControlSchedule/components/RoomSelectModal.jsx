@@ -1,61 +1,69 @@
-import { Modal, Tabs, Button } from "antd";
-import { useState } from "react";
+import { Modal, Tabs, Button, notification } from "antd";
+import { useState, useEffect } from "react";
+import { getAllBooking } from "../../../services/schedule";
 
 function RoomSelectModal({ open, onClose, onSelect }) {
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [roomsByFloor, setRoomsByFloor] = useState({});
+  const [floorList, setFloorList] = useState([]);
 
-  const rooms = [
-    "พื้นที่ A",
-    "สัมมนา 1",
-    "สัมมนา 2",
-    "สัมมนา 3",
-    "สัมมนา 4",
-    "สัมมนา 5",
-    "สัมมนา 6",
-    "Present 1",
-    "Computer 1",
-    "Computer 2",
-    "Computer 3",
-    "Computer 4",
-  ];
+  const fetchRooms = async () => {
+    try {
+      setLoading(true);
+      const res = await getAllBooking();
+      const data = res.data;
 
-  const renderRoomCard = (room, floor) => {
+      setRoomsByFloor(data);
+
+      const floors = Object.keys(data)
+        .map(Number)
+        .sort((a, b) => a - b);
+
+      setFloorList(floors);
+    } catch {
+      notification.error({ message: "โหลดข้อมูลไม่สำเร็จ" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (open) fetchRooms();
+  }, [open]);
+
+  const renderRoomCard = (room) => {
     const isActive =
-      selectedRoom?.name === room && selectedRoom?.floor === floor;
+      selectedRoom?.room?.id + selectedRoom?.booking_id ===
+      room?.room?.id + room?.booking_id;
 
     return (
       <div
-        key={`${room}-${floor}`}
-        onClick={() => setSelectedRoom({ name: room, floor })}
-        className={`
-          flex items-center gap-4
-          p-5
-          rounded-[20px]
-          cursor-pointer
-          transition-all duration-200
-          bg-[#FFFFFF]
-          shadow-[1px_2px_10px_0px_#8E8E8E40]
-          hover:shadow-[2px_4px_14px_0px_#8E8E8E50]
-          ${isActive ? "ring-2 ring-teal-400 bg-white" : ""}
-        `}
+        key={room.room.id + room.booking_id}
+        onClick={() => setSelectedRoom(room)}
+        className={`flex gap-4 p-5 rounded-2xl cursor-pointer transition-all bg-white shadow-md hover:shadow-lg ${
+          isActive ? "ring-2 ring-teal-500" : ""
+        }`}
       >
-        <div className="w-[56px] h-[56px] rounded-xl flex items-center justify-center bg-[#22C1B4] shrink-0">
+        <div className="w-14 h-14 rounded-xl flex items-center justify-center bg-teal-500 shrink-0">
           <img
-            src="/src/assets/icons/schedule/room.svg"
+            src="src/assets/icons/schedule/room.svg"
             alt="room"
-            className="w-[26px] h-[26px]"
+            className="w-6 h-6"
           />
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="text-base md:text-lg font-semibold truncate">
-            {room}
+            {room.room.title}
           </div>
 
-          <div className="text-sm text-gray-500 mt-1">ชั้น {floor}</div>
+          <div className="text-sm text-gray-500 mt-1">
+            ชั้น {room.room.floor}
+          </div>
 
           <div className="text-sm text-gray-500 truncate">
-            อาคารการเรียนการสอนและปฏิบัติการคณะวิทยาศาสตร์
+            {room.room.building?.name}
           </div>
         </div>
       </div>
@@ -67,29 +75,22 @@ function RoomSelectModal({ open, onClose, onSelect }) {
       open={open}
       onCancel={onClose}
       footer={null}
-      width="90%"
-      style={{ maxWidth: 1200 }}
       centered
+      className="!w-[90%] max-w-[1200px]"
     >
-      <h3 className="text-xl font-semibold mb-6">เลือกห้องหรือพื้นที่</h3>
+      <h3 className="text-sm font-semibold mb-6">เลือกห้องหรือพื้นที่</h3>
 
       <Tabs
-        defaultActiveKey="3"
-        items={[1, 2, 3, 4, 5].map((floor) => ({
+        className="room-tabs"
+        color="cyan"
+        items={floorList.map((floor) => ({
           key: String(floor),
-          label: `ชั้นที่ ${floor}`,
+          label: (
+            <span className="text-[16px] font-medium">ชั้นที่ {floor}</span>
+          ),
           children: (
-            <div
-              className="
-                grid
-                grid-cols-1
-                sm:grid-cols-2
-                lg:grid-cols-3
-                gap-5
-                mt-6
-              "
-            >
-              {rooms.map((room) => renderRoomCard(room, floor))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
+              {roomsByFloor[floor].map((room) => renderRoomCard(room))}
             </div>
           ),
         }))}

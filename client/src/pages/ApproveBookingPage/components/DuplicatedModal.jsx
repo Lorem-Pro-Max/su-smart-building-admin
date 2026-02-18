@@ -110,7 +110,7 @@ function DuplicatedModal({
 
         <div className="flex gap-3 w-full mt-6">
           <button
-            className="flex-1 border rounded-lg py-2 hover:bg-gray-50 text-[18px] font-bold"
+            className="flex-1 border border-[#D9D9D9] rounded-lg py-2 hover:bg-gray-50 text-[18px] font-bold"
             onClick={onCancel}
           >
             ยกเลิก

@@ -1,19 +1,77 @@
-import { Modal, Button } from "antd";
-import { useState } from "react";
+import { Modal, Button, notification, Spin } from "antd";
+import { useState, useEffect } from "react";
+import { getRoomById } from "../../../services/schedule";
+import {
+  BulbOutlined,
+  DashboardOutlined,
+  ThunderboltOutlined,
+  CloudOutlined,
+  EyeOutlined,
+  FireOutlined,
+} from "@ant-design/icons";
 
-function DeviceSelectModal({ open, onClose, onConfirm }) {
+const colorMap = {
+  1: "#FAAD14",
+  3: "#13C2C2",
+  5: "#2F54EB",
+  2: "#EB2F96",
+  4: "#52C41A",
+  6: "#722ED1",
+  7: "#FA541C",
+  8: "#A0D911",
+  9: "#1677FF",
+};
+
+const iconMap = {
+  1: <BulbOutlined />,
+  2: (
+    <img
+      src="src/assets/icons/schedule/fan.svg"
+      alt="room"
+      className="w-6 h-6"
+    />
+  ),
+  3: (
+    <img
+      src="src/assets/icons/schedule/room.svg"
+      alt="room"
+      className="w-6 h-6"
+    />
+  ),
+  4: <DashboardOutlined />,
+  5: (
+    <img
+      src="src/assets/icons/schedule/temp.svg"
+      alt="room"
+      className="w-6 h-6"
+    />
+  ),
+  6: <ThunderboltOutlined />,
+  7: <CloudOutlined />,
+  8: <FireOutlined />,
+  9: <EyeOutlined />,
+};
+
+function DeviceSelectModal({ open, onClose, onConfirm, roomId }) {
   const [selected, setSelected] = useState([]);
+  const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const devices = [
-    { id: 1, name: "ประตู", color: "#13C2C2" },
-    { id: 2, name: "พัดลมดูดอากาศ", color: "#EB2F96" },
-    { id: 3, name: "แสงสว่าง", color: "#FAAD14" },
-    { id: 4, name: "อุณหภูมิ", color: "#2F54EB" },
-    { id: 5, name: "ประตู", color: "#13C2C2" },
-    { id: 6, name: "พัดลมดูดอากาศ", color: "#EB2F96" },
-    { id: 7, name: "แสงสว่าง", color: "#FAAD14" },
-    { id: 8, name: "อุณหภูมิ", color: "#2F54EB" },
-  ];
+  const fetchDevices = async () => {
+    try {
+      setLoading(true);
+      const data = await getRoomById(roomId);
+      setDevices(data.data || []);
+    } catch {
+      notification.error({ message: "โหลดข้อมูลไม่สำเร็จ" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (open && roomId) fetchDevices();
+  }, [open]);
 
   const toggleDevice = (device) => {
     if (selected.find((d) => d.id === device.id)) {
@@ -22,71 +80,62 @@ function DeviceSelectModal({ open, onClose, onConfirm }) {
       setSelected([...selected, device]);
     }
   };
+
   return (
     <Modal open={open} onCancel={onClose} footer={null} width={1000} centered>
-      <h3 style={{ marginBottom: 16 }}>เลือกอุปกรณ์</h3>
+      <h3 className="mb-4 text-[16px] font-semibold">เลือกอุปกรณ์</h3>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 16,
-        }}
-      >
-        {devices.map((device) => {
-          const active = selected.find((d) => d.id === device.id);
+      <div className="max-h-[60vh] overflow-y-auto pr-2">
+        {loading ? (
+          <div className="flex justify-center py-10">
+            <Spin />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {devices.map((item) => {
+              const active = selected.find((d) => d.id === item.id);
+              const color = colorMap[item.device_type.id] || "#13C2C2";
 
-          return (
-            <div
-              key={device.id}
-              onClick={() => toggleDevice(device)}
-              style={{
-                padding: 16,
-                borderRadius: 16,
-                border: active ? "2px solid #13C2C2" : "1px solid #f0f0f0",
-                cursor: "pointer",
-                display: "flex",
-                gap: 12,
-                alignItems: "center",
-              }}
-            >
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 12,
-                  background: device.color,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                  fontWeight: 600,
-                }}
-              >
-                {device.name.charAt(0)}
-              </div>
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => toggleDevice(item)}
+                  className={`p-4 rounded-2xl cursor-pointer flex gap-3 items-center transition border ${
+                    active ? "border-[2px] border-[#13C2C2]" : "border-gray-200"
+                  }`}
+                >
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl"
+                    style={{ background: color }}
+                  >
+                    {iconMap[item.device_type?.id] || <BulbOutlined />}
+                  </div>
 
-              <div>
-                <div style={{ fontWeight: 600 }}>{device.name}</div>
-                <div style={{ fontSize: 12, color: "#8c8c8c" }}>
-                  ชั้น 2 · Co-Working space 2
+                  <div className="flex flex-col">
+                    <div className="font-semibold">
+                      {item.device_type?.type}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      ชั้น {item.room?.floor} · {item.room?.title}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      อาคาร {item.room?.building_id}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, color: "#8c8c8c" }}>
-                  อาคารการเรียนการสอนและปฏิบัติการ
-                </div>
-              </div>
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      <div style={{ display: "flex", gap: 16, marginTop: 24 }}>
-        <Button style={{ flex: 1 }} onClick={onClose}>
+      <div className="flex gap-4 mt-6">
+        <Button className="flex-1" onClick={onClose}>
           ยกเลิก
         </Button>
         <Button
           type="primary"
-          style={{ flex: 1, background: "#13C2C2" }}
+          className="flex-1 !bg-[#13C2C2]"
           onClick={() => {
             onConfirm(selected);
             onClose();
