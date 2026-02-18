@@ -29,7 +29,7 @@ app.use("/api/exhaustfans", exhaustFanRoutes);
 app.use("/api/air-quality", airQualityRoutes);
 
 app.use((req, res) => {
-  res.status(404).json({ error: "Route not found" });
+  return res.status(404).json({ error: "Route not found" });
 });
 
 export default app;
