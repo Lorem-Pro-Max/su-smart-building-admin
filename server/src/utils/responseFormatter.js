@@ -1,29 +1,13 @@
 import { deviceCache } from "../services/socketService.js";
 
-export const formatDeviceUpdate = (iotStatusData) => {
-  const grouped = {};
-
-  for (const [id, status] of Object.entries(iotStatusData)) {
-    const meta = deviceCache[id];
-
-    if (meta) {
-      const { floor, title, type } = meta;
-      if (!grouped[floor]) grouped[floor] = [];
-
-      grouped[floor].push({
-        id: id,
-        name: title,
-        type: type,
-        status: status,
-        floor: floor,
-      });
-    }
-  }
-
-  return grouped;
+const STATUS_RESOLVERS = {
+  doors: (status) => ({
+    ...status,
+    power: status.door1_state !== "CLOSE" || status.door2_state !== "CLOSE",
+  }),
 };
 
-export const formatDoorsUpdate = (iotStatusData) => {
+export const formatDeviceUpdate = (iotStatusData, deviceType) => {
   const grouped = {};
 
   for (const [id, status] of Object.entries(iotStatusData)) {
@@ -33,17 +17,14 @@ export const formatDoorsUpdate = (iotStatusData) => {
       const { floor, title, type } = meta;
       if (!grouped[floor]) grouped[floor] = [];
 
+      const resolver = STATUS_RESOLVERS[deviceType];
+      const finalStatus = resolver ? resolver(status) : status;
+
       grouped[floor].push({
         id: id,
         name: title,
         type: type,
-        status: {
-          ...status,
-          power:
-            status.door1_state === "OPEN" && status.door2_state === "OPEN"
-              ? true
-              : false,
-        },
+        status: finalStatus,
         floor: floor,
       });
     }

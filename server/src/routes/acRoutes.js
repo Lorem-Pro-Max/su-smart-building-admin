@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.get("/status", AcController.getAcStatus);
 router.post("/batch-control", protectAction, AcController.acBatchControl);
+router.post("/temp-control", protectAction, AcController.acTempAdjust)
 
 export default router;

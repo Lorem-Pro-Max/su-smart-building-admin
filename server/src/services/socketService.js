@@ -1,11 +1,22 @@
-import { io as ioClient } from "socket.io-client";
+import WebSocket from "ws";
 import { getIO } from "../config/socket.js";
 import { formatDeviceUpdate } from "../utils/responseFormatter.js";
 import { fetchDeviceMapping } from "./dbService.js";
+import * as IoTService from "./iotService.js";
 
-const SOCKET_URL = process.env.IOT_SERVER_URL;
-
+const SOCKET_URL = process.env.WEBSOCKET_URL;
 export let deviceCache = {};
+
+const DEVICE_PREFIX_MAP = {
+  VA: "valves",
+  DO: "doors",
+  IR: "ac",
+  SW: "lights",
+  FA: "exhaustFans",
+  SD: "smoke",
+};
+
+const EMERGENCY_PREFIXES = new Set(["SM"]);
 
 export const initializeDeviceMapping = async () => {
   const rows = await fetchDeviceMapping();
@@ -20,36 +31,76 @@ export const emitDeviceUpdate = (room, data) => {
   io.to(room).emit(`${room}_update`, data);
 };
 
-export const syncAllDevices = async () => {
+export const syncIotDevice = async (deviceType) => {
   try {
-    const [doors, valves, ac, lights, exhaustFans] = await Promise.all([
-      IoTService.fetchStatusByType("doors"),
-      IoTService.fetchStatusByType("valves"),
-      IoTService.fetchStatusByType("ac"),
-      IoTService.fetchStatusByType("lights"),
-      IoTService.fetchStatusByType("exhaustFans"),
-    ]);
-
-    emitDeviceUpdate("doors", formatDeviceUpdate(doors));
-    emitDeviceUpdate("valves", formatDeviceUpdate(valves));
-    emitDeviceUpdate("ac", formatDeviceUpdate(ac));
-    emitDeviceUpdate("lights", formatDeviceUpdate(lights));
-    emitDeviceUpdate("exhaustFans", formatDeviceUpdate(exhaustFans));
-
-    console.log("All device rooms synchronized via IoT trigger");
+    const rawData = await IoTService.fetchStatusByType(deviceType);
+    emitDeviceUpdate(deviceType, formatDeviceUpdate(rawData, deviceType));
+    // console.log(`[IoT Websocket] Device sync: ${deviceType}`);
   } catch (error) {
-    console.error("Sync failed:", error.message);
+    console.error(`[Websocket] Failed to sync '${deviceType}':`, error.message);
   }
 };
 
-export const initHardwareListener = () => {
-  const iotSocket = ioClient(SOCKET_URL);
-  iotSocket.on("connect", () => console.log("Connected to IoT Server"));
+const throttles = new Map();
+const throttleMillisec = 1000;
 
-  iotSocket.onAny((eventName) => {
-    console.log(`IoT emitted: ${eventName}.`);
-      syncAllDevices();
+export const initIotSocketListener = () => {
+  console.log("[Websocket] Connecting to IoT server");
+  const ws = new WebSocket(SOCKET_URL);
+
+  ws.on("open", () => {
+    console.log("[Websocket] IoT server connected");
   });
 
-  return iotSocket;
+  ws.on("message", (data) => {
+    try {
+      const rawData = JSON.parse(data.toString());
+      const topic = rawData.topic;
+
+      if (!topic) {
+        throw new Error(
+          "[Websocket] Failed to receive update topic from IoT server",
+        );
+      }
+
+      const parts = topic.split("/");
+      const fullId = parts[1];
+
+      if (fullId) {
+        const prefix = fullId.substring(0, 2);
+        const deviceType = DEVICE_PREFIX_MAP[prefix];
+
+        if (deviceType) {
+          if (EMERGENCY_PREFIXES.has(prefix)) {
+            console.warn(`[Websocket] EMERGENCY DETECTED: ${deviceType}.`);
+            syncIotDevice(deviceType);
+            return;
+          }
+
+          const now = Date.now();
+          const lastRun = throttles.get(deviceType) || 0;
+
+          if (now - lastRun >= throttleMillisec) {
+            throttles.set(deviceType, now);
+            syncIotDevice(deviceType);
+          }
+        }
+      } else {
+        throw new Error(
+          "[Websocket] Failed to receive device ID from IoT server",
+        );
+      }
+    } catch (error) {
+      console.error("[Websocket] IoT device Update Error:", error.message);
+    }
+  });
+
+  ws.on("error", (err) => {
+    console.error("[Websocket] Failed to connect IoT server", err.message);
+  });
+
+  ws.on("close", () => {
+    console.log("[Websocket] Connection closed. Retrying in 10s...");
+    setTimeout(initIotSocketListener, 10000);
+  });
 };

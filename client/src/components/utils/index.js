@@ -3,9 +3,4 @@ export { HeaderButton } from "./HeaderButton";
 export { CommonDropdown } from "./CommonDropdown";
 export { getColor } from "./GraphColorsPalette";
 export { full30MinDomain, visibleTicks } from "./GraphTimeDomain";
-export {
-  getFloorItems,
-  AVAILABLE_DATES,
-  AVAILABLE_FLOORS,
-} from "./graphConfig";
 export { LoadingScreen } from "./LoadingScreen";
