@@ -1,31 +1,32 @@
+export const actionSet = {
+  actions: { on: "on", off: "off" },
+  deviceStatus: { on: true, off: false },
+};
+
 export const DEVICE_CONFIGS = {
   DOORS: {
     type: "doors",
-    actions: { on: "open", off: "close" },
-    deviceStatus: { on: true, off: false },
+    ...actionSet,
   },
   VALVES: {
     type: "valves",
-    actions: { on: true, off: false },
-    deviceStatus: { on: true, off: false },
+    ...actionSet,
   },
   ELECTRICITY: {
     type: "electricity",
+    ...actionSet,
   },
   AC: {
     type: "ac",
-    actions: { on: true, off: false },
-    deviceStatus: { on: true, off: false },
+    ...actionSet,
   },
   LIGHTS: {
     type: "lights",
-    actions: { on: true, off: false },
-    deviceStatus: { on: true, off: false },
+    ...actionSet,
   },
   EXHAUST_FANS: {
     type: "exhaustfans",
-    actions: { on: true, off: false },
-    deviceStatus: { on: true, off: false },
+    ...actionSet,
   },
   AIR_QUALITY: {
     type: "air-quality",

@@ -1,14 +1,23 @@
 import * as IoTService from "../services/iotService.js";
 import { syncIotDevice } from "../services/socketService.js";
 import { formatDeviceUpdate } from "../utils/responseFormatter.js";
+import { handleError } from "../utils/errorFormatter.js";
 
 export const getStatusHandler = (deviceType) => async (req, res) => {
   try {
     const data = await IoTService.fetchStatusByType(deviceType);
+
+    if (!data) {
+      throw {
+        status: 503,
+        message: `${deviceType} status is currently unavailable.`,
+      };
+    }
+
     const groupedData = formatDeviceUpdate(data, deviceType);
-    return res.json({ data: groupedData });
+    return res.status(200).json({ success: true, data: groupedData });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return handleError(res, error, `getStatusHandler [${deviceType}]`);
   }
 };
 
@@ -18,26 +27,32 @@ export const handleBatchCommand =
     const { deviceIds, action } = req.body;
 
     try {
+      if (!deviceIds || !Array.isArray(deviceIds) || !action) {
+        throw {
+          status: 400,
+          message: "deviceIds (array) and action are required!",
+        };
+      }
+
       const result = await executeFn(deviceType, deviceIds, action);
       const failedItems = result.filter(
-        (r) => r.status !== 200 || r.data?.success !== true,
+        (r) => !r || r.status !== 200 || r.data?.success !== true,
       );
 
       if (failedItems.length > 0) {
         const firstError = failedItems[0];
 
-        return res.json({
-          success: false,
-          error:
-            firstError?.data?.error ||
-            firstError?.data?.result?.error ||
-            `Failed to execute action on ${failedItems.length} device(s).`,
-        });
+        const errorMessage =
+          firstError?.data?.error ||
+          firstError?.data?.result?.error ||
+          `Failed to control ${failedItems.length} devices.`;
+
+        throw { status: 502, message: errorMessage };
       }
 
       await syncIotDevice(deviceType);
-      return res.json({ success: true });
+      return res.status(200).json({ success: true });
     } catch (error) {
-      return res.status(500).json({ success: false, error: error.message });
+      return handleError(res, error, `handleBatchCommand [${deviceType}]`);
     }
   };
