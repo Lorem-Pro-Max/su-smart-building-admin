@@ -12,5 +12,6 @@ export const handleError = (res, error, reqInfo) => {
       statusCode === 500
         ? "An internal server error occurred. Please try again later."
         : error.message,
+    failedCount: error.failedCount || 0,
   });
 };

@@ -41,13 +41,14 @@ export const handleBatchCommand =
 
       if (failedItems.length > 0) {
         const firstError = failedItems[0];
+        const failedCount = failedItems.length;
 
         const errorMessage =
           firstError?.data?.error ||
           firstError?.data?.result?.error ||
-          `Failed to control ${failedItems.length} devices.`;
+          `No response from the device`;
 
-        throw { status: 502, message: errorMessage };
+        throw { status: 502, message: errorMessage, failedCount: failedCount };
       }
 
       await syncIotDevice(deviceType);

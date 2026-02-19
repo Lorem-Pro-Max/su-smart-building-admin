@@ -14,6 +14,7 @@ const DEVICE_PREFIX_MAP = {
   SW: "lights",
   FA: "exhaustFans",
   SD: "smoke",
+  MT: "sensors"
 };
 
 const EMERGENCY_PREFIXES = new Set(["SM"]);
