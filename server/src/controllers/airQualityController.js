@@ -1,6 +1,6 @@
 import {
   formatDeviceMetadata,
-  formatRankingData,
+  formatAirQualityRankingData,
 } from "../utils/responseFormatter.js";
 import { handleError } from "../utils/errorFormatter.js";
 import * as IoTService from "../services/iotService.js";
@@ -117,7 +117,11 @@ export const getAirQualityByType = async (req, res) => {
       }
     });
 
-    const mappedData = formatRankingData(aqType, aqListByType, orderBy);
+    const mappedData = formatAirQualityRankingData(
+      aqType,
+      aqListByType,
+      orderBy,
+    );
     return res.json({ success: true, data: mappedData });
   } catch (error) {
     return handleError(res, error, "getAirQualityByType");

@@ -1,31 +1,59 @@
 import { deviceCache } from "../services/socketService.js";
 
 const STATUS_RESOLVERS = {
-  doors: (status) => ({
-    ...status,
+  doors: (status, subId) => ({
     power: status.door1_state !== "CLOSE" || status.door2_state !== "CLOSE",
   }),
+  valves: (status, subId) => {
+    let isPowerOn = false;
+
+    if (subId === "v1") {
+      isPowerOn = status.valve1_status === "OPEN";
+    } else if (subId === "v2") {
+      isPowerOn = status.valve2_status === "OPEN";
+    }
+
+    return {
+      power: isPowerOn,
+    };
+  },
+};
+
+const getHardwareCache = () => {
+  const cache = deviceCache.byDeviceId;
+  if (!cache || Object.keys(cache).length === 0) {
+    throw {
+      status: 503,
+      message: "[CACHE] Failed to cache device mapping data",
+    };
+  }
+  return cache;
 };
 
 export const formatDeviceUpdate = (iotStatusData, deviceType) => {
+  const cachedIds = getHardwareCache();
   const grouped = {};
 
   for (const [id, status] of Object.entries(iotStatusData)) {
-    const meta = deviceCache[id];
+    const metaArray = cachedIds[id];
 
-    if (meta) {
-      const { floor, title, type } = meta;
-      if (!grouped[floor]) grouped[floor] = [];
+    if (Array.isArray(metaArray)) {
+      metaArray.forEach((meta) => {
+        const { floor, title, type, key, device_sub_id } = meta;
+        if (!grouped[floor]) grouped[floor] = [];
 
-      const resolver = STATUS_RESOLVERS[deviceType];
-      const finalStatus = resolver ? resolver(status) : status;
+        const resolver = STATUS_RESOLVERS[deviceType];
+        const finalStatus = resolver ? resolver(status, device_sub_id) : status;
 
-      grouped[floor].push({
-        id: id,
-        name: title,
-        type: type,
-        status: finalStatus,
-        floor: floor,
+        grouped[floor].push({
+          id: id,
+          key: key,
+          name: title,
+          type: type,
+          status: finalStatus,
+          floor: floor,
+          device_sub_id: device_sub_id,
+        });
       });
     }
   }
@@ -34,43 +62,43 @@ export const formatDeviceUpdate = (iotStatusData, deviceType) => {
 };
 
 export const formatDeviceMetadata = (deviceIds) => {
-  const metadata = {
-    available_floors: [],
-    available_rooms: {},
-  };
+  const cachedIds = getHardwareCache();
+  const metadata = { available_floors: [], available_rooms: {} };
 
   for (const id of deviceIds) {
-    const meta = deviceCache[id];
+    const metaArray = cachedIds[id];
 
-    if (meta) {
-      const { floor, title } = meta;
-      const floorKey = `floor_${floor}`;
+    if (Array.isArray(metaArray)) {
+      metaArray.forEach((meta) => {
+        const { floor, title, key, device_sub_id } = meta;
+        const floorKey = `floor_${floor}`;
 
-      if (!metadata.available_rooms[floorKey]) {
-        metadata.available_rooms[floorKey] = [];
-      }
-      metadata.available_rooms[floorKey].push({
-        key: id,
-        label: title,
-      });
+        if (!metadata.available_rooms[floorKey]) {
+          metadata.available_rooms[floorKey] = [];
+        }
 
-      const floorExists = metadata.available_floors.some(
-        (item) => item.key === floorKey,
-      );
-
-      if (!floorExists) {
-        metadata.available_floors.push({
-          key: floorKey,
-          label: `ชั้น ${floor}`,
+        metadata.available_rooms[floorKey].push({
+          key: id,
+          label: title,
+          type: key,
+          device_sub_id: device_sub_id || null,
         });
-      }
+
+        if (!metadata.available_floors.some((item) => item.key === floorKey)) {
+          metadata.available_floors.push({
+            key: floorKey,
+            label: `ชั้น ${floor}`,
+          });
+        }
+      });
     }
   }
   metadata.available_floors.sort((a, b) => a.key.localeCompare(b.key));
   return metadata;
 };
 
-export const formatRankingData = (type, rawAqList, orderBy) => {
+export const formatAirQualityRankingData = (type, rawAqList, orderBy) => {
+  const cachedIds = getHardwareCache();
   const typeMapping = {
     pm25: "PM 2.5",
     pm10: "PM 10",
@@ -80,19 +108,25 @@ export const formatRankingData = (type, rawAqList, orderBy) => {
     smoke: "Smoke",
   };
 
-  const enriched = rawAqList.map((item) => {
+  const enriched = [];
+
+  rawAqList.forEach((item) => {
     const id = Object.keys(item)[0];
     const value = item[id];
-    const meta = deviceCache[id];
+    const metaArray = cachedIds[id];
 
-    return {
-      id,
-      type: type,
-      value: value[type],
-      type_title: typeMapping[type],
-      room_title: meta?.title || null,
-      floor: meta?.floor || null,
-    };
+    if (Array.isArray(metaArray)) {
+      metaArray.forEach((meta) => {
+        enriched.push({
+          id: `${id}_${meta.key}`,
+          type: type,
+          value: value[type],
+          type_title: typeMapping[type],
+          room_title: meta.title,
+          floor: meta.floor,
+        });
+      });
+    }
   });
 
   return enriched.sort((a, b) =>

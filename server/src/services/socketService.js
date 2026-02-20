@@ -5,7 +5,11 @@ import { fetchDeviceMapping } from "./dbService.js";
 import * as IoTService from "./iotService.js";
 
 const SOCKET_URL = process.env.WEBSOCKET_URL;
-export let deviceCache = {};
+
+export let deviceCache = {
+  byId: {},
+  byDeviceId: {},
+};
 
 const DEVICE_PREFIX_MAP = {
   VA: "valves",
@@ -14,17 +18,47 @@ const DEVICE_PREFIX_MAP = {
   SW: "lights",
   FA: "exhaustFans",
   SD: "smoke",
-  MT: "sensors"
+  MT: "sensors",
 };
 
 const EMERGENCY_PREFIXES = new Set(["SM"]);
 
-export const initializeDeviceMapping = async () => {
-  const rows = await fetchDeviceMapping();
-  deviceCache = rows.reduce((acc, row) => {
-    acc[row.device_id] = row;
-    return acc;
-  }, {});
+export const initDeviceMapping = async () => {
+  try {
+    const rows = await fetchDeviceMapping(); 
+
+    if (!rows || rows.length === 0) {
+      console.warn(
+        "[Server] No device IDs found from the server",
+      );
+      deviceCache = { byId: {}, byDeviceId: {} };
+      return;
+    }
+
+    const byId = {};
+    const byDeviceId = {};
+
+    rows.forEach((row) => {
+      byId[row.id] = row;
+
+      if (!byDeviceId[row.device_id]) {
+        byDeviceId[row.device_id] = [];
+      }
+
+      byDeviceId[row.device_id].push(row);
+    });
+    deviceCache = { byId, byDeviceId };
+
+    console.log(
+      `[Server] ${rows.length} devices IDs cached`,
+    );
+  } catch (error) {
+    console.error(
+      "[Server] CRITICAL: Failed to initialize device mapping:",
+      error.message,
+    );
+    deviceCache = { byId: {}, byDeviceId: {} };
+  }
 };
 
 export const emitDeviceUpdate = (room, data) => {

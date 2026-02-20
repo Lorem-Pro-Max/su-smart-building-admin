@@ -24,7 +24,7 @@ export const getStatusHandler = (deviceType) => async (req, res) => {
 export const handleBatchCommand =
   (deviceType, executeFn = IoTService.executeBatch) =>
   async (req, res) => {
-    const { deviceIds, action } = req.body;
+    const { deviceIds, action, value = null } = req.body;
 
     try {
       if (!deviceIds || !Array.isArray(deviceIds) || !action) {
@@ -34,7 +34,7 @@ export const handleBatchCommand =
         };
       }
 
-      const result = await executeFn(deviceType, deviceIds, action);
+      const result = await executeFn(deviceType, deviceIds, action, value);
       const failedItems = result.filter(
         (r) => !r || r.status !== 200 || r.data?.success !== true,
       );
@@ -46,7 +46,7 @@ export const handleBatchCommand =
         const errorMessage =
           firstError?.data?.error ||
           firstError?.data?.result?.error ||
-          `No response from the device`;
+          `No response from target device(s)`;
 
         throw { status: 502, message: errorMessage, failedCount: failedCount };
       }

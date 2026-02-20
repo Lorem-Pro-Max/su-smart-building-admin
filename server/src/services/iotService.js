@@ -7,7 +7,7 @@ const DEVICE_MAP = {
     path: "ac",
     actions: { on: true, off: false },
   },
-  exhaustFans: {
+  "exhaust-fans": {
     path: "fa",
     actions: { on: true, off: false },
   },
@@ -17,7 +17,7 @@ const DEVICE_MAP = {
   },
   valves: {
     path: "water",
-    actions: { on: true, off: false },
+    actions: { on: "open", off: "close" },
   },
   doors: {
     path: "door",
@@ -43,14 +43,14 @@ export const fetchDeviceList = async (baseType, deviceType) => {
   return response.data || [];
 };
 
-export const executeBatch = async (type, ids, action, value = null) => {
+export const executeBatch = async (baseType, ids, action, value = null) => {
   return await Promise.all(
     ids.map((id) =>
       axios
         .post(
-          `${IOT_BASE_URL}/control/${DEVICE_MAP[type]["path"]}/${id}/command`,
+          `${IOT_BASE_URL}/control/${DEVICE_MAP[baseType]["path"]}/${id}/command`,
           {
-            power: DEVICE_MAP[type]["actions"][action],
+            power: DEVICE_MAP[baseType]["actions"][action],
           },
         )
         .then((r) => ({ status: r.status, data: r.data }))
@@ -63,7 +63,7 @@ export const executeBatch = async (type, ids, action, value = null) => {
   );
 };
 
-export const executeDoorAction = async (type, ids, action) => {
+export const executeDoorAction = async (type, ids, action, value = null) => {
   const indices = [1, 2];
 
   const batchResults = await Promise.all(
@@ -72,7 +72,7 @@ export const executeDoorAction = async (type, ids, action) => {
         indices.map((index) =>
           axios
             .post(
-              `${IOT_BASE_URL}/control/door/${deviceId}/${index}/${DEVICE_MAP["doors"]["actions"][action]}`,
+              `${IOT_BASE_URL}/control/door/${deviceId}/${index}/${DEVICE_MAP[type]["actions"][action]}`,
             )
             .then((r) => ({ status: r.status, data: r.data }))
             .catch((e) => ({
@@ -95,6 +95,25 @@ export const executeDoorAction = async (type, ids, action) => {
       data: { success: allDoorsSuccessful },
     },
   ];
+};
+
+export const executeValveAction = async (type, ids, action, subId) => {
+  const valveAction = DEVICE_MAP[type]["actions"][action];
+
+  console.log(type, ids, action, subId );
+  
+  return await Promise.all(
+    ids.map((id) =>
+      axios
+        .post(`${IOT_BASE_URL}/control/water/${id}/${subId}/${valveAction}`)
+        .then((r) => ({ status: r.status, data: r.data }))
+        .catch((e) => ({
+          id,
+          status: "failed",
+          error: e.response?.data?.message || e.message,
+        })),
+    ),
+  );
 };
 
 export const executeAcTempAdjustment = async (acId, targetTemp) => {
