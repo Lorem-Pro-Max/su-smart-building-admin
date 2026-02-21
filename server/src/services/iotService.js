@@ -145,9 +145,26 @@ export const executeValveAction = async (type, ids, action, subId) => {
 };
 
 export const executeAcTempAdjustment = async (acId, targetTemp) => {
-  const response = await axios.post(
-    `${IOT_BASE_URL}/control/ac/${acId}/command`,
-    { temp: targetTemp },
-  );
-  return response.data || {};
+  const url = `${IOT_BASE_URL}/control/ac/${acId}/command`;
+  try {
+    const r = await axios.post(url, { temp: targetTemp });
+
+    if (r.data?.success === false) {
+      return {
+        id: acId,
+        status: 200,
+        data: r.data,
+        error: r.data.error || r.data.detail || "Hardware Rejected Command",
+      };
+    }
+
+    return { id: acId, status: r.status, data: r.data };
+  } catch (e) {
+    return {
+      id: acId,
+      status: e.response?.status || 500,
+      data: e.response?.data || { success: false },
+      error: e.response?.data?.detail || e.response?.data?.error || e.message,
+    };
+  }
 };
