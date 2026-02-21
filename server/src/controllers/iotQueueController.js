@@ -6,11 +6,11 @@ export const AddIotQueue = async (req, res) => {
     const { deviceId, action, actionTime, bookingId, scheduleId } = req.body;
 
     if (!deviceId || !action || !actionTime || !scheduleId) {
-      throw {
+      return res.status(400).json({
         status: 400,
         message:
-          "deviceId(table ID), action, actionTime, scheduleId are required.",
-      };
+          "deviceId(table ID), action, actionTime, scheduleId are required. (bookingId is optional)",
+      });
     }
     const safeBookingId = bookingId ?? "manual";
 

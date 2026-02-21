@@ -4,6 +4,6 @@ import * as IotQueueController from "../controllers/iotQueueController.js"
 
 const router = express.Router();
 
-router.post("/iot/add-queue", protectAction, IotQueueController.AddIotQueue);
+router.post("/add-queue", protectAction, IotQueueController.AddIotQueue);
 
 export default router;
