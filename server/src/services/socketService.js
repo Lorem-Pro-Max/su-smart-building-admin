@@ -90,11 +90,7 @@ export const syncIotDevice = async (deviceType) => {
   try {
     const rawData = await IoTService.fetchStatusByType(deviceType);
     emitDeviceUpdate(deviceType, formatDeviceUpdate(rawData, deviceType));
-  } catch (error) {
-    logSystemEvent("socket", "warn", "DEVICE_SYNC_FAIL", error.message, {
-      deviceType,
-    });
-  }
+  } catch (error) {}
 };
 
 const throttles = new Map();

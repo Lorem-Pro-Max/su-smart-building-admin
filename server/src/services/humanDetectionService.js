@@ -44,80 +44,69 @@ const getFormattedDateTime = () => {
 export const processHumanDetection = async (sensorId, motionStatus) => {
   if (!sensorId) return;
 
+  const sensorMappings = getDeviceByHardwareId(sensorId);
+
+  if (!sensorMappings || sensorMappings.length === 0) return;
+
   const now = Date.now();
-  const START_TIME_KEY = `occupancy:start:${sensorId}`;
-  const LEVEL_KEY = `occupancy:level:${sensorId}`;
+  const isHumanPresent = motionStatus !== "none";
 
-  try {
-    const isHumanPresent = motionStatus !== "none";
+  for (const meta of sensorMappings) {
+    const roomId = meta.room_id;
+    const START_TIME_KEY = `occupancy:start:${sensorId}:${roomId}`;
+    const LEVEL_KEY = `occupancy:level:${sensorId}:${roomId}`;
 
-    if (isHumanPresent) {
-      await redisConnection.set(START_TIME_KEY, now);
+    try {
+      if (isHumanPresent) {
+        await redisConnection.set(START_TIME_KEY, now);
+        const currentLevel = await redisConnection.get(LEVEL_KEY);
 
-      const currentLevel = await redisConnection.get(LEVEL_KEY);
-      if (
-        currentLevel === ROOM_STATE.CLOSED ||
-        currentLevel === ROOM_STATE.NOTIFIED
-      ) {
-        logSystemEvent(
-          "human-detection",
-          "info",
-          "AUTO_REOPEN",
-          `Motion detected by ${sensorId}; restoring room power.`,
-        );
-        await handleHumanReentry(sensorId);
+        if (
+          currentLevel === ROOM_STATE.CLOSED ||
+          currentLevel === ROOM_STATE.NOTIFIED
+        ) {
+          await handleHumanReentry(roomId);
+        }
+        await redisConnection.del(LEVEL_KEY);
+        continue;
       }
 
-      await redisConnection.del(LEVEL_KEY);
-      return;
-    }
+      const startTime = await redisConnection.get(START_TIME_KEY);
+      if (!startTime) {
+        await redisConnection.set(START_TIME_KEY, now);
+        continue;
+      }
 
-    const startTime = await redisConnection.get(START_TIME_KEY);
-    if (!startTime) return await redisConnection.set(START_TIME_KEY, now);
+      const idleMinutes = (now - parseInt(startTime)) / 60000;
+      const currentLevel = await redisConnection.get(LEVEL_KEY);
 
-    const idleMinutes = (now - parseInt(startTime)) / 60000;
-    const currentLevel = await redisConnection.get(LEVEL_KEY);
-
-    if (
-      idleMinutes >= ROOM_SHUTDOWN_MINUTE_TRIGGER &&
-      currentLevel !== ROOM_STATE.CLOSED
-    ) {
+      if (
+        idleMinutes >= ROOM_SHUTDOWN_MINUTE_TRIGGER &&
+        currentLevel !== ROOM_STATE.CLOSED
+      ) {
+        
+        await triggerShutdownAction(roomId);
+        await redisConnection.set(LEVEL_KEY, ROOM_STATE.CLOSED);
+      } else if (idleMinutes >= NOTI_MINUTE_TRIGGER && !currentLevel) {
+        const currentTime = getFormattedDateTime();
+        await triggerNotiAction(meta, currentTime);
+        await redisConnection.set(LEVEL_KEY, ROOM_STATE.NOTIFIED);
+      }
+    } catch (error) {
       logSystemEvent(
         "human-detection",
-        "info",
-        "AUTO_SHUTDOWN",
-        `Room idle for ${ROOM_SHUTDOWN_MINUTE_TRIGGER}m. Executing shutdown.`,
-        { sensorId },
+        "error",
+        "DETECTION_CRASH",
+        error.message,
+        { sensorId, roomId },
       );
-      await triggerShutdownAction(sensorId);
-      await redisConnection.set(LEVEL_KEY, ROOM_STATE.CLOSED);
-    } else if (
-      idleMinutes >= NOTI_MINUTE_TRIGGER &&
-      currentLevel !== ROOM_STATE.NOTIFIED &&
-      currentLevel !== ROOM_STATE.CLOSED
-    ) {
-      const currentTime = getFormattedDateTime();
-      await triggerNotiAction(sensorId, currentTime);
-      await redisConnection.set(LEVEL_KEY, ROOM_STATE.NOTIFIED);
     }
-  } catch (error) {
-    console.error(`[Human Detection] FATAL: ${sensorId} | ${error.message}`);
-    logSystemEvent(
-      "human-detection",
-      "error",
-      "DETECTION_CRASH",
-      error.message,
-      { sensorId },
-    );
   }
 };
 
-const executeRoomAction = async (sensorId, action) => {
+const executeRoomAction = async (roomId, action) => {
   try {
-    const sensor = getDeviceByHardwareId(sensorId);
-    if (!sensor) throw new Error(`Sensor ${sensorId} not found in cache`);
-
-    const roomDevices = getDevicesByRoomId(sensor.room_id);
+    const roomDevices = getDevicesByRoomId(roomId);
 
     const grouped = roomDevices.reduce(
       (acc, { type, deviceId, deviceSubId }) => {
@@ -140,30 +129,25 @@ const executeRoomAction = async (sensorId, action) => {
         const execute = EXECUTION_REGISTRY[type] || EXECUTION_REGISTRY.default;
         const results = await execute(type, ids, action, subId);
 
-        const failures = [];
-        const successes = [];
-
-        results.forEach((r) => {
-          if (!r || r.status !== 200 || r.data?.success !== true) {
-            failures.push(r);
-          } else {
-            successes.push(r);
-          }
-        });
+        const successes = results.filter(
+          (r) => r && r.status === 200 && r.data?.success === true,
+        );
+        const failures = results.filter(
+          (r) => !r || r.status !== 200 || r.data?.success !== true,
+        );
 
         successes.forEach((res) => {
           try {
-            const deviceMeta = getDeviceByHardwareId(res.id);
-
-            if (deviceMeta && deviceMeta.id) {
-              logIotAction(deviceMeta.id, action, 1);
-            }
+            const deviceMetaList = getDeviceByHardwareId(res.id);
+            deviceMetaList.forEach((meta) => {
+              if (meta.id) logIotAction(meta.id, action, 1);
+            });
           } catch (mappingErr) {
             logSystemEvent(
               "human-detection",
               "warn",
               "LOG_MAPPING_MISS",
-              `Hardware ID ${res.id} missing from cache.`,
+              res.id,
             );
           }
         });
@@ -173,7 +157,7 @@ const executeRoomAction = async (sensorId, action) => {
             "human-detection",
             "warn",
             "PARTIAL_EXECUTION_FAIL",
-            `Action ${action} failed for some ${type}`,
+            `Some ${type} failed.`,
             { failures },
           );
         }
@@ -184,55 +168,50 @@ const executeRoomAction = async (sensorId, action) => {
           "human-detection",
           "error",
           "EXECUTION_CRITICAL",
-          `Critical failure on ${type}: ${e.message}`,
+          e.message,
         );
       }
     }
   } catch (error) {
     logSystemEvent("human-detection", "error", "ROOM_MAP_FAIL", error.message, {
-      sensorId,
+      roomId,
     });
   }
 };
 
-const triggerNotiAction = async (sensorId, datetime) => {
+const triggerNotiAction = async (meta, datetime) => {
   try {
-    const device = getDeviceByHardwareId(sensorId);
-    if (!device) return;
-
     const io = getIO();
-
     io.emit("idle_warning", {
       title: "แจ้งเตือนการล็อคห้องอัตโนมัติ",
-      room: device.title,
-      floor: device.floor,
+      room: meta.title,
+      floor: meta.floor,
       date: datetime.date,
       time: datetime.time,
       remaining_time: 10,
     });
   } catch (error) {
-    logSystemEvent("human-detection", "warn", "NOTI_SEND_FAIL", error.message, {
-      sensorId,
-    });
+    logSystemEvent("human-detection", "warn", "NOTI_SEND_FAIL", error.message);
   }
 };
 
-const triggerShutdownAction = async (sensorId) => {
-  await executeRoomAction(sensorId, "off");
+const triggerShutdownAction = async (roomId) => {
+  await executeRoomAction(roomId, "off");
 };
 
-const handleHumanReentry = async (sensorId) => {
-  await executeRoomAction(sensorId, "on");
+const handleHumanReentry = async (roomId) => {
+  await executeRoomAction(roomId, "on");
 };
 
 export const isRoomStillInactive = async (roomId, thresholdMinutes = 30) => {
   const sensorIds = getSensorsByRoomId(roomId);
-
   if (sensorIds.length === 0) return true;
 
   const results = await Promise.all(
     sensorIds.map(async (id) => {
-      const startTime = await redisConnection.get(`occupancy:start:${id}`);
+      const startTime = await redisConnection.get(
+        `occupancy:start:${id}:${roomId}`,
+      );
       if (!startTime) return true;
 
       const idleMinutes = (Date.now() - parseInt(startTime)) / 60000;
