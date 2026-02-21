@@ -1,31 +1,25 @@
-export { CalendarIcon } from "./sidebar/CalendarIcon"
-export { PeopleIcon } from "./sidebar/PeopleIcon"
+export { CalendarIcon } from "./sidebar/CalendarIcon";
+export { PeopleIcon } from "./sidebar/PeopleIcon";
 export { SignalTowerIcon } from "./sidebar/SignalTowerIcon";
 export { BurgerIcon } from "./navbar/BurgerIcon";
 export { UserIcon } from "./navbar/UserIcon";
 export { SuSceinceLogo } from "./logos/Silpakorn-science-logo";
-
 export { DoorsControlTitleIcon } from "./doors-control/DoorsControlIcon";
 export { DoorsControlButtonIcon } from "./doors-control/DoorsControlButtonIcon";
-
 export { ValvesControlTitleIcon } from "./valve-control/ValvesControlIcon";
 export { ValvesControlButtonIcon } from "./valve-control/ValvesControlButtonIcon";
-
 export { ExhaustFansControlButtonIcon } from "./exhaust-fans-control/ExhaustFansButtonIcon";
 export { ExhaustFansControlTitleIcon } from "./exhaust-fans-control/ExhaustFansControlIcon";
-
 export { LightsControlButtonIcon } from "./lights-control/LightsFansButton";
 export { LightsControlTitleIcon } from "./lights-control/LightsControlIcon";
-
 export { AirConditionerTemperatureButtonIcon } from "./air-conditioners-control/AirConditionerTemperatureButtonIcon";
 export { AirConditionerButtonIcon } from "./air-conditioners-control/AirConditionerButtonIcon";
 export { AirConditionerTitleIcon } from "./air-conditioners-control/AirConditionerTitleIcon";
-
 export { ElectricityTitleIcon } from "./electricity/ElectricityTitleIcon";
 export { TotalUsageIconBlue } from "./graph-container/TotalUsageIconBlue";
 export { TotalUsageIconOrange } from "./graph-container/TotalUsageIconOrange";
-
 export { RoomNotFoundIcon } from "./roomNotFoundIcon";
-
 export { AirQualityTitleIcon } from "./air-quality/AirQualityTitleIcon";
 export { HistoryPageTitleIcon } from "./history-page/HistoryPageTitleIcon";
+export { SmokeDetectionIcon } from "./SmokeDetectionIcon";
+export { WarningSignIcon } from "./WarningSignIcon";

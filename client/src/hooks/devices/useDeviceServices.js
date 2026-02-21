@@ -27,16 +27,20 @@ export function useDeviceServices(config, service) {
     [config.deviceStatus.on],
   );
 
-  const refresh = useCallback(async () => {
+const refresh = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true }));
     try {
       const freshData = await service.getStatus();
       setNormalizedData(freshData);
     } catch (err) {
-      setState((prev) => ({ ...prev, isLoading: false, isError: err.message }));
+      try {
+        const partialData = await service.getStatus(); 
+        setNormalizedData(partialData);
+      } catch (innerErr) {
+        setState((prev) => ({ ...prev, isLoading: false, isError: err.message }));
+      }
     }
   }, [service, setNormalizedData]);
-
   useEffect(() => {
     refresh();
     const unsubscribe = service.subscribe((payload) =>

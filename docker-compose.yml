@@ -2,6 +2,10 @@ volumes:
   frontend_dist:
 
 services:
+  admin-redis:
+    image: redis:alpine
+    restart: always
+
   admin-frontend:
     build:
       context: ./client
@@ -15,11 +19,16 @@ services:
     build: ./server
     restart: always
     ports:
-    - "8124:8124"
+      - "8124:8124"
     environment:
       - SERVER_PORT=8124
       - DATABASE_URL=
       - IOT_SERVER_URL=
+      - WEBSOCKET_URL=
+      - REDIS_HOST=admin-redis
+      - REDIS_PORT=6379
+    depends_on:
+      - admin-redis
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

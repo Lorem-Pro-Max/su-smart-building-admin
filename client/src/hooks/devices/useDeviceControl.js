@@ -1,55 +1,52 @@
-import { notification } from "antd";
+import { useToast } from "../../components/utils";
 
 export function useDeviceControl(config, onRefresh, service) {
-  const [api, contextHolder] = notification.useNotification({
-    stack: { threshold: 0 },
-  });
+  const { successToast, errorToast, contextHolder } = useToast();
 
-const openNotification = (type, message) => {
-  const description = typeof message === 'object' ? (message.message || "An unexpected error occurred") : message;
-
-  api[type]({
-    title: "ล้มเหลว",
-    description: String(description),
-    duration: 5,
-    placement: "topRight",
-    style: {
-      backgroundColor: type === "success" ? "#F6FFED" : "#FFE5E5",
-    },
-  });
-};
-
-  const handleSingleToggle = async (roomId, isTurningOn) => {
-    const action = isTurningOn ? config.actions.on : config.actions.off;
-    try {
-      const response = await service.batchControl([roomId], action);
-      const { data } = response;
-
-      if (data.success == true) {
-        setTimeout(() => onRefresh?.(), 800);
-      } else {
-        openNotification("error", data.error);
-      }
-    } catch (error) {
-      openNotification("error", error.message || "การเชื่อมต่อล้มเหลว");
-    }
-  };
-
-  const handleExecuteAction = async (deviceIds, actionKey) => {
-    const apiAction = config.actions[actionKey];
-    if (!deviceIds?.length) return;
+  const executeAction = async (deviceIds, apiAction, statusThai) => {
+    const totalCount = deviceIds.length;
 
     try {
       const response = await service.batchControl(deviceIds, apiAction);
+      const { data } = response;
 
-      if (response.data?.success) {
-        setTimeout(() => onRefresh?.(), 800);
-      } else {
-        throw new Error(response.data?.error || "Batch control failed");
+      if (data?.success) {
+        const successMsg =
+          totalCount > 1
+            ? `${statusThai}ทั้งหมด ${totalCount} รายการที่เลือกแล้ว`
+            : `${statusThai}รายการที่เลือกแล้ว`;
+
+        successToast(successMsg, 1);
+        if (onRefresh) setTimeout(() => onRefresh(), 800);
+        return;
       }
-    } catch (error) {
-      openNotification("error", error);
+
+      throw {
+        message: data?.error,
+        failedCount: data?.failedCount,
+      };
+    } catch (err) {
+      const serverData = err.response?.data;
+      const failedCount = serverData?.failedCount || 0;
+      const serverError = serverData?.error || err.message || "เกิดข้อผิดพลาด";
+      const errorDisplay = `ไม่สามารถ${statusThai} ${failedCount} รายการที่เลือกได้: ${serverError}`;
+
+      errorToast(errorDisplay);
     }
+  };
+
+  const handleSingleToggle = async (roomId, isTurningOn) => {
+    const action = isTurningOn ? config.actions.on : config.actions.off;
+    const statusThai = isTurningOn ? "เปิด" : "ปิด";
+    await executeAction([roomId], action, statusThai);
+  };
+
+  const handleExecuteAction = async (deviceIds, actionKey) => {
+    if (!deviceIds?.length) return;
+
+    const apiAction = config.actions[actionKey];
+    const statusThai = actionKey === "on" ? "เปิด" : "ปิด";
+    await executeAction(deviceIds, apiAction, statusThai);
   };
 
   return { handleSingleToggle, handleExecuteAction, contextHolder };
