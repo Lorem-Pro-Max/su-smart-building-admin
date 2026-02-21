@@ -29,15 +29,7 @@ export function useDeviceControl(config, onRefresh, service) {
       const serverData = err.response?.data;
       const failedCount = serverData?.failedCount || 0;
       const serverError = serverData?.error || err.message || "เกิดข้อผิดพลาด";
-
-      const errorDisplay =
-        failedCount == 1
-          ? `ไม่สามารถ${statusThai}รายการที่เลือกได้ 
-        (${serverError})`
-          : failedCount > 1
-            ? `ไม่สามารถ${statusThai}ได้ ${failedCount} รายการ 
-        (${serverError})`
-            : serverError;
+      const errorDisplay = `ไม่สามารถ${statusThai} ${failedCount} รายการที่เลือกได้: ${serverError}`;
 
       errorToast(errorDisplay);
     }

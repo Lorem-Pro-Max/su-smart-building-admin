@@ -16,6 +16,5 @@ httpServer.listen(PORT, async () => {
   initIotSocketListener();
   await initDeviceMapping();
   await initColdStartSync();
-
   console.log(`[Server] Backend running on port ${PORT}`);
 });
