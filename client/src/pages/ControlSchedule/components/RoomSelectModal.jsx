@@ -71,7 +71,14 @@ function RoomSelectModal({ open, onClose, onSelect }) {
       onCancel={onClose}
       footer={null}
       centered
-      className="!w-[90%] max-w-[1200px]"
+      width="90%"
+      style={{ maxWidth: 1000 }}
+      styles={{
+        body: {
+          maxHeight: "75vh",
+          overflow: "auto",
+        },
+      }}
     >
       <h3 className="text-sm font-semibold mb-6">เลือกห้องหรือพื้นที่</h3>
 

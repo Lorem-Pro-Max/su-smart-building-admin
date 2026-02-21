@@ -6,6 +6,7 @@ import { getUsers, updateUser } from "../../services/user";
 
 import { Table, Button, Flex, Spin, notification } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { LoadingScreen } from "../../components/utils/LoadingScreen";
 
 function UserPermissionPage() {
   const [users, setUsers] = useState([]);
@@ -97,6 +98,10 @@ function UserPermissionPage() {
     ],
     [],
   );
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div>

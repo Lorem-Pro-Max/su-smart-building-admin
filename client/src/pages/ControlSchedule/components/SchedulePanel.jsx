@@ -278,12 +278,12 @@ function SchedulePanel({ selectedDate, onClose }) {
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="font-medium">
               ผู้ตั้งเวลา <span className="text-[#F5222D]">*</span>
             </label>
             <div className="mt-2">ดวงจันทร์ จันทร์กระจ่าง</div>
-          </div>
+          </div> */}
         </div>
 
         <div className="flex">

@@ -1,4 +1,5 @@
 import { supabase } from "../config/superbase.js";
+import { addIotJob } from "../services/deviceQueueService.js";
 
 export const getAll = async () => {
   const { data, error } = await supabase.from("iot_schedule").select(`
@@ -97,18 +98,50 @@ export const createSchedules = async ({
     .insert(rows)
     .select();
 
+  await Promise.all(
+    data.map((item) =>
+      addIotJob(
+        item.device_id,
+        item.action,
+        item.action_time,
+        item.booking_id ?? null,
+        item.id,
+      ),
+    ),
+  );
   if (error) throw error;
 
   return data;
 };
 
 export const deleteScheduleById = async (idList) => {
-  const { error } = await supabase
+  const { data: schedules, error: fetchError } = await supabase
+    .from("iot_schedule")
+    .select("id, device_id, action, booking_id")
+    .in("id", idList);
+
+  if (fetchError) throw fetchError;
+
+  if (!schedules?.length) return true;
+  const { error: deleteError } = await supabase
     .from("iot_schedule")
     .delete()
     .in("id", idList);
 
   if (error) throw error;
+
+  if (deleteError) throw deleteError;
+
+  await Promise.all(
+    schedules.map((item) =>
+      removeIotJob(
+        item.device_id,
+        item.action,
+        item.booking_id ?? "manual",
+        item.id,
+      ),
+    ),
+  );
 
   return true;
 };

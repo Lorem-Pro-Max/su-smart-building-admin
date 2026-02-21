@@ -7,6 +7,7 @@ import CalendarComponent from "./components/CalendarComponent";
 import ScheduleTable from "./components/ScheduleTable";
 import DeleteModal from "./components/DeleteModal";
 import { getAllSchedule } from "../../services/schedule";
+import { LoadingScreen } from "../../components/utils/LoadingScreen";
 
 function ControlSchedulePage() {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -47,8 +48,7 @@ function ControlSchedulePage() {
       });
 
       setTableData(formatted);
-    } catch (err) {
-      console.error(err);
+    } catch {
       notification.error({ message: "โหลดข้อมูลไม่สำเร็จ" });
     } finally {
       setLoading(false);
@@ -58,6 +58,10 @@ function ControlSchedulePage() {
   useEffect(() => {
     fetchSchedule();
   }, []);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <>
