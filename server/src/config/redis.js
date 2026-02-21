@@ -11,6 +11,6 @@ const redisConnection = new IORedis(redisConfig);
 redisConnection.on("error", (err) =>
   console.error("Redis Connection Error:", err),
 );
-redisConnection.on("connect", () => console.log("[IoT Queue] Connected to Redis"));
+redisConnection.on("connect", () => console.log("[IoT Queue] Redis server connected"));
 
 export default redisConnection;

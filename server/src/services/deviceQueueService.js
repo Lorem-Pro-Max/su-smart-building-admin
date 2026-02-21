@@ -1,7 +1,8 @@
 import { Queue, Worker } from "bullmq";
 import redisConnection from "../config/redis.js";
 import { deviceCache } from "./socketService.js";
-import * as IoTService from "./iotService.js";
+import { EXECUTION_REGISTRY } from "../utils/controllerWrapper.js";
+import { isRoomStillInactive } from "./humanDetectionService.js";
 
 export const iotQueue = new Queue("iot-scheduling", {
   connection: redisConnection,
@@ -24,18 +25,6 @@ const getCache = () => {
   return cache;
 };
 
-const EXECUTION_MAP = {
-  valves: (d) =>
-    IoTService.executeValveAction(
-      d.deviceType,
-      [d.deviceId],
-      d.action,
-      d.deviceSubId,
-    ),
-  doors: (d) =>
-    IoTService.executeDoorAction(d.deviceType, [d.deviceId], d.action),
-  default: (d) => IoTService.executeBatch(d.deviceType, [d.deviceId], d.action),
-};
 const iotWorker = new Worker(
   "iot-scheduling",
   async (job) => {
@@ -43,8 +32,14 @@ const iotWorker = new Worker(
       job.data;
 
     try {
-      const execute = EXECUTION_MAP[deviceType] || EXECUTION_MAP.default;
-      const results = await execute(job.data);
+      const execute =
+        EXECUTION_REGISTRY[deviceType] || EXECUTION_REGISTRY.default;
+      const results = await execute(
+        deviceType,
+        [deviceId],
+        action,
+        deviceSubId,
+      );
       const isSuccess = results.every((res) => res.status === 200);
 
       if (!isSuccess) {
@@ -52,7 +47,7 @@ const iotWorker = new Worker(
       }
 
       console.log(
-        `[IoT Queue] SUCCESS: ${scheduleId} | ${roomTitle} | ${action}`,
+        `[IoT Queue] SUCCESS: ${scheduleId} | ${roomTitle} | ${deviceType} |${action}`,
       );
     } catch (err) {
       console.error(`[Queue] FAIL: ID ${scheduleId} | ${err.message}`);
@@ -70,7 +65,6 @@ export const addIotJob = async (
   scheduleId,
 ) => {
   try {
-    
     if (!deviceId || !action || !actionTime || !scheduleId) {
       const err = new Error(
         "REQUIRED_KEYS: deviceId, action, actionTime, scheduleId",
@@ -97,13 +91,28 @@ export const addIotJob = async (
       throw err;
     }
 
-    const delay = Math.max(0, scheduledTime - Date.now());
+    const isPowerOn = true ? normalizedAction === "on" : false;
+
+    const now = Date.now();
+    const POWER_ON_GRACE_PERIOD = 60 * 1000;
+    const POWER_OFF_GRACE_PERIOD = 4 * 60 * 60 * 1000;
+
+    if (isPowerOn && scheduledTime < now - POWER_ON_GRACE_PERIOD) {
+      return { success: false, error: "SCHEDULE_TIME_PASSED" };
+    }
+
+    if (!isPowerOn && scheduledTime < now - POWER_OFF_GRACE_PERIOD) {
+      return { success: false, error: "SCHEDULE_TIME_PASSED" };
+    }
+
+    const delay = Math.max(0, scheduledTime - now);
+
     const hardwareId = meta.device_id;
     const deviceType = meta.key;
     const hardwareSubId = meta.device_sub_id || null;
     const roomTitle = meta.title;
 
-    const jobId = `${scheduleId}-${bookingId}-${action}-${normalizedAction}-${hardwareSubId}`;
+    const jobId = `${scheduleId}-${bookingId}-${normalizedAction}-${hardwareId}-${hardwareSubId}`;
 
     const job = await iotQueue.add(
       "toggle-device",
@@ -121,13 +130,15 @@ export const addIotJob = async (
         removeOnComplete: true,
         attempts: 3,
         backoff: { type: "exponential", delay: 1000 },
-        removeOnFail: true,
+        removeOnComplete: true,
+        removeOnFail: { age: 72 * 3600 },
       },
     );
 
-    if (!job?.id) throw new Error("REDIS_FAILED: No job ID returned");
+    if (!job?.id) {
+      throw new Error("REDIS_FAILED: No job ID returned");
+    }
 
-    console.log(`[IoT Queue] QUEUE ADDED: ${jobId}`);
     return { success: true, jobId: job.id };
   } catch (error) {
     console.error(`[IoT Queue] FATAL_ERROR: ${error.message}`);
@@ -153,9 +164,7 @@ export const removeIotJob = async (
     const meta = cache[String(deviceId)];
 
     if (!meta) {
-      const err = new Error(
-        `NOT_FOUND: Device ${deviceId} missing from device map`,
-      );
+      const err = new Error(`NOT_FOUND: Device ID: ${deviceId} not found`);
       err.status = 404;
       throw err;
     }
@@ -168,10 +177,8 @@ export const removeIotJob = async (
 
     if (job) {
       await job.remove();
-      console.log(`[IoT Queue] REVOKED: ${jobId}`);
-      return { success: true, message: "Job removed" };
+      return { success: true };
     } else {
-      console.log(`[IoT Queue] REMOVE_NOT_FOUND: ${jobId}`);
       return { success: false, error: "Job not found" };
     }
   } catch (error) {

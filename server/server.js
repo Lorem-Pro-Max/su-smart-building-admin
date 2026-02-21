@@ -12,20 +12,20 @@ const httpServer = createServer(app);
 
 initSocket(httpServer);
 
-const runFullLifecycleTest = async () => {
-  await addIotJob(
-    "4836",
-    "off",
-    "2026-02-20 17:04:00+07",
-    "booking_101",
-    "qid_005",
-  );
-};
+// const runFullLifecycleTest = async () => {
+//   await addIotJob(
+//     "4836",
+//     "off",
+//     "2026-02-20 17:04:00+07",
+//     "booking_101",
+//     "qid_005",
+//   );
+// };
 
 httpServer.listen(PORT, async () => {
   initIotSocketListener();
   await initDeviceMapping();
-  runFullLifecycleTest();
+  // runFullLifecycleTest();
 
   console.log(`[Server] Backend running on port ${PORT}`);
 });

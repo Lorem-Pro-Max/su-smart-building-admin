@@ -1,14 +1,16 @@
 import WebSocket from "ws";
 import { getIO } from "../config/socket.js";
 import { formatDeviceUpdate } from "../utils/responseFormatter.js";
-import { fetchDeviceMapping } from "./dbService.js";
+import { fetchDeviceMapping, fetchRoomDevice } from "./dbService.js";
 import * as IoTService from "./iotService.js";
+import { processHumanDetection } from "./humanDetectionService.js";
 
 const SOCKET_URL = process.env.WEBSOCKET_URL;
 
 export let deviceCache = {
   byId: {},
   byDeviceId: {},
+  byRoomId: {},
 };
 
 const DEVICE_PREFIX_MAP = {
@@ -21,43 +23,44 @@ const DEVICE_PREFIX_MAP = {
   MT: "sensors",
 };
 
-const EMERGENCY_PREFIXES = new Set(["SM"]);
+const SMOKE_DETECTION_PREFIX = "SM";
+const HUMAN_DETECTION_PREFIX = "HP";
 
 export const initDeviceMapping = async () => {
   try {
-    const rows = await fetchDeviceMapping(); 
+    const rows = await fetchDeviceMapping();
+    const roomRows = await fetchRoomDevice();
 
     if (!rows || rows.length === 0) {
-      console.warn(
-        "[Server] No device IDs found from the server",
-      );
-      deviceCache = { byId: {}, byDeviceId: {} };
+      deviceCache = { byId: {}, byDeviceId: {}, byRoomId: {} };
       return;
     }
 
     const byId = {};
     const byDeviceId = {};
+    const byRoomId = {};
 
     rows.forEach((row) => {
       byId[row.id] = row;
-
-      if (!byDeviceId[row.device_id]) {
-        byDeviceId[row.device_id] = [];
-      }
-
+      if (!byDeviceId[row.device_id]) byDeviceId[row.device_id] = [];
       byDeviceId[row.device_id].push(row);
     });
-    deviceCache = { byId, byDeviceId };
 
-    console.log(
-      `[Server] ${rows.length} devices IDs cached`,
-    );
+    roomRows.forEach((row) => {
+      if (!byRoomId[row.id]) byRoomId[row.id] = [];
+
+      byRoomId[row.id].push({
+        deviceId: row.device_id,
+        type: row.key,
+        deviceSubId: row.device_sub_id
+      });
+    });
+
+    deviceCache = { byId, byDeviceId, byRoomId };
+    
   } catch (error) {
-    console.error(
-      "[Server] CRITICAL: Failed to initialize device mapping:",
-      error.message,
-    );
-    deviceCache = { byId: {}, byDeviceId: {} };
+    console.error("[Server] Mapping Error:", error.message);
+    deviceCache = { byId: {}, byDeviceId: {}, byRoomId: {} };
   }
 };
 
@@ -80,7 +83,6 @@ const throttles = new Map();
 const throttleMillisec = 1000;
 
 export const initIotSocketListener = () => {
-  console.log("[Websocket] Connecting to IoT server");
   const ws = new WebSocket(SOCKET_URL);
 
   ws.on("open", () => {
@@ -105,13 +107,16 @@ export const initIotSocketListener = () => {
         const prefix = fullId.substring(0, 2);
         const deviceType = DEVICE_PREFIX_MAP[prefix];
 
-        if (deviceType) {
-          if (EMERGENCY_PREFIXES.has(prefix)) {
-            console.warn(`[Websocket] EMERGENCY DETECTED: ${deviceType}.`);
-            syncIotDevice(deviceType);
-            return;
-          }
+        if (SMOKE_DETECTION_PREFIX === prefix) {
+          // syncIotDevice(deviceType);
+          return;
+        }
 
+        if (HUMAN_DETECTION_PREFIX === prefix) {
+          processHumanDetection(fullId, rawData.payload.motion);
+        }
+
+        if (deviceType) {
           const now = Date.now();
           const lastRun = throttles.get(deviceType) || 0;
 
@@ -120,10 +125,6 @@ export const initIotSocketListener = () => {
             syncIotDevice(deviceType);
           }
         }
-      } else {
-        throw new Error(
-          "[Websocket] Failed to receive device ID from IoT server",
-        );
       }
     } catch (error) {
       console.error("[Websocket] IoT device Update Error:", error.message);
@@ -135,7 +136,7 @@ export const initIotSocketListener = () => {
   });
 
   ws.on("close", () => {
-    console.log("[Websocket] Connection closed. Retrying in 10s...");
-    setTimeout(initIotSocketListener, 10000);
+    console.log("[Websocket] Connection closed. Retrying in 5s...");
+    setTimeout(initIotSocketListener, 5000);
   });
 };

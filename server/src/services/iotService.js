@@ -100,8 +100,6 @@ export const executeDoorAction = async (type, ids, action, value = null) => {
 export const executeValveAction = async (type, ids, action, subId) => {
   const valveAction = DEVICE_MAP[type]["actions"][action];
 
-  console.log(type, ids, action, subId );
-  
   return await Promise.all(
     ids.map((id) =>
       axios

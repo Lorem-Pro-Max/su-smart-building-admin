@@ -3,6 +3,12 @@ import { syncIotDevice } from "../services/socketService.js";
 import { formatDeviceUpdate } from "../utils/responseFormatter.js";
 import { handleError } from "../utils/errorFormatter.js";
 
+export const EXECUTION_REGISTRY = {
+  valves: IoTService.executeValveAction,
+  doors: IoTService.executeDoorAction,
+  default: IoTService.executeBatch,
+};
+
 export const getStatusHandler = (deviceType) => async (req, res) => {
   try {
     const data = await IoTService.fetchStatusByType(deviceType);
@@ -21,39 +27,40 @@ export const getStatusHandler = (deviceType) => async (req, res) => {
   }
 };
 
-export const handleBatchCommand =
-  (deviceType, executeFn = IoTService.executeBatch) =>
-  async (req, res) => {
-    const { deviceIds, action, value = null } = req.body;
+export const handleBatchCommand = (deviceType) => async (req, res) => {
+  const { deviceIds, action, value = null } = req.body;
 
-    try {
-      if (!deviceIds || !Array.isArray(deviceIds) || !action) {
-        throw {
-          status: 400,
-          message: "deviceIds (array) and action are required!",
-        };
-      }
-
-      const result = await executeFn(deviceType, deviceIds, action, value);
-      const failedItems = result.filter(
-        (r) => !r || r.status !== 200 || r.data?.success !== true,
-      );
-
-      if (failedItems.length > 0) {
-        const firstError = failedItems[0];
-        const failedCount = failedItems.length;
-
-        const errorMessage =
-          firstError?.data?.error ||
-          firstError?.data?.result?.error ||
-          `No response from target device(s)`;
-
-        throw { status: 502, message: errorMessage, failedCount: failedCount };
-      }
-
-      await syncIotDevice(deviceType);
-      return res.status(200).json({ success: true });
-    } catch (error) {
-      return handleError(res, error, `handleBatchCommand [${deviceType}]`);
+  try {
+    if (!deviceIds || !Array.isArray(deviceIds) || !action) {
+      throw {
+        status: 400,
+        message: "deviceIds (array) and action are required!",
+      };
     }
-  };
+
+    const execute =
+      EXECUTION_REGISTRY[deviceType] || EXECUTION_REGISTRY.default;
+
+    const result = await execute(deviceType, deviceIds, action, value);
+    const failedItems = result.filter(
+      (r) => !r || r.status !== 200 || r.data?.success !== true,
+    );
+
+    if (failedItems.length > 0) {
+      const firstError = failedItems[0];
+      const failedCount = failedItems.length;
+
+      const errorMessage =
+        firstError?.data?.error ||
+        firstError?.data?.result?.error ||
+        `No response from target device(s)`;
+
+      throw { status: 502, message: errorMessage, failedCount: failedCount };
+    }
+
+    await syncIotDevice(deviceType);
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    return handleError(res, error, `handleBatchCommand [${deviceType}]`);
+  }
+};

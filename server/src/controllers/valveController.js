@@ -1,15 +1,17 @@
-
 import {
   valveDailyUsageData,
   valveHourlyUsageData,
 } from "../data/valveMockData.js";
 import { metaWithRoom } from "../data/mockMeta.js";
-import { getStatusHandler, handleBatchCommand } from "../utils/controllerWrapper.js"
+import {
+  getStatusHandler,
+  handleBatchCommand,
+} from "../utils/controllerWrapper.js";
 
-const device_type = "valves"
+const device_type = "valves";
 
-export const getValvesStatus = getStatusHandler(device_type)
-export const ValvesBatchControl = handleBatchCommand(device_type)
+export const getValvesStatus = getStatusHandler(device_type);
+export const ValvesBatchControl = handleBatchCommand(device_type);
 
 export const getMetadata = (req, res) => {
   const data = metaWithRoom;
