@@ -45,7 +45,7 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
   if (!sensorId) return;
 
   const sensorMappings = getDeviceByHardwareId(sensorId);
-  
+
   if (!sensorMappings || sensorMappings.length === 0) return;
 
   const now = Date.now();
@@ -65,13 +65,6 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
           currentLevel === ROOM_STATE.CLOSED ||
           currentLevel === ROOM_STATE.NOTIFIED
         ) {
-          logSystemEvent(
-            "human-detection",
-            "info",
-            "AUTO_REOPEN",
-            `Motion detected in ${meta.title}; restoring power.`,
-            { sensorId, roomId },
-          );
           await handleHumanReentry(roomId);
         }
         await redisConnection.del(LEVEL_KEY);
@@ -91,13 +84,7 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
         idleMinutes >= ROOM_SHUTDOWN_MINUTE_TRIGGER &&
         currentLevel !== ROOM_STATE.CLOSED
       ) {
-        logSystemEvent(
-          "human-detection",
-          "info",
-          "AUTO_SHUTDOWN",
-          `Room ${meta.title} idle for ${ROOM_SHUTDOWN_MINUTE_TRIGGER}m.`,
-          { sensorId, roomId },
-        );
+        
         await triggerShutdownAction(roomId);
         await redisConnection.set(LEVEL_KEY, ROOM_STATE.CLOSED);
       } else if (idleMinutes >= NOTI_MINUTE_TRIGGER && !currentLevel) {
