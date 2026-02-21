@@ -43,7 +43,6 @@ function SummaryModal({
   settingType,
   date,
   time,
-  bookingId,
   userId,
   onCloseAll,
 }) {
@@ -62,7 +61,6 @@ function SummaryModal({
         .toISOString();
 
       await createSchedules({
-        booking_id: bookingId,
         device_ids: deviceIds,
         action: settingType,
         action_time: actionTime,

@@ -22,7 +22,7 @@ router.post(
 );
 
 router.delete(
-  "/iot-schedule/:id",
+  "/iot-schedule/deletes",
   protectAction,
   scheduleController.deleteScheduleController.bind(scheduleController),
 );

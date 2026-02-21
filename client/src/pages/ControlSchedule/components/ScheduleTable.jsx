@@ -4,31 +4,30 @@ import { UpOutlined, DownOutlined } from "@ant-design/icons";
 import { useState, useMemo } from "react";
 
 const ScheduleTable = ({
-  setBookingId,
+  setListDeleteId,
   setIsOpenDeleteModal,
   tableData,
   loading,
 }) => {
   const [expandedRow, setExpandedRow] = useState(null);
 
-  const onDelete = (id) => {
-    setIsOpenDeleteModal(true);
-    setBookingId(id);
-  };
+  const onDelete = (record) => {
+    const scheduleIds = record.schedules.map((s) => s.id);
 
+    setIsOpenDeleteModal(true);
+    setListDeleteId(scheduleIds);
+  };
   const handleToggle = (record) => {
     if (record.schedules.length <= 1) return;
 
-    setExpandedRow((prev) =>
-      prev === record.booking_id ? null : record.booking_id,
-    );
+    setExpandedRow((prev) => (prev === record.room.id ? null : record.room.id));
   };
 
   const columns = useMemo(
     () => [
       {
         title: "ห้อง",
-        dataIndex: "room_name",
+        dataIndex: "meeting_name",
         width: 200,
         responsive: ["xs", "sm", "md", "lg"],
         render: (text) => (
@@ -40,7 +39,7 @@ const ScheduleTable = ({
         width: 220,
         responsive: ["xs", "sm", "md", "lg"],
         render: (_, record) => {
-          const isExpanded = expandedRow === record.booking_id;
+          const isExpanded = expandedRow === record.room.id;
 
           const devices = isExpanded
             ? record.schedules
@@ -100,7 +99,7 @@ const ScheduleTable = ({
         align: "center",
         responsive: ["md", "lg"],
         render: (_, record) => (
-          <span>{record.schedules[0].action === "open" ? "เปิด" : "ปิด"}</span>
+          <span>{record.schedules[0].action === "on" ? "เปิด" : "ปิด"}</span>
         ),
       },
       {
@@ -127,14 +126,16 @@ const ScheduleTable = ({
       {
         title: "ลบ",
         width: 80,
-        render: (_, record) => (
-          <img
-            src="src/assets/icons/action/delete.svg"
-            alt="delete"
-            className="w-[22px] h-[22px] cursor-pointer hover:opacity-70 transition"
-            onClick={() => onDelete(record.booking_id)}
-          />
-        ),
+        render: (_, record) => {
+          return (
+            <img
+              src="src/assets/icons/action/delete.svg"
+              alt="delete"
+              className="w-[22px] h-[22px] cursor-pointer hover:opacity-70 transition"
+              onClick={() => onDelete(record)}
+            />
+          );
+        },
       },
     ],
     [expandedRow, onDelete],
@@ -147,7 +148,7 @@ const ScheduleTable = ({
         dataSource={tableData}
         loading={loading}
         disabl
-        rowKey="booking_id"
+        rowKey={(record) => record.room.id}
         pagination={false}
         scroll={{ x: "max-content" }}
         className="rounded-xl overflow-hidden shadow-sm"

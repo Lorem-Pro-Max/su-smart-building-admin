@@ -82,7 +82,21 @@ function DeviceSelectModal({ open, onClose, onConfirm, roomId }) {
   };
 
   return (
-    <Modal open={open} onCancel={onClose} footer={null} width={1000} centered>
+    <Modal
+      open={open}
+      onCancel={onClose}
+      footer={null}
+      width="90%"
+      style={{ maxWidth: 1000 }}
+      styles={{
+        body: {
+          maxHeight: "75vh",
+          overflow: "auto",
+          // minHeight: "60vh",
+        },
+      }}
+      centered
+    >
       <h3 className="mb-4 text-[16px] font-semibold">เลือกอุปกรณ์</h3>
 
       <div className="max-h-[60vh] overflow-y-auto pr-2">

@@ -10,6 +10,7 @@ import {
   updateBookingStatus,
   getBookingById,
 } from "../../services/booking";
+import { LoadingScreen } from "../../components/utils/LoadingScreen";
 
 export const BookingStatusEnum = Object.freeze({
   PENDING: "pending",
@@ -205,6 +206,10 @@ function ApproveBookingPage() {
       },
     },
   ];
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <>

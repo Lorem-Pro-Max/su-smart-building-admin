@@ -33,13 +33,11 @@ function RoomSelectModal({ open, onClose, onSelect }) {
   }, [open]);
 
   const renderRoomCard = (room) => {
-    const isActive =
-      selectedRoom?.room?.id + selectedRoom?.booking_id ===
-      room?.room?.id + room?.booking_id;
+    const isActive = selectedRoom?.id === room.id;
 
     return (
       <div
-        key={room.room.id + room.booking_id}
+        key={room.id}
         onClick={() => setSelectedRoom(room)}
         className={`flex gap-4 p-5 rounded-2xl cursor-pointer transition-all bg-white shadow-md hover:shadow-lg ${
           isActive ? "ring-2 ring-teal-500" : ""
@@ -55,28 +53,32 @@ function RoomSelectModal({ open, onClose, onSelect }) {
 
         <div className="flex-1 min-w-0">
           <div className="text-base md:text-lg font-semibold truncate">
-            {room.room.title}
+            {room.title}
           </div>
 
-          <div className="text-sm text-gray-500 mt-1">
-            ชั้น {room.room.floor}
-          </div>
+          <div className="text-sm text-gray-500 mt-1">ชั้น {room.floor}</div>
 
           <div className="text-sm text-gray-500 truncate">
-            {room.room.building?.name}
+            {room.building?.name}
           </div>
         </div>
       </div>
     );
   };
-
   return (
     <Modal
       open={open}
       onCancel={onClose}
       footer={null}
       centered
-      className="!w-[90%] max-w-[1200px]"
+      width="90%"
+      style={{ maxWidth: 1000 }}
+      styles={{
+        body: {
+          maxHeight: "75vh",
+          overflow: "auto",
+        },
+      }}
     >
       <h3 className="text-sm font-semibold mb-6">เลือกห้องหรือพื้นที่</h3>
 
@@ -87,7 +89,6 @@ function RoomSelectModal({ open, onClose, onSelect }) {
       ) : (
         <Tabs
           className="room-tabs"
-          color="cyan"
           items={floorList.map((floor) => ({
             key: String(floor),
             label: (
@@ -95,7 +96,9 @@ function RoomSelectModal({ open, onClose, onSelect }) {
             ),
             children: (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
-                {roomsByFloor[floor].map((room) => renderRoomCard(room))}
+                {(roomsByFloor[floor] || []).map((room) =>
+                  renderRoomCard(room),
+                )}
               </div>
             ),
           }))}

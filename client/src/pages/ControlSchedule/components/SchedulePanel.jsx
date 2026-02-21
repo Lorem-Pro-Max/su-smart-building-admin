@@ -62,7 +62,7 @@ function SchedulePanel({ selectedDate, onClose }) {
   const [openDeviceModal, setOpenDeviceModal] = useState(false);
   const [devices, setDevices] = useState([]);
   const [openSummary, setOpenSummary] = useState(false);
-  const [settingType, setSettingType] = useState("open");
+  const [settingType, setSettingType] = useState("on");
   const [dateValue, setDateValue] = useState(selectedDate);
   const [timeValue, setTimeValue] = useState(null);
 
@@ -89,10 +89,21 @@ function SchedulePanel({ selectedDate, onClose }) {
           </p>
 
           <div className="mb-6">
-            <label className="font-medium">
-              ห้องหรือพื้นที่ <span className="text-[#F5222D]">*</span>
-            </label>
-
+            <div className="flex justify-between align-center">
+              <label className="font-medium">
+                ห้องหรือพื้นที่ <span className="text-[#F5222D]">*</span>
+              </label>
+              {room && (
+                <Button
+                  type="primary"
+                  color="cyan"
+                  variant="solid"
+                  onClick={() => setOpenRoomModal(true)}
+                >
+                  เปลี่ยน
+                </Button>
+              )}
+            </div>
             <div onClick={() => setOpenRoomModal(true)} className={shadowCard}>
               <div className="w-[60px] h-[60px] rounded-xl flex items-center justify-center shrink-0">
                 {room ? (
@@ -112,16 +123,16 @@ function SchedulePanel({ selectedDate, onClose }) {
 
               <div className="flex-1">
                 <div className="text-[18px] font-semibold text-black">
-                  {room ? room.room.title : "เลือกห้องหรือพื้นที่"}
+                  {room ? room.title : "เลือกห้องหรือพื้นที่"}
                 </div>
 
                 {room ? (
                   <>
                     <div className="text-sm text-gray-600 mt-1">
-                      ชั้น {room.room.floor}
+                      ชั้น {room.floor}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {room.room.building.name}
+                      {room.building.name}
                     </div>
                   </>
                 ) : (
@@ -134,9 +145,21 @@ function SchedulePanel({ selectedDate, onClose }) {
           </div>
 
           <div className="mb-6">
-            <label className="font-medium">
-              อุปกรณ์ <span className="text-[#F5222D]">*</span>
-            </label>
+            <div className="flex justify-between align-center">
+              <label className="font-medium">
+                อุปกรณ์ <span className="text-[#F5222D]">*</span>
+              </label>
+              {devices.length > 0 && (
+                <Button
+                  type="primary"
+                  color="cyan"
+                  variant="solid"
+                  onClick={() => setOpenDeviceModal(true)}
+                >
+                  เพิ่มอุปกรณ์
+                </Button>
+              )}
+            </div>
 
             <div
               onClick={() => setOpenDeviceModal(true)}
@@ -205,9 +228,9 @@ function SchedulePanel({ selectedDate, onClose }) {
               <div className="bg-gray-200 p-1 flex rounded-2xl w-[150px]">
                 <button
                   type="button"
-                  onClick={() => setSettingType("open")}
+                  onClick={() => setSettingType("on")}
                   className={`flex-1 rounded-l-2xl text-base font-semibold transition ${
-                    settingType === "open"
+                    settingType === "on"
                       ? "bg-white text-green-500 shadow"
                       : "text-gray-500"
                   }`}
@@ -217,9 +240,9 @@ function SchedulePanel({ selectedDate, onClose }) {
 
                 <button
                   type="button"
-                  onClick={() => setSettingType("close")}
+                  onClick={() => setSettingType("off")}
                   className={`flex-1 py-1 rounded-r-2xl text-base font-semibold transition ${
-                    settingType === "close"
+                    settingType === "off"
                       ? "bg-white text-gray-700 shadow"
                       : "text-gray-500"
                   }`}
@@ -255,12 +278,12 @@ function SchedulePanel({ selectedDate, onClose }) {
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="font-medium">
               ผู้ตั้งเวลา <span className="text-[#F5222D]">*</span>
             </label>
             <div className="mt-2">ดวงจันทร์ จันทร์กระจ่าง</div>
-          </div>
+          </div> */}
         </div>
 
         <div className="flex">
@@ -289,7 +312,7 @@ function SchedulePanel({ selectedDate, onClose }) {
         open={openDeviceModal}
         onClose={() => setOpenDeviceModal(false)}
         onConfirm={handleConfirmDevices}
-        roomId={room?.room?.id}
+        roomId={room?.id}
       />
 
       <SummaryModal
