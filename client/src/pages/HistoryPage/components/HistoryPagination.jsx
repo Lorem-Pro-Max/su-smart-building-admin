@@ -1,12 +1,13 @@
 import { Pagination } from "antd";
 
-function HistoryPagination() {
+function HistoryPagination({ setCurrentPage, setLimit }) {
+
 
   return (
     <Pagination
       total={85}
       showTotal={(total) => `Total ${total} items`}
-      defaultPageSize={20}
+      defaultPageSize={10}
       defaultCurrent={1}
       styles={{
         item: {
@@ -14,7 +15,11 @@ function HistoryPagination() {
           borderRadius: "2px"
         },
       }}
-      onChange={(value, page) => console.log(value, page)}
+      onChange={(value, page) => {
+        setLimit(page)
+        setCurrentPage(value)
+      }
+      }
     />
   );
 }

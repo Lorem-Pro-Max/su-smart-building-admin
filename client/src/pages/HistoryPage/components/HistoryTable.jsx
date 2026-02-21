@@ -56,50 +56,34 @@ const mockData = [
     date: "3 Jan 26",
     time: "12:00",
     approver_name: "ณัฐวรา กุตริ",
-  },
-  {
-    key: "2",
-    room: "CO-Working space 1",
-    floor: "2",
-    device_name: "ประตู",
-    device_status: "ปิด",
-    date: "3 Jan 26",
-    time: "19:00",
-    approver_name: "ดวงจันทร์ จันทร์กระจ่าง",
-  },
-  {
-    key: "3",
-    room: "สัมมนา 1",
-    floor: "2",
-    device_name: "ประตู",
-    device_status: "เปิด",
-    date: "25 Dec 25",
-    time: "10:00",
-    approver_name: "ดวงจันทร์ จันทร์กระจ่าง",
-  },
-  {
-    key: "4",
-    room: "ห้องประชุมวิจัยและนวัตกรรมชั้นนำแห่งอนาคต (Stress Test)",
-    floor: "2",
-    device_name: "แสงสว่าง",
-    device_status: "เปิด",
-    date: "25 Dec 25",
-    time: "10:00",
-    approver_name: "ดวงจันทร์ จันทร์กระจ่าง",
-  },
-  {
-    key: "5",
-    room: "สัมมนา 1",
-    floor: "2",
-    device_name: "อุณหภูมิ",
-    device_status: "เปิด",
-    date: "25 Dec 25",
-    time: "10:00",
-    approver_name: "ดวงจันทร์ จันทร์กระจ่าง",
-  },
+  }
 ];
 
-function HistoryTable() {
+function HistoryTable({ data }) {
+  const displayData = data.map((item) => {
+    return {
+      key: item.id,
+      room: item.room_title,
+      floor: item.room_floor,
+      device_name: item.device_type_name,
+      device_status: item.action === "ON" || item.action === "OPEN" ? "เปิด" : "ปิด",
+
+      // ครอบ item.action_time ด้วย new Date() เพื่อความปลอดภัย
+      date: new Date(item.action_time).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "2-digit",
+      }),
+
+      time: new Date(item.action_time).toLocaleTimeString("th-TH", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }),
+
+      approver_name: item.full_name
+    }
+  })
   return (
     <ConfigProvider theme={HistoryTableTheme}>
       <Table
@@ -123,7 +107,7 @@ function HistoryTable() {
             },
           },
         }}
-        dataSource={mockData}
+        dataSource={displayData}
         pagination={{
           position: ["none"],
         }}
