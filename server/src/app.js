@@ -11,6 +11,7 @@ import airQualityRoutes from "./routes/airQualityRoutes.js";
 import scheduleRoute from "./routes/scheduleRoute.js";
 import userRoute from "./routes/user.js";
 import roomBookingRoutes from "./routes/roomBookingRoutes.js";
+import iotQueueRoute from "./routes/IotQueueRoute.js";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/api/lights", lightRoutes);
 app.use("/api/exhaustfans", exhaustFanRoutes);
 app.use("/api/air-quality", airQualityRoutes);
 app.use("/api/schedule", scheduleRoute);
+app.use("/api/iot-queue", iotQueueRoute);
 app.use("/api", roomBookingRoutes);
 app.use("/api", userRoute);
 

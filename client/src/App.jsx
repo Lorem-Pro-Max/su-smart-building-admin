@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@components/layout";
+import { socket } from "./services/socket";
+import { useEffect, useState } from "react";
 import {
   DoorsControlPage,
   ValvesControlPage,
@@ -13,10 +15,37 @@ import {
 import ApproveBookingPage from "./pages/ApproveBookingPage/ApproveBooking";
 import UserPermissionPage from "./pages/UserPermissionPage/UserPermissionPage";
 import ControlSchedulePage from "./pages/ControlSchedule/ControlSchedulePage";
+import { SmokeAlertModal, useIdleWarning } from "./components/utils";
 
 function App() {
+  const [smokeData, setSmokeData] = useState(null);
+  const { idleToast, contextHolder: idleContext } = useIdleWarning();
+
+  useEffect(() => {
+    socket.on("smoke_alert", (data) => {
+      setSmokeData(data);
+    });
+
+    socket.on("idle_warning", (data) => {
+      idleToast(data);
+    });
+
+    return () => {
+      socket.off("smoke_alert");
+      socket.off("idle_warning");
+    };
+  }, [idleToast]);
+
+  const handleClose = () => setSmokeData(null);
+
   return (
     <BrowserRouter basename="/admin-dashboard">
+      {idleContext}
+      <SmokeAlertModal
+        visible={!!smokeData}
+        data={smokeData}
+        onClose={handleClose}
+      />
       <Routes>
         <Route element={<Layout />}>
           <Route path="/history" element={<HistoryPage />} />

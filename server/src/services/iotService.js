@@ -2,75 +2,146 @@ import axios from "axios";
 
 const IOT_BASE_URL = process.env.IOT_SERVER_URL;
 
-const mapping = {
-  ac: "ac",
-  exhaustFans: "fa",
-  lights: "sw",
-  doors: "door",
-  sensors: "sensor",
-  valves: "water",
+const DEVICE_MAP = {
+  ac: {
+    path: "ac",
+    actions: { on: true, off: false },
+  },
+  "exhaust-fans": {
+    path: "fa",
+    actions: { on: true, off: false },
+  },
+  lights: {
+    path: "sw",
+    actions: { on: true, off: false },
+  },
+  valves: {
+    path: "water",
+    actions: { on: "open", off: "close" },
+  },
+  doors: {
+    path: "door",
+    actions: { on: "open", off: "close" },
+  },
+  sensors: {
+    path: "sensor",
+    actions: { on: true, off: false },
+  },
 };
 
 export const fetchStatusByType = async (deviceType) => {
   const response = await axios.get(
-    `${IOT_BASE_URL}/control/${mapping[deviceType]}/all`,
+    `${IOT_BASE_URL}/control/${DEVICE_MAP[deviceType]["path"]}/all`,
   );
-
   return response.data || {};
 };
 
-export const fetchDeviceList = async (deviceType) => {
-  const response = await axios.get(`${IOT_BASE_URL}/control/${deviceType}/all`);
-  return response.data || {};
+export const fetchDeviceList = async (baseType, deviceType) => {
+  const response = await axios.get(
+    `${IOT_BASE_URL}/control/${DEVICE_MAP[baseType]["path"]}/${deviceType}/list`,
+  );
+  return response.data || [];
 };
 
-export const executeBatch = async (type, ids, action, value = null) => {
-  return await Promise.all(
-    ids.map((id) =>
-      axios
-        .post(`${IOT_BASE_URL}/control/${mapping[type]}/${id}/command`, {
-          power: action,
-        })
-        .then((r) => ({ status: r.status, data: r.data }))
-        .catch((e) => ({
+export const executeBatch = async (baseType, ids, action, value = null) => {
+  return Promise.all(
+    ids.map(async (id) => {
+      const path = DEVICE_MAP[baseType]?.path;
+      const powerValue = DEVICE_MAP[baseType]?.actions[action];
+      const url = `${IOT_BASE_URL}/control/${path}/${id}/command`;
+
+      try {
+        const r = await axios.post(url, { power: powerValue });
+
+        if (r.data?.success === false) {
+          return {
+            id,
+            status: 200,
+            data: r.data,
+            error: r.data.error || r.data.detail,
+          };
+        }
+        return { id, status: r.status, data: r.data };
+      } catch (e) {
+        return {
           id,
-          status: "failed",
-          error: e.response?.data?.message || e.message || "Unknown Error",
-        })),
-    ),
-  );
-};
-
-export const executeDoorAction = async (type, ids, action) => {
-  const indices = [1, 2];
-
-  const batchResults = await Promise.all(
-    ids.map(async (deviceId) => {
-      const doorResults = await Promise.all(
-        indices.map((index) =>
-          axios
-            .post(`${IOT_BASE_URL}/control/door/${deviceId}/${index}/${action}`)
-            .then((r) => ({ status: r.status, data: r.data }))
-            .catch((e) => ({
-              status: "failed",
-              data: { success: false, error: e.message },
-            })),
-        ),
-      );
-
-      const doorSuccessful = doorResults.every((r) => r.status === 200);
-      return { status: doorSuccessful ? 200 : 500, success: doorSuccessful };
+          status: e.response?.status || 500,
+          data: e.response?.data || { success: false },
+          error:
+            e.response?.data?.detail || e.response?.data?.error || e.message,
+        };
+      }
     }),
   );
+};
 
-  const allDoorsSuccessful = batchResults.every((r) => r.success);
+export const executeDoorAction = async (type, ids, action, value = null) => {
+  const doorAction = DEVICE_MAP[type]["actions"][action];
+  const indices = [1, 2];
 
-  return [
-    {
-      status: allDoorsSuccessful ? 200 : 500,
-      data: { success: allDoorsSuccessful },
-    },
-  ];
+  return Promise.all(
+    ids.map(async (deviceId) => {
+      try {
+        const doorResults = await Promise.all(
+          indices.map((index) =>
+            axios.post(
+              `${IOT_BASE_URL}/control/door/${deviceId}/${index}/${doorAction}`,
+            ),
+          ),
+        );
+
+        const hardwareError = doorResults.find(
+          (r) => r.data?.success === false,
+        );
+        if (hardwareError) {
+          return {
+            id: deviceId,
+            status: 200,
+            data: hardwareError.data,
+            error: hardwareError.data.error,
+          };
+        }
+
+        return { id: deviceId, status: 200, data: { success: true } };
+      } catch (e) {
+        return {
+          id: deviceId,
+          status: e.response?.status || 500,
+          data: e.response?.data || { success: false },
+          error: e.response?.data?.detail || e.message,
+        };
+      }
+    }),
+  );
+};
+
+export const executeValveAction = async (type, ids, action, subId) => {
+  const valveAction = DEVICE_MAP[type]["actions"][action];
+
+  return Promise.all(
+    ids.map(async (id) => {
+      const url = `${IOT_BASE_URL}/control/water/${id}/${subId}/${valveAction}`;
+      try {
+        const r = await axios.post(url);
+        if (r.data?.success === false) {
+          return {
+            id,
+            status: 200,
+            data: r.data,
+            error: r.data.error || r.data.detail,
+          };
+        }
+        return { id, status: r.status, data: r.data };
+      } catch (e) {
+        return {
+          id,
+          status: e.response?.status || 500,
+          data: e.response?.data || { success: false },
+          error: e.response?.data?.detail || e.message,
+        };
+      }
+    }),
+  );
 };
 
 export const executeAcTempAdjustment = async (acId, targetTemp) => {
