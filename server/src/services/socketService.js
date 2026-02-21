@@ -1,9 +1,15 @@
 import WebSocket from "ws";
 import { getIO } from "../config/socket.js";
 import { formatDeviceUpdate } from "../utils/responseFormatter.js";
-import { fetchDeviceMapping, fetchRoomDevice } from "./dbService.js";
+import {
+  fetchDeviceMapping,
+  fetchRoomDevice,
+  fetchRoomSensor,
+} from "./dbService.js";
 import * as IoTService from "./iotService.js";
 import { processHumanDetection } from "./humanDetectionService.js";
+import { processSmokeDetection } from "./smokeDetectionService.js";
+import { logSystemEvent } from "./dbService.js";
 
 const SOCKET_URL = process.env.WEBSOCKET_URL;
 
@@ -30,15 +36,22 @@ export const initDeviceMapping = async () => {
   try {
     const rows = await fetchDeviceMapping();
     const roomRows = await fetchRoomDevice();
+    const sensorRows = await fetchRoomSensor();
 
     if (!rows || rows.length === 0) {
-      deviceCache = { byId: {}, byDeviceId: {}, byRoomId: {} };
+      deviceCache = {
+        byId: {},
+        byDeviceId: {},
+        byRoomId: {},
+        byRoomSensor: {},
+      };
       return;
     }
 
     const byId = {};
     const byDeviceId = {};
     const byRoomId = {};
+    const byRoomSensor = {};
 
     rows.forEach((row) => {
       byId[row.id] = row;
@@ -48,19 +61,23 @@ export const initDeviceMapping = async () => {
 
     roomRows.forEach((row) => {
       if (!byRoomId[row.id]) byRoomId[row.id] = [];
-
       byRoomId[row.id].push({
         deviceId: row.device_id,
         type: row.key,
-        deviceSubId: row.device_sub_id
+        deviceSubId: row.device_sub_id,
       });
     });
 
-    deviceCache = { byId, byDeviceId, byRoomId };
-    
+    sensorRows.forEach((row) => {
+      if (!byRoomSensor[row.room_id]) byRoomSensor[row.room_id] = [];
+      byRoomSensor[row.room_id].push(row.device_id);
+    });
+
+    deviceCache = { byId, byDeviceId, byRoomId, byRoomSensor };
   } catch (error) {
-    console.error("[Server] Mapping Error:", error.message);
-    deviceCache = { byId: {}, byDeviceId: {}, byRoomId: {} };
+    logSystemEvent("server", "error", "MAPPING_ERROR", error.message);
+    console.error("[Server] Critical Mapping Error. Check system_log");
+    deviceCache = { byId: {}, byDeviceId: {}, byRoomId: {}, byRoomSensor: {} };
   }
 };
 
@@ -73,9 +90,10 @@ export const syncIotDevice = async (deviceType) => {
   try {
     const rawData = await IoTService.fetchStatusByType(deviceType);
     emitDeviceUpdate(deviceType, formatDeviceUpdate(rawData, deviceType));
-    // console.log(`[IoT Websocket] Device sync: ${deviceType}`);
   } catch (error) {
-    console.error(`[Websocket] Failed to sync '${deviceType}':`, error.message);
+    logSystemEvent("socket", "warn", "DEVICE_SYNC_FAIL", error.message, {
+      deviceType,
+    });
   }
 };
 
@@ -94,11 +112,7 @@ export const initIotSocketListener = () => {
       const rawData = JSON.parse(data.toString());
       const topic = rawData.topic;
 
-      if (!topic) {
-        throw new Error(
-          "[Websocket] Failed to receive update topic from IoT server",
-        );
-      }
+      if (!topic) throw new Error("Missing topic in IoT payload");
 
       const parts = topic.split("/");
       const fullId = parts[1];
@@ -108,12 +122,13 @@ export const initIotSocketListener = () => {
         const deviceType = DEVICE_PREFIX_MAP[prefix];
 
         if (SMOKE_DETECTION_PREFIX === prefix) {
-          // syncIotDevice(deviceType);
+          processSmokeDetection(fullId);
           return;
         }
 
         if (HUMAN_DETECTION_PREFIX === prefix) {
           processHumanDetection(fullId, rawData.payload.motion);
+          return;
         }
 
         if (deviceType) {
@@ -127,16 +142,18 @@ export const initIotSocketListener = () => {
         }
       }
     } catch (error) {
-      console.error("[Websocket] IoT device Update Error:", error.message);
+      logSystemEvent("socket", "warn", "PAYLOAD_ERROR", error.message, {
+        raw: data.toString(),
+      });
     }
   });
 
   ws.on("error", (err) => {
-    console.error("[Websocket] Failed to connect IoT server", err.message);
+    logSystemEvent("socket", "error", "WS_ERROR", err.message);
   });
 
   ws.on("close", () => {
-    console.log("[Websocket] Connection closed. Retrying in 5s...");
+    console.warn("[Websocket] IoT connection lost. Retrying in 5s...");
     setTimeout(initIotSocketListener, 5000);
   });
 };

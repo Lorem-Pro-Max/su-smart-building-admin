@@ -1,8 +1,13 @@
 import redisConnection from "../config/redis.js";
-import { emitDeviceUpdate } from "./socketService.js";
-import { deviceCache } from "./socketService.js";
-import { EXECUTION_REGISTRY } from "../utils/controllerWrapper.js";
 import { syncIotDevice } from "./socketService.js";
+import { EXECUTION_REGISTRY } from "../utils/controllerWrapper.js";
+import { logSystemEvent, logIotAction } from "./dbService.js";
+import { getIO } from "../config/socket.js";
+import {
+  getDeviceByHardwareId,
+  getDevicesByRoomId,
+  getSensorsByRoomId,
+} from "../utils/deviceMap.js";
 
 const NOTI_MINUTE_TRIGGER = 20;
 const ROOM_SHUTDOWN_MINUTE_TRIGGER = 30;
@@ -36,27 +41,9 @@ const getFormattedDateTime = () => {
   return { date, time };
 };
 
-const deviceIdMap = (sensorId) => {
-  const cache = deviceCache.byDeviceId[sensorId];
-  if (!cache || Object.keys(cache).length === 0) {
-    const err = new Error("[CACHE] Failed to cache device mapping data");
-    err.status = 503;
-    throw err;
-  }
-  return Array.isArray(cache) ? cache[0] : cache;
-};
-
-const roomDeviceMap = (roomId) => {
-  const cache = deviceCache.byRoomId[roomId];
-  if (!cache || Object.keys(cache).length === 0) {
-    const err = new Error("[CACHE] Failed to cache device mapping data");
-    err.status = 503;
-    throw err;
-  }
-  return cache;
-};
-
 export const processHumanDetection = async (sensorId, motionStatus) => {
+  if (!sensorId) return;
+
   const now = Date.now();
   const START_TIME_KEY = `occupancy:start:${sensorId}`;
   const LEVEL_KEY = `occupancy:level:${sensorId}`;
@@ -66,8 +53,22 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
 
     if (isHumanPresent) {
       await redisConnection.set(START_TIME_KEY, now);
+
+      const currentLevel = await redisConnection.get(LEVEL_KEY);
+      if (
+        currentLevel === ROOM_STATE.CLOSED ||
+        currentLevel === ROOM_STATE.NOTIFIED
+      ) {
+        logSystemEvent(
+          "human-detection",
+          "info",
+          "AUTO_REOPEN",
+          `Motion detected by ${sensorId}; restoring room power.`,
+        );
+        await handleHumanReentry(sensorId);
+      }
+
       await redisConnection.del(LEVEL_KEY);
-      await handleHumanReentry(sensorId);
       return;
     }
 
@@ -77,12 +78,17 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
     const idleMinutes = (now - parseInt(startTime)) / 60000;
     const currentLevel = await redisConnection.get(LEVEL_KEY);
 
-    console.log(idleMinutes);
-
     if (
       idleMinutes >= ROOM_SHUTDOWN_MINUTE_TRIGGER &&
       currentLevel !== ROOM_STATE.CLOSED
     ) {
+      logSystemEvent(
+        "human-detection",
+        "info",
+        "AUTO_SHUTDOWN",
+        `Room idle for ${ROOM_SHUTDOWN_MINUTE_TRIGGER}m. Executing shutdown.`,
+        { sensorId },
+      );
       await triggerShutdownAction(sensorId);
       await redisConnection.set(LEVEL_KEY, ROOM_STATE.CLOSED);
     } else if (
@@ -96,50 +102,107 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
     }
   } catch (error) {
     console.error(`[Human Detection] FATAL: ${sensorId} | ${error.message}`);
+    logSystemEvent(
+      "human-detection",
+      "error",
+      "DETECTION_CRASH",
+      error.message,
+      { sensorId },
+    );
   }
 };
 
 const executeRoomAction = async (sensorId, action) => {
-  const sensor = deviceIdMap(sensorId);
-  const roomDevices = roomDeviceMap(sensor.room_id);
+  try {
+    const sensor = getDeviceByHardwareId(sensorId);
+    if (!sensor) throw new Error(`Sensor ${sensorId} not found in cache`);
 
-  const grouped = roomDevices.reduce((acc, { type, deviceId, deviceSubId }) => {
-    if (INTERACTABLE_DEVICE_LISTS.has(type)) {
-      const groupKey = `${type}:${deviceSubId}`;
-      acc[groupKey] = acc[groupKey] || { type, subId: deviceSubId, ids: [] };
-      acc[groupKey].ids.push(deviceId);
-    }
-    return acc;
-  }, {});
+    const roomDevices = getDevicesByRoomId(sensor.room_id);
 
-  for (const { type, subId, ids } of Object.values(grouped)) {
-    try {
-      const execute = EXECUTION_REGISTRY[type] || EXECUTION_REGISTRY.default;
-      const results = await execute(type, ids, action, subId);
+    const grouped = roomDevices.reduce(
+      (acc, { type, deviceId, deviceSubId }) => {
+        if (INTERACTABLE_DEVICE_LISTS.has(type)) {
+          const groupKey = `${type}:${deviceSubId}`;
+          acc[groupKey] = acc[groupKey] || {
+            type,
+            subId: deviceSubId,
+            ids: [],
+          };
+          acc[groupKey].ids.push(deviceId);
+        }
+        return acc;
+      },
+      {},
+    );
 
-      const failures = results.filter(
-        (r) => !r || r.status !== 200 || r.data?.success !== true,
-      );
-      failures.forEach((f) => {
-        const errMsg = f?.error || f?.data?.message || "Unknown Hardware Error";
-        console.error(
-          `[Human Detection] API FAILURE: Room ${sensor.room_id} | Type: ${type} | Sub: ${subId} | Error: ${errMsg}`,
+    for (const { type, subId, ids } of Object.values(grouped)) {
+      try {
+        const execute = EXECUTION_REGISTRY[type] || EXECUTION_REGISTRY.default;
+        const results = await execute(type, ids, action, subId);
+
+        const failures = [];
+        const successes = [];
+
+        results.forEach((r) => {
+          if (!r || r.status !== 200 || r.data?.success !== true) {
+            failures.push(r);
+          } else {
+            successes.push(r);
+          }
+        });
+
+        successes.forEach((res) => {
+          try {
+            const deviceMeta = getDeviceByHardwareId(res.id);
+
+            if (deviceMeta && deviceMeta.id) {
+              logIotAction(deviceMeta.id, action, 1);
+            }
+          } catch (mappingErr) {
+            logSystemEvent(
+              "human-detection",
+              "warn",
+              "LOG_MAPPING_MISS",
+              `Hardware ID ${res.id} missing from cache.`,
+            );
+          }
+        });
+
+        if (failures.length > 0) {
+          logSystemEvent(
+            "human-detection",
+            "warn",
+            "PARTIAL_EXECUTION_FAIL",
+            `Action ${action} failed for some ${type}`,
+            { failures },
+          );
+        }
+
+        await syncIotDevice(type);
+      } catch (e) {
+        logSystemEvent(
+          "human-detection",
+          "error",
+          "EXECUTION_CRITICAL",
+          `Critical failure on ${type}: ${e.message}`,
         );
-      });
-
-      await syncIotDevice(type);
-    } catch (e) {
-      console.error(`[Human Detection] Execution Error [${type}]:`, e.message);
+      }
     }
+  } catch (error) {
+    logSystemEvent("human-detection", "error", "ROOM_MAP_FAIL", error.message, {
+      sensorId,
+    });
   }
 };
 
 const triggerNotiAction = async (sensorId, datetime) => {
   try {
-    const device = deviceIdMap(sensorId);
+    const device = getDeviceByHardwareId(sensorId);
     if (!device) return;
 
-    emitDeviceUpdate(device.key, {
+    const io = getIO();
+
+    io.emit("idle_warning", {
       title: "แจ้งเตือนการล็อคห้องอัตโนมัติ",
       room: device.title,
       floor: device.floor,
@@ -148,41 +211,34 @@ const triggerNotiAction = async (sensorId, datetime) => {
       remaining_time: 10,
     });
   } catch (error) {
-    console.error(
-      `[Human Detection] Noti Error for ${sensorId}:`,
-      error.message,
-    );
+    logSystemEvent("human-detection", "warn", "NOTI_SEND_FAIL", error.message, {
+      sensorId,
+    });
   }
 };
 
 const triggerShutdownAction = async (sensorId) => {
-  try {
-    await executeRoomAction(sensorId, "off");
-  } catch (err) {
-    console.error(
-      `[Human Detection] 30 Minutes Inactivity Shutdown Error for ${sensorId}:`,
-      err.message,
-    );
-  }
+  await executeRoomAction(sensorId, "off");
 };
 
 const handleHumanReentry = async (sensorId) => {
-  try {
-    await executeRoomAction(sensorId, "on");
-  } catch (err) {
-    console.error(
-      `[Human Detection] Room Re-open Error for ${sensorId}:`,
-      err.message,
-    );
-  }
+  await executeRoomAction(sensorId, "on");
 };
 
-export const isRoomStillInactive = async (sensorId, thresholdMinutes = 30) => {
-  const START_TIME_KEY = `occupancy:start:${sensorId}`;
-  const startTime = await redisConnection.get(START_TIME_KEY);
+export const isRoomStillInactive = async (roomId, thresholdMinutes = 30) => {
+  const sensorIds = getSensorsByRoomId(roomId);
 
-  if (!startTime) return false;
+  if (sensorIds.length === 0) return true;
 
-  const idleMinutes = (Date.now() - parseInt(startTime)) / 60000;
-  return idleMinutes >= thresholdMinutes;
+  const results = await Promise.all(
+    sensorIds.map(async (id) => {
+      const startTime = await redisConnection.get(`occupancy:start:${id}`);
+      if (!startTime) return true;
+
+      const idleMinutes = (Date.now() - parseInt(startTime)) / 60000;
+      return idleMinutes >= thresholdMinutes;
+    }),
+  );
+
+  return results.every((status) => status === true);
 };

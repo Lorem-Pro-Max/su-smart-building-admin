@@ -1,59 +1,41 @@
-import { deviceCache } from "../services/socketService.js";
+import { getDeviceByHardwareId } from "../utils/deviceMap.js";
 
 const STATUS_RESOLVERS = {
-  doors: (status, subId) => ({
+  doors: (status) => ({
     power: status.door1_state !== "CLOSE" || status.door2_state !== "CLOSE",
   }),
   valves: (status, subId) => {
     let isPowerOn = false;
-
     if (subId === "v1") {
       isPowerOn = status.valve1_status === "OPEN";
     } else if (subId === "v2") {
       isPowerOn = status.valve2_status === "OPEN";
     }
-
-    return {
-      power: isPowerOn,
-    };
+    return { power: isPowerOn };
   },
 };
 
-const getHardwareCache = () => {
-  const cache = deviceCache.byDeviceId;
-  if (!cache || Object.keys(cache).length === 0) {
-    throw {
-      status: 503,
-      message: "[CACHE] Failed to cache device mapping data",
-    };
-  }
-  return cache;
-};
-
 export const formatDeviceUpdate = (iotStatusData, deviceType) => {
-  const cachedIds = getHardwareCache();
   const grouped = {};
 
   for (const [id, status] of Object.entries(iotStatusData)) {
-    const metaArray = cachedIds[id];
+    const meta = getDeviceByHardwareId(id);
 
-    if (Array.isArray(metaArray)) {
-      metaArray.forEach((meta) => {
-        const { floor, title, type, key, device_sub_id } = meta;
-        if (!grouped[floor]) grouped[floor] = [];
+    if (meta) {
+      const { floor, title, type, key, device_sub_id } = meta;
+      if (!grouped[floor]) grouped[floor] = [];
 
-        const resolver = STATUS_RESOLVERS[deviceType];
-        const finalStatus = resolver ? resolver(status, device_sub_id) : status;
+      const resolver = STATUS_RESOLVERS[deviceType];
+      const finalStatus = resolver ? resolver(status, device_sub_id) : status;
 
-        grouped[floor].push({
-          id: id,
-          key: key,
-          name: title,
-          type: type,
-          status: finalStatus,
-          floor: floor,
-          device_sub_id: device_sub_id,
-        });
+      grouped[floor].push({
+        id: id,
+        key: key,
+        name: title,
+        type: type,
+        status: finalStatus,
+        floor: floor,
+        device_sub_id: device_sub_id,
       });
     }
   }
@@ -62,35 +44,32 @@ export const formatDeviceUpdate = (iotStatusData, deviceType) => {
 };
 
 export const formatDeviceMetadata = (deviceIds) => {
-  const cachedIds = getHardwareCache();
   const metadata = { available_floors: [], available_rooms: {} };
 
   for (const id of deviceIds) {
-    const metaArray = cachedIds[id];
+    const meta = getDeviceByHardwareId(id);
 
-    if (Array.isArray(metaArray)) {
-      metaArray.forEach((meta) => {
-        const { floor, title, key, device_sub_id } = meta;
-        const floorKey = `floor_${floor}`;
+    if (meta) {
+      const { floor, title, key, device_sub_id } = meta;
+      const floorKey = `floor_${floor}`;
 
-        if (!metadata.available_rooms[floorKey]) {
-          metadata.available_rooms[floorKey] = [];
-        }
+      if (!metadata.available_rooms[floorKey]) {
+        metadata.available_rooms[floorKey] = [];
+      }
 
-        metadata.available_rooms[floorKey].push({
-          key: id,
-          label: title,
-          type: key,
-          device_sub_id: device_sub_id || null,
-        });
-
-        if (!metadata.available_floors.some((item) => item.key === floorKey)) {
-          metadata.available_floors.push({
-            key: floorKey,
-            label: `ชั้น ${floor}`,
-          });
-        }
+      metadata.available_rooms[floorKey].push({
+        key: id,
+        label: title,
+        type: key,
+        device_sub_id: device_sub_id || null,
       });
+
+      if (!metadata.available_floors.some((item) => item.key === floorKey)) {
+        metadata.available_floors.push({
+          key: floorKey,
+          label: `ชั้น ${floor}`,
+        });
+      }
     }
   }
   metadata.available_floors.sort((a, b) => a.key.localeCompare(b.key));
@@ -98,7 +77,6 @@ export const formatDeviceMetadata = (deviceIds) => {
 };
 
 export const formatAirQualityRankingData = (type, rawAqList, orderBy) => {
-  const cachedIds = getHardwareCache();
   const typeMapping = {
     pm25: "PM 2.5",
     pm10: "PM 10",
@@ -113,18 +91,16 @@ export const formatAirQualityRankingData = (type, rawAqList, orderBy) => {
   rawAqList.forEach((item) => {
     const id = Object.keys(item)[0];
     const value = item[id];
-    const metaArray = cachedIds[id];
+    const meta = getDeviceByHardwareId(id);
 
-    if (Array.isArray(metaArray)) {
-      metaArray.forEach((meta) => {
-        enriched.push({
-          id: `${id}_${meta.key}`,
-          type: type,
-          value: value[type],
-          type_title: typeMapping[type],
-          room_title: meta.title,
-          floor: meta.floor,
-        });
+    if (meta) {
+      enriched.push({
+        id: `${id}_${meta.key}`,
+        type: type,
+        value: value[type],
+        type_title: typeMapping[type],
+        room_title: meta.title,
+        floor: meta.floor,
       });
     }
   });

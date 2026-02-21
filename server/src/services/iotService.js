@@ -44,73 +44,103 @@ export const fetchDeviceList = async (baseType, deviceType) => {
 };
 
 export const executeBatch = async (baseType, ids, action, value = null) => {
-  return await Promise.all(
-    ids.map((id) =>
-      axios
-        .post(
-          `${IOT_BASE_URL}/control/${DEVICE_MAP[baseType]["path"]}/${id}/command`,
-          {
-            power: DEVICE_MAP[baseType]["actions"][action],
-          },
-        )
-        .then((r) => ({ status: r.status, data: r.data }))
-        .catch((e) => ({
+  return Promise.all(
+    ids.map(async (id) => {
+      const path = DEVICE_MAP[baseType]?.path;
+      const powerValue = DEVICE_MAP[baseType]?.actions[action];
+      const url = `${IOT_BASE_URL}/control/${path}/${id}/command`;
+
+      try {
+        const r = await axios.post(url, { power: powerValue });
+
+        if (r.data?.success === false) {
+          return {
+            id,
+            status: 200,
+            data: r.data,
+            error: r.data.error || r.data.detail,
+          };
+        }
+        return { id, status: r.status, data: r.data };
+      } catch (e) {
+        return {
           id,
-          status: "failed",
-          error: e.response?.data?.message || e.message || "Unknown Error",
-        })),
-    ),
+          status: e.response?.status || 500,
+          data: e.response?.data || { success: false },
+          error:
+            e.response?.data?.detail || e.response?.data?.error || e.message,
+        };
+      }
+    }),
   );
 };
 
 export const executeDoorAction = async (type, ids, action, value = null) => {
+  const doorAction = DEVICE_MAP[type]["actions"][action];
   const indices = [1, 2];
 
-  const batchResults = await Promise.all(
+  return Promise.all(
     ids.map(async (deviceId) => {
-      const doorResults = await Promise.all(
-        indices.map((index) =>
-          axios
-            .post(
-              `${IOT_BASE_URL}/control/door/${deviceId}/${index}/${DEVICE_MAP[type]["actions"][action]}`,
-            )
-            .then((r) => ({ status: r.status, data: r.data }))
-            .catch((e) => ({
-              status: "failed",
-              data: { success: false, error: e.message },
-            })),
-        ),
-      );
+      try {
+        const doorResults = await Promise.all(
+          indices.map((index) =>
+            axios.post(
+              `${IOT_BASE_URL}/control/door/${deviceId}/${index}/${doorAction}`,
+            ),
+          ),
+        );
 
-      const doorSuccessful = doorResults.every((r) => r.status === 200);
-      return { status: doorSuccessful ? 200 : 500, success: doorSuccessful };
+        const hardwareError = doorResults.find(
+          (r) => r.data?.success === false,
+        );
+        if (hardwareError) {
+          return {
+            id: deviceId,
+            status: 200,
+            data: hardwareError.data,
+            error: hardwareError.data.error,
+          };
+        }
+
+        return { id: deviceId, status: 200, data: { success: true } };
+      } catch (e) {
+        return {
+          id: deviceId,
+          status: e.response?.status || 500,
+          data: e.response?.data || { success: false },
+          error: e.response?.data?.detail || e.message,
+        };
+      }
     }),
   );
-
-  const allDoorsSuccessful = batchResults.every((r) => r.success);
-
-  return [
-    {
-      status: allDoorsSuccessful ? 200 : 500,
-      data: { success: allDoorsSuccessful },
-    },
-  ];
 };
 
 export const executeValveAction = async (type, ids, action, subId) => {
   const valveAction = DEVICE_MAP[type]["actions"][action];
 
-  return await Promise.all(
-    ids.map((id) =>
-      axios
-        .post(`${IOT_BASE_URL}/control/water/${id}/${subId}/${valveAction}`)
-        .then((r) => ({ status: r.status, data: r.data }))
-        .catch((e) => ({
+  return Promise.all(
+    ids.map(async (id) => {
+      const url = `${IOT_BASE_URL}/control/water/${id}/${subId}/${valveAction}`;
+      try {
+        const r = await axios.post(url);
+        if (r.data?.success === false) {
+          return {
+            id,
+            status: 200,
+            data: r.data,
+            error: r.data.error || r.data.detail,
+          };
+        }
+        return { id, status: r.status, data: r.data };
+      } catch (e) {
+        return {
           id,
-          status: "failed",
-          error: e.response?.data?.message || e.message,
-        })),
-    ),
+          status: e.response?.status || 500,
+          data: e.response?.data || { success: false },
+          error: e.response?.data?.detail || e.message,
+        };
+      }
+    }),
   );
 };
 

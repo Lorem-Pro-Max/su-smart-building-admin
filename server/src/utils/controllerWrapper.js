@@ -40,25 +40,31 @@ export const handleBatchCommand = (deviceType) => async (req, res) => {
 
     const execute =
       EXECUTION_REGISTRY[deviceType] || EXECUTION_REGISTRY.default;
-
     const result = await execute(deviceType, deviceIds, action, value);
+
     const failedItems = result.filter(
       (r) => !r || r.status !== 200 || r.data?.success !== true,
     );
 
+    await syncIotDevice(deviceType);
+
     if (failedItems.length > 0) {
-      const firstError = failedItems[0];
-      const failedCount = failedItems.length;
+      const first = failedItems[0];
 
       const errorMessage =
-        firstError?.data?.error ||
-        firstError?.data?.result?.error ||
-        `No response from target device(s)`;
+        first.data?.detail ||
+        first.data?.error ||
+        first.error ||
+        first.data?.message ||
+        `Hardware error (Status ${first.status || "???"})`;
 
-      throw { status: 502, message: errorMessage, failedCount: failedCount };
+      throw {
+        status: 502,
+        message: errorMessage,
+        failedCount: failedItems.length,
+      };
     }
 
-    await syncIotDevice(deviceType);
     return res.status(200).json({ success: true });
   } catch (error) {
     return handleError(res, error, `handleBatchCommand [${deviceType}]`);
