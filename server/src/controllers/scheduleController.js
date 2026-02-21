@@ -51,9 +51,9 @@ export const createSchedulesController = async (req, res) => {
 
 export const deleteScheduleController = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { idList } = req.body;
 
-    await scheduleService.deleteScheduleById(id);
+    await scheduleService.deleteScheduleById(idList);
 
     return res.json({
       success: true,

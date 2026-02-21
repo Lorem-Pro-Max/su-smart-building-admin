@@ -1,29 +1,29 @@
-import { Modal, notification } from "antd";
+import { Modal, notification, Button } from "antd";
 import { deleteScheduleById, getAllSchedule } from "../../../services/schedule";
 import { useState } from "react";
 
 function DeleteModal({
   open,
   onCancel,
-  bookingId,
-  setBookingId,
+  listDeleteId,
+  setListDeleteId,
   setTableData,
 }) {
   const [deleting, setDeleting] = useState(false);
   const handleDeleteSchedule = async () => {
-    if (!bookingId) return;
+    if (!listDeleteId) return;
 
     try {
       setDeleting(true);
 
-      await deleteScheduleById(bookingId);
+      await deleteScheduleById(listDeleteId);
 
       notification.success({
         message: "ลบการตั้งเวลาเปิด-ปิด สำเร็จ",
       });
 
       onCancel();
-      setBookingId(null);
+      setListDeleteId(null);
 
       const res = await getAllSchedule();
 
@@ -78,22 +78,22 @@ function DeleteModal({
         </p>
 
         <div className="flex gap-3 w-full mt-6">
-          <button
-            type="button"
-            className="flex-1 border border-[#D9D9D9] rounded-lg py-2 hover:bg-gray-50 text-[18px] font-bold"
+          <Button
+            className="flex-1 !h-[44px] text-[18px] font-bold"
             onClick={onCancel}
           >
             ยกเลิก
-          </button>
+          </Button>
 
-          <button
-            type="submit"
+          <Button
+            type="primary"
+            danger
             loading={deleting}
-            className="flex-1 bg-red-500 text-white rounded-lg py-2 hover:bg-red-600 text-[18px] font-bold"
+            className="flex-1 !h-[44px] !text-[18px] font-bold"
             onClick={handleDeleteSchedule}
           >
             ยืนยัน
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

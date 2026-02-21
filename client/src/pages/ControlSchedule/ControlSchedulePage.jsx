@@ -12,7 +12,7 @@ function ControlSchedulePage() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [isOpenCreateEvent, setIsOpenCreateEvent] = useState(false);
   const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
-  const [bookingId, setBookingId] = useState(null);
+  const [listDeleteId, setListDeleteId] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -93,13 +93,13 @@ function ControlSchedulePage() {
             <>
               <DeleteModal
                 open={isOpenDeleteModal}
-                bookingId={bookingId}
+                listDeleteId={listDeleteId}
                 onCancel={() => setIsOpenDeleteModal(false)}
-                setBookingId={setBookingId}
+                setListDeleteId={setListDeleteId}
                 setTableData={setTableData}
               />
               <ScheduleTable
-                setBookingId={setBookingId}
+                setListDeleteId={setListDeleteId}
                 setIsOpenDeleteModal={setIsOpenDeleteModal}
                 setTableData={setTableData}
                 tableData={tableData}

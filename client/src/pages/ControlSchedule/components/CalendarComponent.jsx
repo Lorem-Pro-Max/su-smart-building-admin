@@ -7,45 +7,36 @@ function CalendarComponent({ selectedDate, setSelectedDate, data }) {
     const map = {};
 
     (data || []).forEach((item) => {
-      if (!item.start_dateTime) return;
+      const firstSchedule = item.schedules?.[0];
+      if (!firstSchedule) return;
 
-      const date = dayjs(item.schedules[0].action_time).format("YYYY-MM-DD");
+      const date = dayjs(firstSchedule.action_time).format("YYYY-MM-DD");
 
       if (!map[date]) map[date] = [];
 
-      const hasClose = item.schedules?.some(
-        (s) => s.action?.toLowerCase() === "close",
-      );
-
-      const hasOpen = item.schedules?.some(
-        (s) => s.action?.toLowerCase() === "open",
-      );
+      const action = firstSchedule.action?.toLowerCase();
 
       let color = "bg-gray-400";
 
-      if (hasClose) {
+      if (action === "close" || action === "off") {
         color = "bg-red-500";
-      } else if (hasOpen) {
+      } else if (action === "open" || action === "on") {
         color = "bg-green-500";
       }
 
       map[date].push({
         color,
-        text: item.meeting_name,
+        text: item.meeting_name || item.room?.title,
       });
     });
 
     return map;
   }, [data]);
-
   const cellRender = (current) => {
     const date = current.format("YYYY-MM-DD");
 
     const dayEvents = events[date] || [];
     const isSelected = selectedDate === date;
-
-    const visibleEvents = dayEvents.slice(0, 2);
-    const remainingCount = dayEvents.length - 2;
 
     return (
       <div
@@ -55,7 +46,7 @@ function CalendarComponent({ selectedDate, setSelectedDate, data }) {
       `}
       >
         <div className="flex flex-col gap-[2px] overflow-hidden">
-          {visibleEvents.map((item, index) => (
+          {dayEvents.map((item, index) => (
             <div
               key={index}
               className="flex items-center gap-1 text-[11px] leading-none"
@@ -66,12 +57,6 @@ function CalendarComponent({ selectedDate, setSelectedDate, data }) {
               <span className="truncate">{item.text}</span>
             </div>
           ))}
-
-          {remainingCount > 0 && (
-            <div className="text-[10px] text-gray-500 pl-[10px] leading-none">
-              +{remainingCount} more
-            </div>
-          )}
         </div>
       </div>
     );

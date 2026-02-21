@@ -14,8 +14,11 @@ export const getAllSchedule = async (params = {}) => {
   return res.data;
 };
 
-export const deleteScheduleById = async (bookingId) => {
-  const res = await apiClient.delete(`/schedule/iot-schedule/${bookingId}`);
+export const deleteScheduleById = async (idList) => {
+  const res = await apiClient.delete("/schedule/iot-schedule/deletes", {
+    data: { idList },
+  });
+
   return res.data;
 };
 
