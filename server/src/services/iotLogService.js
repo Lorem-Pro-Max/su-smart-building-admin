@@ -10,14 +10,10 @@ export const getIotLogs = async ({ limit, offset }) => {
       l.action_by, 
       l.action_time, 
       l.created_at,
-      u.firstname,
-      u.lastname,
       dt.type AS device_type_name,
       r.title AS room_title,
-      r.floor AS room_floor,
-      CONCAT(u.firstname, ' ', u.lastname) AS full_name
+      r.floor AS room_floor
     FROM public.iot_log l
-    LEFT JOIN public.user u ON l.action_by = u.id
     LEFT JOIN public.room_device rd ON l.device_id = rd.id
     LEFT JOIN public.device_type dt ON rd.device_type_id = dt.id
     LEFT JOIN public.room r ON rd.room_id = r.id
