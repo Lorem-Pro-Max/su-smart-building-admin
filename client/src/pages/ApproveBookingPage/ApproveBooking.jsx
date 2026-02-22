@@ -99,6 +99,8 @@ function ApproveBookingPage() {
     try {
       const result = await getBookingById(bookingId);
 
+      console.log({ result });
+
       setSelectedBooking(result.data);
       if (result.data.duplicate) {
         setIsOpenDuplicatedModal(true);
@@ -164,13 +166,21 @@ function ApproveBookingPage() {
     {
       title: "การดำเนินการ",
       render: (_, record) => {
+        console.log({ record });
+
         if (record.status !== "pending") {
+          const formattedDate = record.bookingDate
+            ? new Date(record.bookingDate).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "2-digit",
+              })
+            : "-";
+
           return (
             <div>
               <p className="text-[14px]">{record.actionBy ?? "-"}</p>
-              <p className="text-[14px]">
-                {record.bookingDate?.replaceAll("-", "/") ?? "-"}
-              </p>
+              <p className="text-[14px]">{formattedDate}</p>
             </div>
           );
         }

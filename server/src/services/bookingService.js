@@ -1,4 +1,4 @@
-import { supabase } from "../config/superbase.js";
+import pool from "../config/db.js";
 
 const STATUS_MAP = {
   1: "pending",
@@ -11,222 +11,277 @@ const STATUS_MAP = {
 };
 
 const STATUS_ID_MAP = {
-  pending: "1",
-  approved: "2",
-  rejectedByAdmin: "3",
-  canceledByAdmin: "4",
-  "checked-in": "5",
-  completed: "6",
-  canceledByUser: "7",
+  pending: 1,
+  approved: 2,
+  rejectedByAdmin: 3,
+  canceledByAdmin: 4,
+  "checked-in": 5,
+  completed: 6,
+  canceledByUser: 7,
 };
 
 class BookingService {
   async createBooking(data) {
-    const now = new Date().toISOString();
+    const query = `
+      INSERT INTO room_booking (
+        requester_id,
+        room_id,
+        "start_dateTime",
+        "end_dateTime",
+        meeting_name,
+        floor,
+        created_at,
+        updated_at,
+        action_by,
+        reason,
+        phone,
+        status_id
+      )
+      VALUES (
+        $1,$2,$3,$4,$5,$6,NOW(),NOW(),$7,$8,$9,$10
+      )
+      RETURNING *
+    `;
 
-    const payload = {
-      user_id: data.userId,
-      resource_id: data.resourceId,
-      start_time: data.startTime,
-      end_time: data.endTime,
-      status: data.status,
-      meeting_name: data.meetingName,
-      floor: data.floor,
-      created_at: now,
-      updated_at: now,
-      action_by: data.actionBy,
-      reason: data.reason,
-      phone: data.phone,
-      status_id: data.statusId,
-    };
+    const values = [
+      data.userId,
+      data.resourceId,
+      data.startTime,
+      data.endTime,
+      data.meetingName,
+      data.floor,
+      data.actionBy,
+      data.reason ?? null,
+      data.phone,
+      data.statusId ?? 1,
+    ];
 
-    const { data: result, error } = await supabase
-      .from("room_booking")
-      .insert(payload)
-      .select()
-      .single();
+    const { rows } = await pool.query(query, values);
+    if (!rows.length) return null;
 
-    if (error) {
-      throw error;
-    }
-
-    return this.mapRow(result);
+    return this.mapRow(rows[0]);
   }
 
   async getBooking(id) {
-    const { data, error } = await supabase
-      .from("room_booking")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const query = `
+      SELECT 
+        rb.*,
+        r.title,
+        r.floor,
+        u.firstname,
+        u.lastname
+      FROM room_booking rb
+      LEFT JOIN room r ON rb.room_id = r.id
+      LEFT JOIN "user" u ON rb.requester_id = u.id
+      WHERE rb.id = $1
+    `;
 
-    if (error || !data) return undefined;
+    const { rows } = await pool.query(query, [id]);
+    if (!rows.length) return undefined;
 
-    return this.mapRow(data);
+    return this.mapRow(rows[0]);
   }
 
   async getAllBookings() {
-    const { data, error } = await supabase
-      .from("room_booking")
-      .select(
-        `
-        *,
-        room:room_booking_room_id_fkey (
-          id,
-          title,
-          floor
-        ),
-        requester:room_booking_requester_id_fkey (
-          id,
-          firstname,
-          lastname
-        )
-      `,
-      )
-      .neq("status_id", 7)
-      .order("start_dateTime", { ascending: true });
+    const query = `
+    SELECT 
+      rb.*,
+      r.title,
+      r.floor,
+      bs.status AS status_name,
 
-    if (error) {
-      throw error;
-    }
+      requester.firstname AS requester_firstname,
+      requester.lastname  AS requester_lastname,
 
-    return data.map((row) => this.mapRow(row));
+      action_user.firstname AS action_firstname,
+      action_user.lastname  AS action_lastname
+
+    FROM room_booking rb
+
+    LEFT JOIN room r
+      ON rb.room_id = r.id
+
+    LEFT JOIN booking_status bs
+      ON rb.status_id = bs.id
+
+    LEFT JOIN "user" requester
+      ON rb.requester_id = requester.id
+
+    LEFT JOIN "user" action_user
+      ON rb.action_by = action_user.id
+
+    ORDER BY rb."start_dateTime" ASC
+  `;
+
+    const { rows } = await pool.query(query);
+
+    return rows.map((row) => ({
+      id: row.id,
+      requesterId: row.requester_id,
+      roomId: row.room_id,
+      startTime: row.start_dateTime,
+      endTime: row.end_dateTime,
+      statusId: row.status_id,
+      status: row.status_name,
+      meetingName: row.meeting_name,
+      phone: row.phone,
+      createdAt: row.created_at,
+      actionDate: row.action_date,
+      reason: row.reason,
+      bookingDate: row.booking_date,
+      isNotified: row.is_notified,
+      title: row.title,
+      floor: row.floor,
+      bookingBy:
+        `${row.requester_firstname ?? ""} ${row.requester_lastname ?? ""}`.trim(),
+      actionBy:
+        `${row.action_firstname ?? ""} ${row.action_lastname ?? ""}`.trim(),
+    }));
   }
-
   async getBookingWithDuplicate(bookingId) {
-    const { data: bookingRow, error: bookingError } = await supabase
-      .from("room_booking")
-      .select(
-        `
-        *,
-        room:room_booking_room_id_fkey (
-          id,
-          title,
-          floor
-        ),
-        requester:room_booking_requester_id_fkey (
-          id,
-          firstname,
-          lastname
-        )
-      `,
-      )
-      .eq("id", bookingId)
-      .single();
+    const bookingQuery = `
+    SELECT 
+      rb.*,
+      r.title,
+      r.floor,
+      bs.status AS status_name,
+      u.firstname,
+      u.lastname
 
-    if (bookingError) {
-      throw bookingError;
-    }
+    FROM room_booking rb
 
-    if (!bookingRow) return null;
+    LEFT JOIN room r
+      ON rb.room_id = r.id
 
-    const { data: duplicateRows, error: duplicateError } = await supabase
-      .from("room_booking")
-      .select(
-        `
-        *,
-        room:room_booking_room_id_fkey (
-          id,
-          title,
-          floor
-        ),
-        requester:room_booking_requester_id_fkey (
-          id,
-          firstname,
-          lastname
-        )
-      `,
-      )
-      .eq("room_id", bookingRow.room_id)
-      .eq("status_id", 2)
-      .neq("id", bookingRow.id)
-      .lt("start_dateTime", bookingRow.end_dateTime)
-      .gt("end_dateTime", bookingRow.start_dateTime);
+    LEFT JOIN booking_status bs
+      ON rb.status_id = bs.id
 
-    if (duplicateError) {
-      throw duplicateError;
-    }
+    LEFT JOIN "user" u
+      ON rb.requester_id = u.id
 
-    if (!duplicateRows || duplicateRows.length === 0) {
+    WHERE rb.id = $1
+  `;
+
+    const { rows: bookingRows } = await pool.query(bookingQuery, [bookingId]);
+    if (!bookingRows.length) return null;
+
+    const bookingRow = bookingRows[0];
+
+    const duplicateQuery = `
+    SELECT 
+      rb.*,
+      r.title,
+      r.floor,
+      u.firstname,
+      u.lastname
+
+    FROM room_booking rb
+
+    LEFT JOIN room r
+      ON rb.room_id = r.id
+
+    LEFT JOIN "user" u
+      ON rb.requester_id = u.id
+
+    WHERE rb.room_id = $1
+      AND rb.status_id = 2
+      AND rb.id != $2
+      AND rb."start_dateTime" < $3
+      AND rb."end_dateTime" > $4
+  `;
+
+    const { rows: duplicateRows } = await pool.query(duplicateQuery, [
+      bookingRow.room_id,
+      bookingRow.id,
+      bookingRow.end_dateTime,
+      bookingRow.start_dateTime,
+    ]);
+
+    const map = (row) => ({
+      id: row.id,
+      meetingName: row.meeting_name,
+      roomId: row.room_id,
+      title: row.title,
+      floor: row.floor,
+      startTime: row.start_dateTime,
+      endTime: row.end_dateTime,
+      statusId: row.status_id,
+      status: row.status_name,
+      bookingBy: `${row.firstname ?? ""} ${row.lastname ?? ""}`.trim(),
+      createdAt: row.created_at,
+    });
+
+    if (!duplicateRows.length) {
       return {
         duplicate: false,
-        booking: this.mapRow(bookingRow),
+        booking: map(bookingRow),
       };
     }
 
     return {
       duplicate: true,
-      booking: this.mapRow(bookingRow),
-      conflicts: this.mapRow(duplicateRows[0]),
+      booking: map(bookingRow),
+      conflicts: map(duplicateRows[0]),
     };
   }
 
-  async updateStatus(id, status, reason, cancelId) {
+  async updateStatus(id, status, reason, cancelId, actionBy) {
     const statusId = STATUS_ID_MAP[status];
 
-    try {
-      const { data, error } = await supabase
-        .from("room_booking")
-        .update({
-          status_id: statusId,
-          action_date: new Date(),
-          reason: reason ?? null,
-        })
-        .eq("id", Number(id)).select(`
-          *,
-          room:room_booking_room_id_fkey (
-            id,
-            title,
-            floor
-          ),
-          requester:room_booking_requester_id_fkey (
-            id,
-            firstname,
-            lastname
-          )
-        `);
+    const query = `
+    UPDATE room_booking
+    SET status_id = $1,
+        action_by = $2,
+        action_date = NOW(),
+        reason = $3
+    WHERE id = $4
+    RETURNING *
+  `;
 
-      if (error) throw error;
-      if (!data || data.length === 0) return undefined;
+    const { rows } = await pool.query(query, [
+      statusId,
+      actionBy ?? null,
+      reason ?? null,
+      id,
+    ]);
 
-      if (cancelId) {
-        const { error: cancelError } = await supabase
-          .from("room_booking")
-          .update({
-            status_id: 4,
-            action_date: new Date(),
-          })
-          .eq("id", Number(cancelId));
+    if (!rows.length) return undefined;
 
-        if (cancelError) throw cancelError;
-      }
-
-      return this.mapRow(data[0]);
-    } catch (error) {
-      throw error;
+    if (cancelId) {
+      await pool.query(
+        `
+        UPDATE room_booking
+        SET status_id = 4,
+            action_by = $1,
+            action_date = NOW()
+        WHERE id = $2
+      `,
+        [actionBy ?? null, cancelId],
+      );
     }
+
+    return this.mapRow(rows[0]);
   }
 
   mapRow(row) {
-    const bookingBy =
-      `${row.requester?.firstname ?? ""} ${row.requester?.lastname ?? ""}`.trim();
+    const bookingBy = `${row.firstname ?? ""} ${row.lastname ?? ""}`.trim();
 
     return {
       id: row.id,
-      userId: row.user_id,
-      resourceId: row.resource_id,
+      userId: row.requester_id,
+      resourceId: row.room_id,
       startTime: row.start_dateTime,
       endTime: row.end_dateTime,
       status: STATUS_MAP[row.status_id] || "pending",
       meetingName: row.meeting_name,
-      floor: row.room?.floor,
+      floor: row.floor,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       actionBy: row.action_by,
       reason: row.reason,
       phone: row.phone,
       statusId: row.status_id,
-      title: row.room?.title,
+      title: row.title,
       bookingBy,
       bookingDate: row.booking_date,
     };

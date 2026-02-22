@@ -18,7 +18,7 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
     }
 
     form.setFieldsValue({
-      username: editData.userId,
+      username: editData.userName,
       fullName: editData.fullName,
       phone: editData.phone,
       email: editData.email,
@@ -114,15 +114,7 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
                 label="password"
                 name="password"
                 className="flex-1"
-                rules={[
-                  { required: true },
-                  {
-                    pattern:
-                      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/,
-                    message:
-                      "ต้องมี 8 ตัวขึ้นไป มีพิมพ์เล็ก พิมพ์ใหญ่ และตัวเลข",
-                  },
-                ]}
+                rules={[{ required: true }]}
               >
                 <Input.Password iconRender={() => <EyeInvisibleOutlined />} />
               </Form.Item>

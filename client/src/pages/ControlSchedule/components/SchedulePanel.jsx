@@ -179,7 +179,7 @@ function SchedulePanel({ selectedDate, onClose }) {
 
             <div className="mt-4 space-y-3">
               {devices.map((device) => {
-                const typeId = device.device_type?.id;
+                const typeId = device.device_type_id;
                 const color = colorMap[typeId] || "#13C2C2";
 
                 return (
@@ -196,12 +196,9 @@ function SchedulePanel({ selectedDate, onClose }) {
                       </div>
 
                       <div>
-                        <div className="font-medium">
-                          {device.device_type?.type}
-                        </div>
+                        <div className="font-medium">{device?.type}</div>
                         <div className="text-xs text-gray-500">
-                          ชั้น {device.room?.floor || "-"} ·{" "}
-                          {device.room?.title || "-"}
+                          ชั้น {device?.floor || "-"} · {device?.title || "-"}
                         </div>
                       </div>
                     </div>
@@ -318,7 +315,7 @@ function SchedulePanel({ selectedDate, onClose }) {
       <SummaryModal
         open={openSummary}
         onClose={() => setOpenSummary(false)}
-        room={room?.room}
+        room={room}
         devices={devices}
         settingType={settingType}
         date={dateValue}

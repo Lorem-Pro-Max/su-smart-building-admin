@@ -16,6 +16,22 @@ export const createUser = async (req, res) => {
   }
 };
 
+export const deleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  const user = await userService.deleteUser(id);
+
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+
+  return res.json({
+    success: true,
+    message: "User deleted successfully",
+    data: user,
+  });
+};
+
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
