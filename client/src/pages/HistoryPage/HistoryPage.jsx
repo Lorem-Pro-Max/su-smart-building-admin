@@ -45,7 +45,7 @@ function HistoryPage() {
         <div className="h-full w-full flex flex-col justify-between">
           <HistoryTable data={logs} />
           <div className="w-full h-max flex justify-end">
-            <HistoryPagination setCurrentPage={setCurrentPage} setLimit={setLimit} />
+            <HistoryPagination setCurrentPage={setCurrentPage} setLimit={setLimit} total={total} />
           </div>
         </div>
       </div>

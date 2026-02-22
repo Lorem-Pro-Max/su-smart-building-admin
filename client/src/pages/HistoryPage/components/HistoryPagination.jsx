@@ -1,11 +1,11 @@
 import { Pagination } from "antd";
 
-function HistoryPagination({ setCurrentPage, setLimit }) {
+function HistoryPagination({ setCurrentPage, setLimit, total }) {
 
 
   return (
     <Pagination
-      total={85}
+      total={total}
       showTotal={(total) => `Total ${total} items`}
       defaultPageSize={10}
       defaultCurrent={1}

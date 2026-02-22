@@ -46,19 +46,6 @@ const columns = [
   },
 ];
 
-const mockData = [
-  {
-    key: "1",
-    room: "CO-Working space 1",
-    floor: "2",
-    device_name: "ประตู",
-    device_status: "เปิด",
-    date: "3 Jan 26",
-    time: "12:00",
-    approver_name: "ณัฐวรา กุตริ",
-  }
-];
-
 function HistoryTable({ data }) {
   const displayData = data.map((item) => {
     return {
@@ -68,7 +55,6 @@ function HistoryTable({ data }) {
       device_name: item.device_type_name,
       device_status: item.action === "ON" || item.action === "OPEN" ? "เปิด" : "ปิด",
 
-      // ครอบ item.action_time ด้วย new Date() เพื่อความปลอดภัย
       date: new Date(item.action_time).toLocaleDateString("en-GB", {
         day: "numeric",
         month: "short",
@@ -81,7 +67,7 @@ function HistoryTable({ data }) {
         hour12: false,
       }),
 
-      approver_name: item.full_name
+      approver_name: item.action_by
     }
   })
   return (
@@ -109,7 +95,7 @@ function HistoryTable({ data }) {
         }}
         dataSource={displayData}
         pagination={{
-          position: ["none"],
+          placement: ["none"],
         }}
       />
     </ConfigProvider>
