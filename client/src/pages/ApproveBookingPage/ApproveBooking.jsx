@@ -45,8 +45,7 @@ function ApproveBookingPage() {
       setLoading(true);
       const res = await getBookings({ page: 1, limit: 10 });
       setTableData(res?.data || []);
-    } catch (err) {
-      console.error(err);
+    } catch {
       notification.error({ message: "โหลดข้อมูลไม่สำเร็จ" });
     } finally {
       setLoading(false);
@@ -98,8 +97,6 @@ function ApproveBookingPage() {
   const clickGetConfirmBooking = async (bookingId) => {
     try {
       const result = await getBookingById(bookingId);
-
-      console.log({ result });
 
       setSelectedBooking(result.data);
       if (result.data.duplicate) {
@@ -166,8 +163,6 @@ function ApproveBookingPage() {
     {
       title: "การดำเนินการ",
       render: (_, record) => {
-        console.log({ record });
-
         if (record.status !== "pending") {
           const formattedDate = record.bookingDate
             ? new Date(record.bookingDate).toLocaleDateString("en-GB", {

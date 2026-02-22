@@ -73,8 +73,7 @@ function SummaryModal({
 
       onClose();
       onCloseAll();
-    } catch (error) {
-      console.error(error);
+    } catch {
       notification.error({
         message: "เกิดข้อผิดพลาดในการบันทึก",
       });
@@ -82,8 +81,6 @@ function SummaryModal({
       setLoading(false);
     }
   };
-
-  console.log({ room });
 
   return (
     <Modal

@@ -79,8 +79,7 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
       }
 
       onSuccess?.();
-    } catch (err) {
-      console.error(err);
+    } catch {
       notification.error({ message: "เกิดข้อผิดพลาด" });
     } finally {
       setLoading(false);

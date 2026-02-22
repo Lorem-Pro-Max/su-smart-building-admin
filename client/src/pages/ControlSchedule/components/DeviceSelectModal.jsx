@@ -106,8 +106,6 @@ function DeviceSelectModal({ open, onClose, onConfirm, roomId }) {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {devices.map((item) => {
-              console.log({ item });
-
               const active = selected.find((d) => d.id === item.id);
               const color = colorMap[item.device_type_id] || "#13C2C2";
 
