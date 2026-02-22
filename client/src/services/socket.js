@@ -8,6 +8,3 @@ export const socket = io(BASE_URL, {
   withCredentials: true,
   transports: ["websocket", "polling"],
 });
-
-socket.on("connect", () => console.log("Socket Connected:", socket.id));
-socket.on("disconnect", () => console.log("Socket Disconnected"));

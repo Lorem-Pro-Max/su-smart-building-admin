@@ -1,5 +1,15 @@
 import { useToast } from "../../components/utils";
 
+const formatPayload = (deviceIds) => {
+  return deviceIds.map((uid) => {
+    if (typeof uid === "string" && uid.includes("::")) {
+      const [id, sub_key_to] = uid.split("::");
+      return { id, sub_key_to };
+    }
+    return uid;
+  });
+};
+
 export function useDeviceControl(config, onRefresh, service) {
   const { successToast, errorToast, contextHolder } = useToast();
 
@@ -7,7 +17,8 @@ export function useDeviceControl(config, onRefresh, service) {
     const totalCount = deviceIds.length;
 
     try {
-      const response = await service.batchControl(deviceIds, apiAction);
+      const parsedDeviceIds = formatPayload(deviceIds);
+      const response = await service.batchControl(parsedDeviceIds, apiAction);
       const { data } = response;
 
       if (data?.success) {
@@ -22,7 +33,7 @@ export function useDeviceControl(config, onRefresh, service) {
       }
 
       throw {
-        message: data?.error,
+        message: data.error,
         failedCount: data?.failedCount,
       };
     } catch (err) {
@@ -35,10 +46,10 @@ export function useDeviceControl(config, onRefresh, service) {
     }
   };
 
-  const handleSingleToggle = async (roomId, isTurningOn) => {
+const handleSingleToggle = async (roomUid, isTurningOn) => {
     const action = isTurningOn ? config.actions.on : config.actions.off;
     const statusThai = isTurningOn ? "เปิด" : "ปิด";
-    await executeAction([roomId], action, statusThai);
+    await executeAction([roomUid], action, statusThai);
   };
 
   const handleExecuteAction = async (deviceIds, actionKey) => {

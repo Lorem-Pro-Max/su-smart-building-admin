@@ -8,9 +8,29 @@ const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+const formatDeviceIds = (deviceIds) => {
+  return deviceIds.map((uid) => {
+
+    if (typeof uid === "string" && uid.includes("::")) {
+      const [id, sub_key_to] = uid.split("::");
+      return { id, sub_key: sub_key_to };
+    }
+    
+    if (typeof uid === "object" && uid !== null) return uid;
+    return { id: uid, sub_key: null }; 
+  });
+};
+
 export const createDeviceActions = (device) => ({
-  batchControl: (deviceIds, action, value) =>
-    apiClient.post(`/${device}/batch-control`, { deviceIds, action, value }),
+  batchControl: (deviceIds, action, value) => {
+    const formattedDeviceIds = formatDeviceIds(deviceIds);
+
+    return apiClient.post(`/${device}/batch-control`, {
+      deviceIds: formattedDeviceIds,
+      action,
+      value,
+    });
+  },
 
   acTempControl: (deviceId, temp) =>
     apiClient.post(`/ac/temp-control`, { device_id: deviceId, temp: temp }),
