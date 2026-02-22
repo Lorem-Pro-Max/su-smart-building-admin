@@ -7,6 +7,7 @@ import {
   fetchRoomSensor,
 } from "./dbService.js";
 import * as IoTService from "./iotService.js";
+import * as useageService from "./useageService.js";
 import { processHumanDetection } from "./humanDetectionService.js";
 import { processSmokeDetection } from "./smokeDetectionService.js";
 import { logSystemEvent } from "./dbService.js";
@@ -31,6 +32,7 @@ const DEVICE_PREFIX_MAP = {
 
 const SMOKE_DETECTION_PREFIX = "SM";
 const HUMAN_DETECTION_PREFIX = "HP";
+const WATER_USEAGE_PREFIX = "VA";
 
 export const initDeviceMapping = async () => {
   try {
@@ -95,6 +97,8 @@ export const syncIotDevice = async (deviceType) => {
 
 const throttles = new Map();
 const throttleMillisec = 1000;
+let waterBuffer = {};
+let tenMinuteWaterSummary = {};
 
 let lastWsErrorLog = 0;
 const WS_ERROR_LOG_INTERVAL = 5 * 60 * 1000;
@@ -106,10 +110,15 @@ export const initIotSocketListener = () => {
     console.log("[Websocket] IoT server connected");
   });
 
+  setInterval(async () => {
+    await useageService.processWaterUsageBuffer(waterBuffer, deviceCache);
+  }, useageService.WATER_UPSERT_INTERVAL);
+
   ws.on("message", (data) => {
     try {
       const rawData = JSON.parse(data.toString());
       const topic = rawData.topic;
+      const payload = rawData.payload;
 
       if (!topic) throw new Error("Missing topic in IoT payload");
 
@@ -128,6 +137,10 @@ export const initIotSocketListener = () => {
         if (HUMAN_DETECTION_PREFIX === prefix) {
           processHumanDetection(fullId, rawData.payload.motion);
           return;
+        }
+
+        if (WATER_USEAGE_PREFIX === prefix) {
+          useageService.processWaterData(payload, waterBuffer);
         }
 
         if (deviceType) {

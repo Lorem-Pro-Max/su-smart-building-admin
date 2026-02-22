@@ -12,6 +12,7 @@ import scheduleRoute from "./routes/scheduleRoute.js";
 import userRoute from "./routes/user.js";
 import roomBookingRoutes from "./routes/roomBookingRoutes.js";
 import iotQueueRoute from "./routes/IotQueueRoute.js";
+import iotLogsRoute from "./routes/iotLogRoutes.js";
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/api/schedule", scheduleRoute);
 app.use("/api/iot-queue", iotQueueRoute);
 app.use("/api", roomBookingRoutes);
 app.use("/api", userRoute);
+app.use("/api/logs", iotLogsRoute);
 
 app.use((req, res) => {
   return res.status(404).json({ error: "Route not found" });
