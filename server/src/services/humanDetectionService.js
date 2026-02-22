@@ -25,6 +25,9 @@ const INTERACTABLE_DEVICE_LISTS = new Set([
   "exhaust-fans",
 ]);
 
+const errorThrottles = new Map();
+const ERROR_LOG_INTERVAL = 60000;
+
 const getFormattedDateTime = () => {
   const now = new Date();
   const date = now.toLocaleDateString("en-GB", {
@@ -84,7 +87,6 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
         idleMinutes >= ROOM_SHUTDOWN_MINUTE_TRIGGER &&
         currentLevel !== ROOM_STATE.CLOSED
       ) {
-        
         await triggerShutdownAction(roomId);
         await redisConnection.set(LEVEL_KEY, ROOM_STATE.CLOSED);
       } else if (idleMinutes >= NOTI_MINUTE_TRIGGER && !currentLevel) {
@@ -93,13 +95,25 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
         await redisConnection.set(LEVEL_KEY, ROOM_STATE.NOTIFIED);
       }
     } catch (error) {
-      logSystemEvent(
-        "human-detection",
-        "error",
-        "DETECTION_CRASH",
-        error.message,
-        { sensorId, roomId },
-      );
+      const errorKey = `crash:${sensorId}:${roomId}`;
+      const now = Date.now();
+      const lastLogged = errorThrottles.get(errorKey) || 0;
+
+      if (now - lastLogged > ERROR_LOG_INTERVAL) {
+        errorThrottles.set(errorKey, now);
+
+        logSystemEvent(
+          "human-detection",
+          "error",
+          "DETECTION_CRASH",
+          error.message,
+          { sensorId, roomId },
+        );
+      } else {
+        console.error(
+          `[Human Detection] FATAL: ${sensorId} in ${roomId}: ${error.message}`,
+        );
+      }
     }
   }
 };
@@ -140,7 +154,9 @@ const executeRoomAction = async (roomId, action) => {
           try {
             const deviceMetaList = getDeviceByHardwareId(res.id);
             deviceMetaList.forEach((meta) => {
-              if (meta.id) logIotAction(meta.id, action, 1);
+              if (meta.id && String(meta.room_id) === String(roomId)) {
+                logIotAction(meta.id, action, null);
+              }
             });
           } catch (mappingErr) {
             logSystemEvent(
@@ -153,23 +169,35 @@ const executeRoomAction = async (roomId, action) => {
         });
 
         if (failures.length > 0) {
-          logSystemEvent(
-            "human-detection",
-            "warn",
-            "PARTIAL_EXECUTION_FAIL",
-            `Some ${type} failed.`,
-            { failures },
-          );
+          const failKey = `partial-fail:${roomId}:${type}`;
+          const now = Date.now();
+          if (now - (errorThrottles.get(failKey) || 0) > ERROR_LOG_INTERVAL) {
+            errorThrottles.set(failKey, now);
+            logSystemEvent(
+              "human-detection",
+              "warn",
+              "PARTIAL_EXECUTION_FAIL",
+              `Some ${type} failed.`,
+              { failures },
+            );
+          }
         }
 
         await syncIotDevice(type);
       } catch (e) {
-        logSystemEvent(
-          "human-detection",
-          "error",
-          "EXECUTION_CRITICAL",
-          e.message,
-        );
+        const errorKey = `exec-critical:${roomId}`;
+        const now = Date.now();
+        if (now - (errorThrottles.get(errorKey) || 0) > ERROR_LOG_INTERVAL) {
+          errorThrottles.set(errorKey, now);
+          logSystemEvent(
+            "human-detection",
+            "error",
+            "EXECUTION_CRITICAL",
+            e.message,
+          );
+        } else {
+          console.error(`[Human Detection] CRITICAL: ${roomId}: ${e.message}`);
+        }
       }
     }
   } catch (error) {
@@ -191,7 +219,9 @@ const triggerNotiAction = async (meta, datetime) => {
       remaining_time: 10,
     });
   } catch (error) {
-    logSystemEvent("human-detection", "warn", "NOTI_SEND_FAIL", error.message);
+    console.warn(
+      `[Noti Warning] Socket failed to emit warning for ${meta.title}: ${error.message}`,
+    );
   }
 };
 

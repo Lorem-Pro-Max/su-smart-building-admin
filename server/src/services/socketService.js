@@ -96,6 +96,9 @@ export const syncIotDevice = async (deviceType) => {
 const throttles = new Map();
 const throttleMillisec = 1000;
 
+let lastWsErrorLog = 0;
+const WS_ERROR_LOG_INTERVAL = 5 * 60 * 1000;
+
 export const initIotSocketListener = () => {
   const ws = new WebSocket(SOCKET_URL);
 
@@ -138,14 +141,18 @@ export const initIotSocketListener = () => {
         }
       }
     } catch (error) {
-      logSystemEvent("socket", "warn", "PAYLOAD_ERROR", error.message, {
-        raw: data.toString(),
-      });
+      console.error(`[Websocket] Unexpected Error: ${error.message}`);
     }
   });
 
   ws.on("error", (err) => {
-    logSystemEvent("socket", "error", "WS_ERROR", err.message);
+    const now = Date.now();
+    if (now - lastWsErrorLog > WS_ERROR_LOG_INTERVAL) {
+      lastWsErrorLog = now;
+      logSystemEvent("socket", "error", "WS_ERROR", err.message);
+    } else {
+      console.error(`[Websocket Error] ${err.message}`);
+    }
   });
 
   ws.on("close", () => {

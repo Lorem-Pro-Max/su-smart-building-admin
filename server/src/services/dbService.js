@@ -49,7 +49,8 @@ export const fetchIotSchedule = async () => {
     booking_id, 
     device_id, 
     action_time, 
-    action 
+    action,
+    action_by
     FROM iot_schedule
     WHERE record_status = 'pending'`;
   const { rows } = await pool.query(query);
@@ -107,7 +108,7 @@ export const logIotAction = (deviceDbId, action, actionBy = 1) => {
     INSERT INTO iot_log (device_id, action, action_by, action_time)
     VALUES ($1, $2, $3, NOW())
   `;
-  
+
   pool.query(query, [deviceDbId, action, actionBy]).catch((err) => {
     console.error(`[IOT_LOG_FAIL] Device ${deviceDbId}: ${err.message}`);
   });

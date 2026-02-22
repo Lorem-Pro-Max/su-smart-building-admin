@@ -3,13 +3,13 @@ import { handleError } from "../utils/errorFormatter.js";
 
 export const AddIotQueue = async (req, res) => {
   try {
-    const { deviceId, action, actionTime, bookingId, scheduleId } = req.body;
+    const { deviceId, action, actionTime, bookingId, scheduleId, actionBy } = req.body;
 
     if (!deviceId || !action || !actionTime || !scheduleId) {
       return res.status(400).json({
         status: 400,
         message:
-          "deviceId(table ID), action, actionTime, scheduleId are required. (bookingId is optional)",
+          "deviceId(table ID), action, actionTime, scheduleId are required, actionBy(nullable). (bookingId is optional)",
       });
     }
     const safeBookingId = bookingId ?? "manual";
@@ -20,6 +20,7 @@ export const AddIotQueue = async (req, res) => {
       actionTime,
       safeBookingId,
       scheduleId,
+      actionBy
     );
 
     if (!result.success) {
