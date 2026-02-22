@@ -47,6 +47,7 @@ const columns = [
 ];
 
 function HistoryTable({ data }) {
+  console.log(data)
   const displayData = data.map((item) => {
     return {
       key: item.id,
@@ -67,7 +68,7 @@ function HistoryTable({ data }) {
         hour12: false,
       }),
 
-      approver_name: item.action_by
+      approver_name: item.action_by ? item.full_name : "SYSTEM"
     }
   })
   return (
