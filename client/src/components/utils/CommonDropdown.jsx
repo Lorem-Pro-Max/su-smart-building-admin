@@ -15,6 +15,11 @@ export function CommonDropdown({ items = [], currentItem, onSelect }) {
           selectable: true,
           selectedKeys: [String(currentItem)],
           onClick: ({ key }) => onSelect?.(key),
+          style: {
+            maxHeight: "300px",
+            overflowY: "auto",
+            borderRadius: "8px",
+          },
         }}
         trigger={["click"]}
       >

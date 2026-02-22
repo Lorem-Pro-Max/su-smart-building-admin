@@ -5,8 +5,8 @@ import { DEVICE_CONFIGS } from "../../config/devices";
 
 export function useDoors() {
   const config = DEVICE_CONFIGS.DOORS;
-  const { state, refresh } = useDeviceServices(config, doorService);
+  const { state, refresh, PageToast } = useDeviceServices(config, doorService);
   const control = useDeviceControl(config, refresh, doorService);
 
-  return { dataState: state, control: control };
+  return { dataState: state, control: control, PageToast };
 }

@@ -11,7 +11,7 @@ export function useAc() {
   const { successToast, errorToast, contextHolder } = useToast();
 
   const config = DEVICE_CONFIGS.AC;
-  const { state, refresh } = useDeviceServices(config, acService);
+  const { state, refresh, PageToast } = useDeviceServices(config, acService);
   const control = useDeviceControl(config, refresh, acService);
 
   const handlePopoverChange = (id, isOpen) => {
@@ -45,5 +45,6 @@ export function useAc() {
       handleTempChange,
     },
     contextHolder,
+    PageToast,
   };
 }

@@ -6,7 +6,7 @@ import { DEVICE_CONFIGS } from "../../config/devices";
 
 export function useValves() {
   const config = DEVICE_CONFIGS.VALVES;
-  const { state, refresh } = useDeviceServices(config, valveService);
+  const { state, refresh, PageToast } = useDeviceServices(config, valveService);
   const control = useDeviceControl(config, refresh, valveService);
   const graphService = useGraphServices(valveService);
 
@@ -14,5 +14,6 @@ export function useValves() {
     dataState: state,
     control: control,
     graphService: graphService,
+    PageToast
   };
 }
