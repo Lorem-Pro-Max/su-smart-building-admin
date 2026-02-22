@@ -88,12 +88,15 @@ function GridDashboard({ data }) {
 }
 
 function TopDashboard({ data, metadata, onFetchRoom }) {
-  const currentFloor = data.floor;
-  const currentRoom = data.roomId;
+
+  const currentFloor = data?.floor || "";
+  const currentRoom = data?.roomId || "";
+
+  const roomsOnFloor = metadata?.available_rooms?.[currentFloor] || [];
 
   const handleFloorChange = (floorKey) => {
-    const roomsOnFloor = metadata.available_rooms[floorKey] || [];
-    const firstRoomOnFloor = roomsOnFloor[0]?.key;
+    const floorRooms = metadata?.available_rooms?.[floorKey] || [];
+    const firstRoomOnFloor = floorRooms[0]?.key;
     onFetchRoom(floorKey, firstRoomOnFloor);
   };
 
@@ -111,7 +114,7 @@ function TopDashboard({ data, metadata, onFetchRoom }) {
             <div className="flex items-center gap-2">
               <span className="text-sm text-black">ชั้น</span>
               <CommonDropdown
-                items={metadata.available_floors}
+                items={metadata?.available_floors || []}
                 currentItem={currentFloor}
                 onSelect={handleFloorChange}
               />
@@ -119,7 +122,8 @@ function TopDashboard({ data, metadata, onFetchRoom }) {
             <div className="flex items-center gap-2">
               <span className="text-sm text-black">ห้อง</span>
               <CommonDropdown
-                items={metadata.available_rooms[currentFloor] || []}
+
+                items={roomsOnFloor}
                 currentItem={currentRoom}
                 onSelect={(roomKey) => onFetchRoom(currentFloor, roomKey)}
               />
@@ -127,7 +131,7 @@ function TopDashboard({ data, metadata, onFetchRoom }) {
           </div>
         </div>
       </div>
-      <GridDashboard data={data.data} />
+      <GridDashboard data={data?.data || {}} />
     </>
   );
 }

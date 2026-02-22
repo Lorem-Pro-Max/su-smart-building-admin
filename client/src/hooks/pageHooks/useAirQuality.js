@@ -5,7 +5,10 @@ import { useToast } from "../../components/utils";
 export function useAirQualityServices() {
   const { errorToast, contextHolder } = useToast();
   const [aqState, setAqState] = useState({
-    metadata: {},
+    metadata: {
+      available_floors: [],
+      available_rooms: {},
+    },
     roomStatus: { data: {}, floor: "", roomId: "" },
     rankings: { data: [], type: "pm25", orderBy: "best" },
     isLoading: true,
@@ -15,6 +18,9 @@ export function useAirQualityServices() {
   const extract = (res) => res?.data ?? res ?? {};
 
   const getErrorMessage = (err, defaultMsg) => {
+    if (!err.response) {
+      return "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้";
+    }
     const status = err.response?.status;
     if (status === 404) return "ไม่พบสถานะจากอุปกรณ์ในห้อง (Sensor is Offline)";
     if (status >= 500) return "ระบบขัดข้อง ไม่สามารถเชื่อมต่อกับเซ็นเซอร์ได้";
@@ -75,7 +81,7 @@ export function useAirQualityServices() {
         const metaRes = await service.getSensorMetadata();
         const meta = extract(metaRes);
 
-        if (!meta || Object.keys(meta).length === 0) {
+        if (!meta || !meta.available_floors) {
           throw { response: { status: 404 } };
         }
 
@@ -84,7 +90,6 @@ export function useAirQualityServices() {
           meta.available_rooms?.[defaultFloor]?.[0]?.key || "";
 
         setAqState((s) => ({ ...s, metadata: meta, isLoading: false }));
-
         hasInitialized.current = true;
 
         await Promise.allSettled([
@@ -92,12 +97,14 @@ export function useAirQualityServices() {
           fetchRankings("pm25", "best"),
         ]);
       } catch (err) {
-        const message = getErrorMessage(
-          err,
-          "ไม่สามารถเชื่อมต่อระบบตรวจสอบอากาศได้",
+        errorToast(
+          getErrorMessage(err, "ไม่สามารถเชื่อมต่อระบบตรวจสอบอากาศได้"),
         );
-        errorToast(message);
-        setAqState((s) => ({ ...s, isLoading: false }));
+        setAqState((s) => ({
+          ...s,
+          isLoading: false,
+          metadata: { available_floors: [], available_rooms: {} },
+        }));
         hasInitialized.current = true;
       }
     };
