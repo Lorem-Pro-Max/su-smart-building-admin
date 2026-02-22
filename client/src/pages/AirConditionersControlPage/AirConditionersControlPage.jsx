@@ -7,24 +7,27 @@ import {
 import { useAc } from "@hooks/pageHooks/useAc";
 
 function AirConditionersControlPage() {
-  const { dataState, control, tempControl } = useAc();
+  const { dataState, control, tempControl, contextHolder } = useAc();
 
   return (
-    <Container
-      pageIcon={<AirConditionerTitleIcon />}
-      pageButtonIcon={<AirConditionerButtonIcon />}
-      acTempButtonIcon={<AirConditionerTemperatureButtonIcon />}
-      pageTitle="เครื่องปรับอากาศ"
-      alternatePageTitle="อุณหภูมิ"
-      dataState={dataState}
-      control={control}
-      extraColumn={{
-        device: "ac",
-        title: "อุณหภูมิ",
-        extraValue: "temp",
-        extraControl: tempControl
-      }}
-    />
+    <>
+      {contextHolder}
+      <Container
+        pageIcon={<AirConditionerTitleIcon />}
+        pageButtonIcon={<AirConditionerButtonIcon />}
+        acTempButtonIcon={<AirConditionerTemperatureButtonIcon />}
+        pageTitle="เครื่องปรับอากาศ"
+        alternatePageTitle="อุณหภูมิ"
+        dataState={dataState}
+        control={control}
+        extraColumn={{
+          device: "ac",
+          title: "อุณหภูมิ",
+          extraValue: "temp",
+          extraControl: tempControl,
+        }}
+      />
+    </>
   );
 }
 
