@@ -20,6 +20,8 @@ export function DaysGraph({
     colorList.push(getColor(index));
   });
 
+  console.log(data)
+
   return (
     <div className="w-full rounded-2xl p-8 shadow-graph-container bg-white flex flex-col gap-6">
       <div className="w-full flex justify-between items-center">
