@@ -29,3 +29,8 @@ export const updateUser = async (id, payload) => {
   const res = await apiClient.patch(`/users/${id}`, payload);
   return res.data;
 };
+
+export const deleteUser = async (id) => {
+  const res = await apiClient.delete(`/users/${id}`);
+  return res.data;
+};

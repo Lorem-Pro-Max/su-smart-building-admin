@@ -39,4 +39,6 @@ router.get("/users", async (req, res) => {
   }
 });
 
+router.delete("/users/:id", userController.deleteUser);
+
 export default router;

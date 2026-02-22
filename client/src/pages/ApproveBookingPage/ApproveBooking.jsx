@@ -45,8 +45,7 @@ function ApproveBookingPage() {
       setLoading(true);
       const res = await getBookings({ page: 1, limit: 10 });
       setTableData(res?.data || []);
-    } catch (err) {
-      console.error(err);
+    } catch {
       notification.error({ message: "โหลดข้อมูลไม่สำเร็จ" });
     } finally {
       setLoading(false);
@@ -165,12 +164,18 @@ function ApproveBookingPage() {
       title: "การดำเนินการ",
       render: (_, record) => {
         if (record.status !== "pending") {
+          const formattedDate = record.bookingDate
+            ? new Date(record.bookingDate).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "2-digit",
+              })
+            : "-";
+
           return (
             <div>
               <p className="text-[14px]">{record.actionBy ?? "-"}</p>
-              <p className="text-[14px]">
-                {record.bookingDate?.replaceAll("-", "/") ?? "-"}
-              </p>
+              <p className="text-[14px]">{formattedDate}</p>
             </div>
           );
         }

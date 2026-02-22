@@ -1,76 +1,70 @@
-import { supabase } from "../config/superbase.js";
-import { addIotJob } from "../services/deviceQueueService.js";
+import pool from "../config/db.js";
+import { addIotJob, removeIotJob } from "../services/deviceQueueService.js";
 
 export const getAll = async () => {
-  const { data, error } = await supabase.from("iot_schedule").select(`
-      id,
-      action,
-      action_time,
+  const query = `
+  SELECT 
+    s.id,
+    s.booking_id,
+    s.action,
+    s.action_time,
+    u.id AS user_id,
+    u.firstname,
+    u.lastname,
+    rd.id AS room_device_id,
+    rd.device_id,
+    rd.room_id,
+    dt.type,
+    dt.key AS type_key,
+    r.id AS room_id,
+    r.title,
+    r.floor
+  FROM iot_schedule s
+  LEFT JOIN "user" u 
+    ON s.action_by = u.id
+  INNER JOIN room_device rd 
+    ON s.device_id = rd.id
+  INNER JOIN device_type dt ON rd.device_type_id = dt.id
+  INNER JOIN room r ON rd.room_id = r.id
+`;
+  const { rows } = await pool.query(query);
 
-      action_user:user (
-        id,
-        firstname,
-        lastname
-      ),
-room_device (
-  id,
-  device_id,
-  room_id,
-  device_type (
-    id,
-    type,
-    key
-  ),
-  room (
-    id,
-    title,
-    floor
-  )
-)
-    `);
-
-  if (error) throw error;
-  if (!data?.length) return [];
+  if (!rows.length) return [];
 
   const grouped = {};
 
-  for (const item of data) {
-    const bookingId = item.booking_id;
+  for (const item of rows) {
+    const roomId = item.room_id;
 
-    if (!grouped[item.room_device.room_id]) {
-      grouped[item.room_device.room_id] = {
-        booking_id: bookingId,
-        meeting_name: item.room_device?.room?.title,
-        start_dateTime: item.room_booking?.start_dateTime,
-        end_dateTime: item.room_booking?.end_dateTime,
+    if (!grouped[roomId]) {
+      grouped[roomId] = {
+        booking_id: item.booking_id,
+        meeting_name: item.title,
         room: {
-          id: item.room_device?.room?.id,
-          title: item.room_device?.room?.title,
-          floor: item.room_device?.room?.floor,
+          id: item.room_id,
+          title: item.title,
+          floor: item.floor,
         },
         schedules: [],
       };
     }
 
-    grouped[item.room_device.room_id].schedules.push({
+    grouped[roomId].schedules.push({
       id: item.id,
-      booking_id: bookingId,
+      booking_id: item.booking_id,
       action: item.action,
       action_time: item.action_time,
-
       action_by: {
-        id: item.action_user?.id,
-        firstname: item.action_user?.firstname,
-        lastname: item.action_user?.lastname,
-        full_name:
-          `${item.action_user?.firstname || ""} ${item.action_user?.lastname || ""}`.trim(),
+        id: item.user_id,
+        firstname: item.firstname,
+        lastname: item.lastname,
+        full_name: `${item.firstname || ""} ${item.lastname || ""}`.trim(),
       },
-
       device: {
-        id: item.room_device?.id,
-        device_code: item.room_device?.device_id,
-        type: item.room_device?.device_type?.type,
-        type_key: item.room_device?.device_type?.key,
+        id: item.room_device_id,
+        device_code: item.device_id,
+        type: item.type,
+        type_key: item.type_key,
       },
     });
   }
@@ -84,22 +78,25 @@ export const createSchedules = async ({
   action_time,
   action_by,
 }) => {
-  const rows = device_ids.map((device_id) => ({
-    booking_id: null,
-    device_id,
-    action,
-    action_time,
-    action_by,
-    record_status: "pending",
-  }));
+  const values = [];
+  const placeholders = device_ids
+    .map((deviceId, index) => {
+      const base = index * 5;
+      values.push(null, deviceId, action, action_time, action_by);
+      return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
+    })
+    .join(",");
 
-  const { data, error } = await supabase
-    .from("iot_schedule")
-    .insert(rows)
-    .select();
+  const query = `
+    INSERT INTO iot_schedule (booking_id, device_id, action, action_time, action_by)
+    VALUES ${placeholders}
+    RETURNING *
+  `;
+
+  const { rows } = await pool.query(query, values);
 
   await Promise.all(
-    data.map((item) =>
+    rows.map((item) =>
       addIotJob(
         item.device_id,
         item.action,
@@ -109,31 +106,29 @@ export const createSchedules = async ({
       ),
     ),
   );
-  if (error) throw error;
 
-  return data;
+  return rows;
 };
 
 export const deleteScheduleById = async (idList) => {
-  const { data: schedules, error: fetchError } = await supabase
-    .from("iot_schedule")
-    .select("id, device_id, action, booking_id")
-    .in("id", idList);
+  const fetchQuery = `
+    SELECT id, device_id, action, booking_id
+    FROM iot_schedule
+    WHERE id = ANY($1)
+  `;
 
-  if (fetchError) throw fetchError;
+  const { rows } = await pool.query(fetchQuery, [idList]);
+  if (!rows.length) return true;
 
-  if (!schedules?.length) return true;
-  const { error: deleteError } = await supabase
-    .from("iot_schedule")
-    .delete()
-    .in("id", idList);
+  const deleteQuery = `
+    DELETE FROM iot_schedule
+    WHERE id = ANY($1)
+  `;
 
-  if (error) throw error;
-
-  if (deleteError) throw deleteError;
+  await pool.query(deleteQuery, [idList]);
 
   await Promise.all(
-    schedules.map((item) =>
+    rows.map((item) =>
       removeIotJob(
         item.device_id,
         item.action,
@@ -147,113 +142,106 @@ export const deleteScheduleById = async (idList) => {
 };
 
 export const getRooms = async () => {
-  const { data, error } = await supabase
-    .from("room")
-    .select(
-      `
-      id,
-      title,
-      floor,
-      is_bookable,
-      building (
-        id,
-        name
-      )
-    `,
-    )
-    .order("floor", { ascending: true });
+  const query = `
+    SELECT r.id, r.title, r.floor, r.is_bookable,
+           b.id AS building_id,
+           b.name AS building_name
+    FROM room r
+    LEFT JOIN building b ON r.building_id = b.id
+    ORDER BY r.floor ASC
+  `;
 
-  if (error) throw error;
+  const { rows } = await pool.query(query);
 
   const grouped = {};
 
-  for (const room of data) {
-    if (!grouped[room.floor]) {
-      grouped[room.floor] = [];
-    }
-    grouped[room.floor].push(room);
+  for (const room of rows) {
+    if (!grouped[room.floor]) grouped[room.floor] = [];
+
+    grouped[room.floor].push({
+      id: room.id,
+      title: room.title,
+      floor: room.floor,
+      is_bookable: room.is_bookable,
+      building: {
+        id: room.building_id,
+        name: room.building_name,
+      },
+    });
   }
 
   return grouped;
 };
 
 export const getRoomById = async (roomId) => {
-  const { data, error } = await supabase
-    .from("room_device")
-    .select(
-      `
-      id,
-      device_id,
-      room_id,
-      device_type (
-        id,
-        type,
-        key
-      ),
-      room (
-        id,
-        title,
-        floor,
-        building_id,
-        is_bookable
-      )
-    `,
-    )
-    .eq("room_id", roomId);
+  const query = `
+    SELECT 
+      rd.id,
+      rd.device_id,
+      rd.room_id,
+      dt.id AS device_type_id,
+      dt.type,
+      dt.key,
+      r.id AS room_id,
+      r.title,
+      r.floor,
+      r.building_id,
+      r.is_bookable
+    FROM room_device rd
+    INNER JOIN device_type dt ON rd.device_type_id = dt.id
+    INNER JOIN room r ON rd.room_id = r.id
+    WHERE rd.room_id = $1
+  `;
 
-  if (error) throw error;
-
-  return data;
+  const { rows } = await pool.query(query, [roomId]);
+  return rows;
 };
 
 export const getAllRoomByBooking = async () => {
-  const { data: rooms, error } = await supabase.from("room").select(`
-    id,
-    title,
-    floor,
-    building (
-      id,
-      name
-    )
-  `);
+  const roomQuery = `
+    SELECT r.id, r.title, r.floor,
+           b.id AS building_id,
+           b.name AS building_name
+    FROM room r
+    LEFT JOIN building b ON r.building_id = b.id
+  `;
 
-  if (error) throw error;
-  if (!rooms?.length) return {};
+  const deviceQuery = `
+    SELECT rd.id, rd.device_id, rd.room_id,
+           dt.type, dt.key
+    FROM room_device rd
+    INNER JOIN device_type dt ON rd.device_type_id = dt.id
+  `;
 
-  const { data: devices, error: deviceError } = await supabase.from(
-    "room_device",
-  ).select(`
-      id,
-      device_id,
-      room_id,
-      device_type (
-        id,
-        type,
-        key
-      )
-    `);
+  const { rows: rooms } = await pool.query(roomQuery);
+  const { rows: devices } = await pool.query(deviceQuery);
 
-  if (deviceError) throw deviceError;
+  if (!rooms.length) return {};
 
   const grouped = {};
 
   for (const room of rooms) {
     const floor = room.floor ?? 0;
-
     if (!grouped[floor]) grouped[floor] = [];
 
     const roomDevices = devices
-      ?.filter((d) => d.room_id === room.id)
+      .filter((d) => d.room_id === room.id)
       .map((device) => ({
         id: device.id,
         device_code: device.device_id,
-        type: device.device_type?.type,
-        type_key: device.device_type?.key,
+        type: device.type,
+        type_key: device.key,
       }));
 
     grouped[floor].push({
-      ...room,
-      devices: roomDevices || [],
+      id: room.id,
+      title: room.title,
+      floor: room.floor,
+      building: {
+        id: room.building_id,
+        name: room.building_name,
+      },
+      devices: roomDevices,
     });
   }
 

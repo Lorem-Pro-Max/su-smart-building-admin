@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import AddUserComponent from "./components/AddUserComponent";
 import DeleteConfirmModal from "./components/DeleteModal";
 
-import { getUsers, updateUser } from "../../services/user";
+import { getUsers, deleteUser } from "../../services/user";
 
 import { Table, Button, Flex, Spin, notification } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
@@ -25,12 +25,14 @@ function UserPermissionPage() {
   const mapUsers = (data = []) =>
     data.map((u) => ({
       key: u.id,
-      userId: u.username,
+      userId: u.id,
+      userName: u.userName ?? u.username ?? "",
       fullName: `${u.firstname ?? ""} ${u.lastname ?? ""}`.trim(),
       phone: u.phone,
-      position: u.role_id,
+      position: u.roleId,
+      role: u.role,
       email: u.email,
-      status: u.status,
+      status: Number(u.status),
     }));
 
   const fetchUsers = useCallback(async () => {
@@ -54,7 +56,7 @@ function UserPermissionPage() {
 
     try {
       setLoading(true);
-      await updateUser(deleteUserId, { status: 2 });
+      await deleteUser(deleteUserId, { status: 2 });
       notification.success({ message: "ลบข้อมูลผู้ใช้งานสำเร็จ" });
       setDeleteUserId(null);
       await fetchUsers();
@@ -67,7 +69,10 @@ function UserPermissionPage() {
 
   const columns = useMemo(
     () => [
-      { title: "ชื่อผู้ใช้งาน", dataIndex: "userId" },
+      {
+        title: "ชื่อผู้ใช้งาน",
+        dataIndex: "userName",
+      },
       { title: "ชื่อ-นามสกุล", dataIndex: "fullName" },
       { title: "เบอร์โทรศัพท์", dataIndex: "phone" },
       {

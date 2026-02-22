@@ -73,8 +73,7 @@ function SummaryModal({
 
       onClose();
       onCloseAll();
-    } catch (error) {
-      console.error(error);
+    } catch {
       notification.error({
         message: "เกิดข้อผิดพลาดในการบันทึก",
       });
@@ -118,7 +117,7 @@ function SummaryModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {devices.map((device) => {
-              const typeId = device.device_type?.id;
+              const typeId = device.device_type_id;
               const color = colorMap[typeId] || "#13C2C2";
 
               return (
@@ -133,11 +132,9 @@ function SummaryModal({
                     {iconMap[typeId] || <BulbOutlined />}
                   </div>
                   <div>
-                    <div className="font-semibold">
-                      {device.device_type?.type}
-                    </div>
+                    <div className="font-semibold">{device.type}</div>
                     <div className="text-xs text-gray-500">
-                      ชั้น {device.room?.floor} · {device.room?.title}
+                      ชั้น {device?.floor} · {device?.title}
                     </div>
                   </div>
                 </div>

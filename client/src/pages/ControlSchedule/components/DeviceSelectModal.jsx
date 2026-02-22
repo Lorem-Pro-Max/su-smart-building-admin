@@ -92,7 +92,6 @@ function DeviceSelectModal({ open, onClose, onConfirm, roomId }) {
         body: {
           maxHeight: "75vh",
           overflow: "auto",
-          // minHeight: "60vh",
         },
       }}
       centered
@@ -108,7 +107,7 @@ function DeviceSelectModal({ open, onClose, onConfirm, roomId }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {devices.map((item) => {
               const active = selected.find((d) => d.id === item.id);
-              const color = colorMap[item.device_type.id] || "#13C2C2";
+              const color = colorMap[item.device_type_id] || "#13C2C2";
 
               return (
                 <div
@@ -122,18 +121,16 @@ function DeviceSelectModal({ open, onClose, onConfirm, roomId }) {
                     className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl"
                     style={{ background: color }}
                   >
-                    {iconMap[item.device_type?.id] || <BulbOutlined />}
+                    {iconMap[item.device_type_id] || <BulbOutlined />}
                   </div>
 
                   <div className="flex flex-col">
-                    <div className="font-semibold">
-                      {item.device_type?.type}
+                    <div className="font-semibold">{item?.type}</div>
+                    <div className="text-xs text-gray-500">
+                      ชั้น {item?.floor} · {item?.title}
                     </div>
                     <div className="text-xs text-gray-500">
-                      ชั้น {item.room?.floor} · {item.room?.title}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      อาคาร {item.room?.building_id}
+                      อาคาร {item?.building_id}
                     </div>
                   </div>
                 </div>
