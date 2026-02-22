@@ -11,7 +11,10 @@ import {
   DaysGraph,
   HoursGraph,
 } from "@components/layout";
-import { useDeviceSelection } from "@hooks/devices/useDeviceSelection";
+import {
+  useDeviceSelection,
+  getDeviceUid,
+} from "@hooks/devices/useDeviceSelection";
 import { useGraphSelection } from "@hooks/graph/useGraphSelection";
 
 function GraphPageContainer({
@@ -82,7 +85,7 @@ function GraphPageContainer({
                   const roomsObj = data[floorNum] || {};
                   const rooms = Object.values(roomsObj);
                   const selected = selectedByFloor[floorNum] || [];
-                  const allRoomIdsOnFloor = rooms.map((room) => room.id);
+                  const allRoomUidsOnFloor = rooms.map(getDeviceUid);
 
                   if (rooms.length === 0) return <RoomNotFound />;
 
@@ -99,19 +102,15 @@ function GraphPageContainer({
                         selectedCount={selected.length}
                         onOpen={() => {
                           const ids =
-                            selected.length > 0 ? selected : allRoomIdsOnFloor;
-                          handleExecuteAction(ids, "on");
-                          setTimeout(() => {
-                            clearSelection(floorNum);
-                          }, 500);
+                            selected.length > 0 ? selected : allRoomUidsOnFloor;
+                          handleExecuteAction(ids, "on"); // Pass UIDs
+                          setTimeout(() => clearSelection(floorNum), 500);
                         }}
                         onClose={() => {
                           const ids =
-                            selected.length > 0 ? selected : allRoomIdsOnFloor;
-                          handleExecuteAction(ids, "off");
-                          setTimeout(() => {
-                            clearSelection(floorNum);
-                          }, 500);
+                            selected.length > 0 ? selected : allRoomUidsOnFloor;
+                          handleExecuteAction(ids, "off"); // Pass UIDs
+                          setTimeout(() => clearSelection(floorNum), 500);
                         }}
                       />
                       <RoomControlBody
@@ -121,18 +120,19 @@ function GraphPageContainer({
                         isAllSelected={isAllSelected}
                         isIndeterminate={isIndeterminate}
                       >
-                        {rooms.map((room) => (
-                          <RoomCard
-                            key={room.id}
-                            roomName={room.name}
-                            checked={selected.includes(room.id)}
-                            onCheck={() => handleSelectRoom(floorNum, room.id)}
-                            isOn={room.isOn}
-                            onToggle={(isOn) =>
-                              handleSingleToggle(room.id, isOn)
-                            }
-                          />
-                        ))}
+                        {rooms.map((room) => {
+                          const uid = getDeviceUid(room);
+                          return (
+                            <RoomCard
+                              key={uid}
+                              roomName={room.name}
+                              checked={selected.includes(uid)}
+                              onCheck={() => handleSelectRoom(floorNum, uid)}
+                              isOn={room.isOn}
+                              onToggle={(isOn) => handleSingleToggle(uid, isOn)}
+                            />
+                          );
+                        })}
                       </RoomControlBody>
                     </RoomControl>
                   );

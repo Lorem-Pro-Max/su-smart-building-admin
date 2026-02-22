@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
 
+export const getDeviceUid = (room) => {
+  return room.device_sub_id
+    ? `${room.id}::${room.device_sub_id}`
+    : String(room.id);
+};
+
 export function useDeviceSelection(data = {}) {
   const [selectedByFloor, setSelectedByFloor] = useState({});
 
@@ -12,10 +18,10 @@ export function useDeviceSelection(data = {}) {
         const currentSelected = newSelection[floor] || [];
 
         const floorRooms = data[floor] || [];
-        const availableIds = floorRooms.map((room) => String(room.id));
+        const availableUids = floorRooms.map(getDeviceUid);
 
-        const filtered = currentSelected.filter((id) =>
-          availableIds.includes(String(id)),
+        const filtered = currentSelected.filter((uid) =>
+          availableUids.includes(String(uid))
         );
 
         if (filtered.length !== currentSelected.length) {
@@ -30,13 +36,13 @@ export function useDeviceSelection(data = {}) {
 
   const handleSelectAll = (floorNum, isChecked) => {
     const rooms = data[floorNum] || [];
-    const roomIds = Array.isArray(rooms)
-      ? rooms.map((r) => r.id)
-      : Object.keys(rooms);
+    const roomUids = Array.isArray(rooms)
+      ? rooms.map(getDeviceUid)
+      : Object.values(rooms).map(getDeviceUid);
 
     setSelectedByFloor((prev) => ({
       ...prev,
-      [floorNum]: isChecked ? roomIds : [],
+      [floorNum]: isChecked ? roomUids : [],
     }));
   };
 

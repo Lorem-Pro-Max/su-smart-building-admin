@@ -43,9 +43,14 @@ export const fetchDeviceList = async (baseType, deviceType) => {
   return response.data || [];
 };
 
-export const executeBatch = async (baseType, ids, action, value = null) => {
+export const executeBatch = async (
+  baseType,
+  deviceObjects,
+  action,
+  value = null,
+) => {
   return Promise.all(
-    ids.map(async (id) => {
+    deviceObjects.map(async ({ id }) => {
       const path = DEVICE_MAP[baseType]?.path;
       const powerValue = DEVICE_MAP[baseType]?.actions[action];
       const url = `${IOT_BASE_URL}/control/${path}/${id}/command`;
@@ -75,17 +80,22 @@ export const executeBatch = async (baseType, ids, action, value = null) => {
   );
 };
 
-export const executeDoorAction = async (type, ids, action, value = null) => {
+export const executeDoorAction = async (
+  type,
+  deviceObjects,
+  action,
+  value = null,
+) => {
   const doorAction = DEVICE_MAP[type]["actions"][action];
   const indices = [1, 2];
 
   return Promise.all(
-    ids.map(async (deviceId) => {
+    deviceObjects.map(async ({ id }) => {
       try {
         const doorResults = await Promise.all(
           indices.map((index) =>
             axios.post(
-              `${IOT_BASE_URL}/control/door/${deviceId}/${index}/${doorAction}`,
+              `${IOT_BASE_URL}/control/door/${id}/${index}/${doorAction}`,
             ),
           ),
         );
@@ -95,17 +105,17 @@ export const executeDoorAction = async (type, ids, action, value = null) => {
         );
         if (hardwareError) {
           return {
-            id: deviceId,
+            id,
             status: 200,
             data: hardwareError.data,
             error: hardwareError.data.error,
           };
         }
 
-        return { id: deviceId, status: 200, data: { success: true } };
+        return { id, status: 200, data: { success: true } };
       } catch (e) {
         return {
-          id: deviceId,
+          id,
           status: e.response?.status || 500,
           data: e.response?.data || { success: false },
           error: e.response?.data?.detail || e.message,
@@ -115,15 +125,23 @@ export const executeDoorAction = async (type, ids, action, value = null) => {
   );
 };
 
-export const executeValveAction = async (type, ids, action, subId) => {
+export const executeValveAction = async (
+  type,
+  deviceObjects,
+  action,
+  value = null,
+) => {
   const valveAction = DEVICE_MAP[type]["actions"][action];
 
   return Promise.all(
-    ids.map(async (id) => {
-      const url = `${IOT_BASE_URL}/control/water/${id}/${subId}/${valveAction}`;
+    deviceObjects.map(async ({ id, sub_key_to }) => {
+      const url = `${IOT_BASE_URL}/control/water/${id}/${sub_key_to}/${valveAction}`;
       try {
         const r = await axios.post(url);
-        if (r.data?.success === false) {
+
+        console.log(r.data.status);
+
+        if (r.data.status !== "success") {
           return {
             id,
             status: 200,
@@ -131,7 +149,7 @@ export const executeValveAction = async (type, ids, action, subId) => {
             error: r.data.error || r.data.detail,
           };
         }
-        return { id, status: r.status, data: r.data };
+        return { id, status: r.status, data: { success: true } };
       } catch (e) {
         return {
           id,

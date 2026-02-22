@@ -7,7 +7,10 @@ import {
   RoomCard,
   RoomNotFound,
 } from "./RoomControl";
-import { useDeviceSelection } from "@hooks/devices/useDeviceSelection";
+import {
+  useDeviceSelection,
+  getDeviceUid,
+} from "@hooks/devices/useDeviceSelection";
 
 function Container({
   pageIcon,
@@ -36,7 +39,7 @@ function Container({
             const roomsObj = data[floorNum] || {};
             const rooms = Object.values(roomsObj);
             const selected = selectedByFloor[floorNum] || [];
-            const allRoomIdsOnFloor = rooms.map((room) => room.id);
+            const allRoomUidsOnFloor = rooms.map(getDeviceUid);
 
             if (rooms.length === 0) return <RoomNotFound />;
 
@@ -54,19 +57,15 @@ function Container({
                   selectedCount={selected.length}
                   onOpen={() => {
                     const ids =
-                      selected.length > 0 ? selected : allRoomIdsOnFloor;
+                      selected.length > 0 ? selected : allRoomUidsOnFloor;
                     handleExecuteAction(ids, "on");
-                    setTimeout(() => {
-                      clearSelection(floorNum);
-                    }, 500);
+                    setTimeout(() => clearSelection(floorNum), 500);
                   }}
                   onClose={() => {
                     const ids =
-                      selected.length > 0 ? selected : allRoomIdsOnFloor;
+                      selected.length > 0 ? selected : allRoomUidsOnFloor;
                     handleExecuteAction(ids, "off");
-                    setTimeout(() => {
-                      clearSelection(floorNum);
-                    }, 500);
+                    setTimeout(() => clearSelection(floorNum), 500);
                   }}
                 />
                 <RoomControlBody
@@ -75,27 +74,30 @@ function Container({
                   }
                   isAllSelected={isAllSelected}
                   isIndeterminate={isIndeterminate}
-                  extraColumnTitle={extraColumn?.title ?? null}
                 >
-                  {rooms.map((room) => (
-                    <RoomCard
-                      key={room.id}
-                      id={room.id}
-                      roomName={room.name}
-                      checked={selected.includes(room.id)}
-                      onCheck={() => handleSelectRoom(floorNum, room.id)}
-                      isOn={room.isOn}
-                      onToggle={(isOn) => handleSingleToggle(room.id, isOn)}
-                      extraColumnDevice={
-                        extraColumn && {
-                          device: extraColumn?.device,
-                          extraValue:
-                            room.status[extraColumn.extraValue] ?? null,
-                          extraControl: extraColumn?.extraControl,
+                  {rooms.map((room) => {
+                    const uid = getDeviceUid(room);
+
+                    return (
+                      <RoomCard
+                        key={uid}
+                        id={uid}
+                        roomName={room.name}
+                        checked={selected.includes(uid)}
+                        onCheck={() => handleSelectRoom(floorNum, uid)}
+                        isOn={room.isOn}
+                        onToggle={(isOn) => handleSingleToggle(uid, isOn)}
+                        extraColumnDevice={
+                          extraColumn && {
+                            device: extraColumn?.device,
+                            extraValue:
+                              room.status[extraColumn.extraValue] ?? null,
+                            extraControl: extraColumn?.extraControl,
+                          }
                         }
-                      }
-                    ></RoomCard>
-                  ))}
+                      />
+                    );
+                  })}
                 </RoomControlBody>
               </RoomControl>
             );
