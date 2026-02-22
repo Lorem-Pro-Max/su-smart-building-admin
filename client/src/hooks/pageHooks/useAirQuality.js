@@ -1,82 +1,109 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { AirQualityService } from "../../services/deviceService";
+import { AirQualityService as service } from "../../services/deviceService";
+import { useToast } from "../../components/utils";
 
-const service = AirQualityService
-
-function useAirQualityServices() {
+export function useAirQualityServices() {
+  const { errorToast, contextHolder } = useToast();
   const [aqState, setAqState] = useState({
     metadata: {},
-    roomStatus: { data: {}, floor: "", room: "" },
+    roomStatus: { data: {}, floor: "", roomId: "" },
     rankings: { data: [], type: "pm25", orderBy: "best" },
     isLoading: true,
-    isError: null,
   });
 
   const hasInitialized = useRef(false);
+  const extract = (res) => res?.data ?? res ?? {};
+
+  const getErrorMessage = (err, defaultMsg) => {
+    const status = err.response?.status;
+    if (status === 404) return "ไม่พบสถานะจากอุปกรณ์ในห้อง (Sensor is Offline)";
+    if (status >= 500) return "ระบบขัดข้อง ไม่สามารถเชื่อมต่อกับเซ็นเซอร์ได้";
+    return defaultMsg || "เกิดข้อผิดพลาดในการโหลดข้อมูล";
+  };
 
   const fetchRoomStatus = useCallback(
-    async (floor, room) => {
+    async (floor, roomId) => {
+      if (!roomId) return;
       try {
-        const data = await service.fetchRoomStatus(floor, room);
-        setAqState((s) => ({ ...s, roomStatus: { data, floor, room } }));
+        const response = await service.getSensorRoomData(roomId);
+        setAqState((s) => ({
+          ...s,
+          roomStatus: { data: extract(response), floor, roomId },
+        }));
       } catch (err) {
-        setAqState((s) => ({ ...s, isError: err.message }));
+        const message = getErrorMessage(
+          err,
+          `ไม่สามารถโหลดข้อมูลห้องที่เลือกได้`,
+        );
+        errorToast(message);
+
+        setAqState((s) => ({ ...s, roomStatus: { data: {}, floor, roomId } }));
       }
     },
-    [service]
+    [errorToast],
   );
 
   const fetchRankings = useCallback(
-    async (type) => {
+    async (type = "pm25", orderby = "best") => {
       try {
-        const data = await service.fetchRankings(type);
-        setAqState((s) => ({ ...s, rankings: { data, type } }));
+        const response = await service.getSensorRankedData(type, orderby);
+        setAqState((s) => ({
+          ...s,
+          rankings: { data: extract(response) || [], type, orderBy: orderby },
+        }));
       } catch (err) {
-        setAqState((s) => ({ ...s, isError: err.message }));
+        const message = getErrorMessage(
+          err,
+          "ไม่สามารถโหลดข้อมูลการจัดอันดับได้",
+        );
+        errorToast(message);
+
+        setAqState((s) => ({
+          ...s,
+          rankings: { data: [], type, orderBy: orderby },
+        }));
       }
     },
-    [service]
+    [errorToast],
   );
 
   useEffect(() => {
-    const bootstrap = async () => {
-      setAqState((s) => ({ ...s, isLoading: true }));
-      try {
-        const meta = await service.getMetadata();
+    if (hasInitialized.current) return;
 
-        if (meta.available_rooms) {
-          for (const floor in meta.available_rooms) {
-            meta.available_rooms[floor] = [
-              { key: "all", label: "ทุกห้อง" },
-              ...meta.available_rooms[floor],
-            ];
-          }
+    const bootstrap = async () => {
+      try {
+        const metaRes = await service.getSensorMetadata();
+        const meta = extract(metaRes);
+
+        if (!meta || Object.keys(meta).length === 0) {
+          throw { response: { status: 404 } };
         }
 
-        const defaultFloor = meta.available_floors?.[0]?.key || "floor_1";
-        const defaultRoom = meta.available_room?.[0]?.key;
-        const defaultType = "pm25";
+        const defaultFloor = meta.available_floors?.[0]?.key || "";
+        const defaultRoomId =
+          meta.available_rooms?.[defaultFloor]?.[0]?.key || "";
 
-        const [statusData, rankingData] = await Promise.all([
-          service.fetchRoomStatus(defaultFloor, defaultRoom),
-          service.fetchRankings(defaultType),
-        ]);
+        setAqState((s) => ({ ...s, metadata: meta, isLoading: false }));
 
-        setAqState({
-          metadata: meta,
-          roomStatus: { data: statusData, floor: defaultFloor, room: defaultRoom },
-          rankings: { data: rankingData, type: defaultType },
-          isLoading: false,
-          isError: null,
-        });
         hasInitialized.current = true;
+
+        await Promise.allSettled([
+          fetchRoomStatus(defaultFloor, defaultRoomId),
+          fetchRankings("pm25", "best"),
+        ]);
       } catch (err) {
-        setAqState((s) => ({ ...s, isLoading: false, isError: err.message }));
+        const message = getErrorMessage(
+          err,
+          "ไม่สามารถเชื่อมต่อระบบตรวจสอบอากาศได้",
+        );
+        errorToast(message);
+        setAqState((s) => ({ ...s, isLoading: false }));
+        hasInitialized.current = true;
       }
     };
 
-    if (!hasInitialized.current) bootstrap();
-  }, [service]);
+    bootstrap();
+  }, [fetchRoomStatus, fetchRankings, errorToast]);
 
-  return { aqState, fetchRoomStatus, fetchRankings };
+  return { aqState, fetchRoomStatus, fetchRankings, contextHolder };
 }

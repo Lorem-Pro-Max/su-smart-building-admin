@@ -6,16 +6,19 @@ import {
 import { useExhaustFans } from "@hooks/pageHooks/useExhaustFans";
 
 function ExhaustFansControlPage() {
-  const { dataState, control } = useExhaustFans();
+  const { dataState, control, PageToast } = useExhaustFans();
 
   return (
-    <Container
-      pageIcon={<ExhaustFansControlTitleIcon />}
-      pageButtonIcon={<ExhaustFansControlButtonIcon />}
-      pageTitle="พัดลมดูดอากาศ"
-      dataState={dataState}
-      control={control}
-    />
+    <>
+      {PageToast}
+      <Container
+        pageIcon={<ExhaustFansControlTitleIcon />}
+        pageButtonIcon={<ExhaustFansControlButtonIcon />}
+        pageTitle="พัดลมดูดอากาศ"
+        dataState={dataState}
+        control={control}
+      />
+    </>
   );
 }
 

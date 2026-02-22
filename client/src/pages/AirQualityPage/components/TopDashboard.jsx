@@ -1,4 +1,4 @@
-import { CommonDropdown } from "@components/utils/CommonDropdown";
+import { CommonDropdown } from "@components/utils/CommonDropDown";
 
 function GridItem({
   gridSetting,
@@ -33,52 +33,52 @@ function GridItem({
   );
 }
 
-function GridDashboard() {
+function GridDashboard({ data }) {
   return (
     <div className="grid grid-cols-12 grid-rows-12 gap-6 h-142 ">
       <GridItem
-        gridSetting={`col-span-6 row-span-6`}
+        gridSetting="col-span-6 row-span-6"
         label="PM 2.5"
         valueColor="#52C41A"
-        value="40"
+        value={data.pm25 ?? "--"}
         measurement="ug/m³"
       />
       <GridItem
-        gridSetting={`col-span-3 row-span-8`}
+        gridSetting="col-span-3 row-span-8"
         label="Temp"
         measurement="ํC"
         valueColor="#000"
-        value="24.06"
+        value={data.temp ?? "--"}
       />
       <GridItem
-        gridSetting={`col-span-3 row-span-4`}
+        gridSetting="col-span-3 row-span-4"
         label="CO"
         valueColor="#FA8C16"
         ValueSize="48px"
-        value="1"
+        value={data.co ?? "--"}
         measurement="ppm"
         measurementSize="38px"
       />
       <GridItem
-        gridSetting={`col-span-3 row-span-4`}
+        gridSetting="col-span-3 row-span-4"
         label="CO2"
         measurement="ppm"
         ValueSize="48px"
         valueColor="#722ED1"
-        value="406"
+        value={data.co2 ?? "--"}
         measurementSize="38px"
       />
       <GridItem
-        gridSetting={`col-span-6 row-span-6`}
+        gridSetting="col-span-6 row-span-6"
         label="PM 10"
         valueColor="#FADB14"
-        value="46"
+        value={data.pm10 ?? "--"}
         measurement="ug/m³"
       />
       <GridItem
-        gridSetting={`col-span-6 row-span-4`}
+        gridSetting="col-span-6 row-span-4"
         label="Smoke"
-        value="38"
+        value={data.smoke ?? "--"}
         ValueSize="48px"
         measurement="mg/m³"
         measurementSize="38px"
@@ -87,7 +87,16 @@ function GridDashboard() {
   );
 }
 
-function TopDashboard() {
+function TopDashboard({ data, metadata, onFetchRoom }) {
+  const currentFloor = data.floor;
+  const currentRoom = data.roomId;
+
+  const handleFloorChange = (floorKey) => {
+    const roomsOnFloor = metadata.available_rooms[floorKey] || [];
+    const firstRoomOnFloor = roomsOnFloor[0]?.key;
+    onFetchRoom(floorKey, firstRoomOnFloor);
+  };
+
   return (
     <>
       <div className="w-full h-max">
@@ -95,22 +104,30 @@ function TopDashboard() {
           <div className="flex flex-col gap-2">
             <h3 className="font-medium text-2xl">Air Quality Detector</h3>
             <p className="font-normal text-base">
-              เลือกชัั้นและห้องที่ต้องการดูข้อมูล
+              เลือกชั้นและห้องที่ต้องการดูข้อมูล
             </p>
           </div>
           <div className="flex w-max h-10 gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-black">ชั้น</span>
-              <CommonDropdown />
+              <CommonDropdown
+                items={metadata.available_floors}
+                currentItem={currentFloor}
+                onSelect={handleFloorChange}
+              />
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-black">ห้อง</span>
-              <CommonDropdown />
+              <CommonDropdown
+                items={metadata.available_rooms[currentFloor] || []}
+                currentItem={currentRoom}
+                onSelect={(roomKey) => onFetchRoom(currentFloor, roomKey)}
+              />
             </div>
           </div>
         </div>
       </div>
-      <GridDashboard />
+      <GridDashboard data={data.data} />
     </>
   );
 }

@@ -12,19 +12,22 @@ const displayConfig = {
 };
 
 function ValvesControlPage() {
-  const { dataState, control, graphService } = useValves();
+  const { dataState, control, graphService, PageToast } = useValves();
 
   return (
-    <GraphPageContainer
-      pageIcon={<ValvesControlTitleIcon />}
-      pageButtonIcon={<ValvesControlButtonIcon />}
-      totalUsageIcon={<TotalUsageIconBlue />}
-      pageTitle="น้ำ"
-      dataState={dataState}
-      control={control}
-      displayConfig={displayConfig}
-      graphService={graphService}
-    />
+    <>
+      {PageToast}
+      <GraphPageContainer
+        pageIcon={<ValvesControlTitleIcon />}
+        pageButtonIcon={<ValvesControlButtonIcon />}
+        totalUsageIcon={<TotalUsageIconBlue />}
+        pageTitle="น้ำ"
+        dataState={dataState}
+        control={control}
+        displayConfig={displayConfig}
+        graphService={graphService}
+      />
+    </>
   );
 }
 

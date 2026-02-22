@@ -10,14 +10,13 @@ const apiClient = axios.create({
 
 const formatDeviceIds = (deviceIds) => {
   return deviceIds.map((uid) => {
-
     if (typeof uid === "string" && uid.includes("::")) {
       const [id, sub_key_to] = uid.split("::");
       return { id, sub_key: sub_key_to };
     }
-    
+
     if (typeof uid === "object" && uid !== null) return uid;
-    return { id: uid, sub_key: null }; 
+    return { id: uid, sub_key: null };
   });
 };
 
@@ -63,13 +62,13 @@ export const createDeviceDataFetch = (device) => ({
 
 export const createSensorDataFetch = (device) => ({
   getSensorRoomData: async (id) => {
-    const response = await apiClient.get(`/${device}/room/${id}`);
+    const response = await apiClient.get(`/${device}/sensor/room/${id}`);
     return response.data;
   },
 
   getSensorRankedData: async (type, orderby) => {
     const response = await apiClient.get(
-      `/${device}/sensor/ranking?type=${type}&orderby=${orderby}`,
+      `/${device}/sensor/ranking?type=${type}&order=${orderby}`,
     );
     return response.data;
   },

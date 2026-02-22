@@ -5,8 +5,8 @@ import { DEVICE_CONFIGS } from "../../config/devices";
 
 export function useExhaustFans() {
   const config = DEVICE_CONFIGS.EXHAUST_FANS;
-  const { state, refresh } = useDeviceServices(config, exhaustFanService);
+  const { state, refresh, PageToast } = useDeviceServices(config, exhaustFanService);
   const control = useDeviceControl(config, refresh, exhaustFanService);
 
-  return { dataState: state, control: control };
+  return { dataState: state, control: control, PageToast };
 }

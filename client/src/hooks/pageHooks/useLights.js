@@ -5,8 +5,8 @@ import { DEVICE_CONFIGS } from "../../config/devices";
 
 export function useLights() {
   const config = DEVICE_CONFIGS.LIGHTS;
-  const { state, refresh } = useDeviceServices(config, lightService);
+  const { state, refresh, PageToast } = useDeviceServices(config, lightService);
   const control = useDeviceControl(config, refresh, lightService);
 
-  return { dataState: state, control: control };
+  return { dataState: state, control: control, PageToast };
 }

@@ -103,13 +103,13 @@ function GraphPageContainer({
                         onOpen={() => {
                           const ids =
                             selected.length > 0 ? selected : allRoomUidsOnFloor;
-                          handleExecuteAction(ids, "on"); // Pass UIDs
+                          handleExecuteAction(ids, "on"); 
                           setTimeout(() => clearSelection(floorNum), 500);
                         }}
                         onClose={() => {
                           const ids =
                             selected.length > 0 ? selected : allRoomUidsOnFloor;
-                          handleExecuteAction(ids, "off"); // Pass UIDs
+                          handleExecuteAction(ids, "off"); 
                           setTimeout(() => clearSelection(floorNum), 500);
                         }}
                       />

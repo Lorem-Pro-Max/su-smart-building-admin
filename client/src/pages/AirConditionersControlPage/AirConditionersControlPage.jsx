@@ -7,7 +7,7 @@ import {
 import { useAc } from "@hooks/pageHooks/useAc";
 
 function AirConditionersControlPage() {
-  const { dataState, control, tempControl, contextHolder } = useAc();
+  const { dataState, control, tempControl, contextHolder, PageToast } = useAc();
 
   return (
     <>
@@ -27,6 +27,7 @@ function AirConditionersControlPage() {
           extraControl: tempControl,
         }}
       />
+      {PageToast}
     </>
   );
 }
