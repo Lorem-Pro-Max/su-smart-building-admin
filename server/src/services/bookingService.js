@@ -109,7 +109,7 @@ class BookingService {
 
     LEFT JOIN "user" action_user
       ON rb.action_by = action_user.id
-
+    WHERE rb.created_at >= NOW() - INTERVAL '6 months'
     ORDER BY rb."start_dateTime" ASC
   `;
 
