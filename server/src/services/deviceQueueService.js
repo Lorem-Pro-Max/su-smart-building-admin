@@ -36,6 +36,7 @@ const iotWorker = new Worker(
       scheduledTime,
       deviceTableId,
       roomTableId,
+      actionBy,
     } = job.data;
 
     try {
@@ -96,15 +97,7 @@ const iotWorker = new Worker(
       }
 
       await updateIotScheduleStatus(scheduleId, "done");
-      logIotAction(deviceTableId, action, 1);
-
-      logSystemEvent(
-        "schedule",
-        "info",
-        "EXECUTION_SUCCESS",
-        `${action.toUpperCase()} command verified for ${roomTitle}`,
-        { scheduleId },
-      );
+      logIotAction(deviceTableId, action, actionBy ? String(actionBy) : null);
     } catch (err) {
       if (job.attemptsMade + 1 >= job.opts.attempts) {
         await updateIotScheduleStatus(scheduleId, "failed");
@@ -127,12 +120,15 @@ export const addIotJob = async (
   actionTime,
   bookingId = "manual",
   scheduleId,
+  actionBy = null,
 ) => {
   try {
     if (!deviceId || !action || !actionTime || !scheduleId) {
-      throw {
+      return {
+        success: false,
         status: 400,
-        message: "REQUIRED_KEYS: deviceId, action, actionTime, scheduleId",
+        error:
+          "REQUIRED_KEYS: deviceId, action, actionTime, scheduleId, actionBy (actionBy is nullable)",
       };
     }
 
@@ -140,15 +136,20 @@ export const addIotJob = async (
     const meta = getDeviceByTableId(String(deviceId));
 
     if (!meta) {
-      throw {
+      return {
+        success: false,
         status: 404,
-        message: `Device Table ID ${deviceId} not found in cache.`,
+        error: `Device Table ID ${deviceId} not found in cache.`,
       };
     }
 
     const scheduledTime = new Date(actionTime).getTime();
     if (isNaN(scheduledTime)) {
-      throw { status: 400, message: `INVALID_TIME: ${actionTime}` };
+      return {
+        success: false,
+        status: 400,
+        error: `Invalid time format (require timestampz): ${actionTime}`,
+      };
     }
 
     const now = Date.now();
@@ -168,6 +169,7 @@ export const addIotJob = async (
         scheduledTime,
         deviceTableId: meta.id,
         roomTableId: meta.room_id,
+        actionBy,
       },
       {
         delay,
@@ -181,7 +183,7 @@ export const addIotJob = async (
 
     return { success: true, jobId: job?.id };
   } catch (error) {
-    if (!error.status || error.status === 500) {
+    if (error.status && error.status !== 404 && error.status !== 400) {
       logSystemEvent("schedule", "error", "QUEUE_ADD_FAIL", error.message, {
         scheduleId,
         deviceId,
@@ -203,9 +205,10 @@ export const removeIotJob = async (
 ) => {
   try {
     if (!deviceId || !action || !scheduleId) {
-      throw {
+      return {
+        success: false,
         status: 400,
-        message: "REQUIRED_KEYS: deviceId, action, scheduleId",
+        error: "REQUIRED_KEYS: deviceId, action, scheduleId",
       };
     }
 
@@ -213,9 +216,10 @@ export const removeIotJob = async (
     const meta = getDeviceByTableId(String(deviceId));
 
     if (!meta) {
-      throw {
+      return {
+        success: false,
         status: 404,
-        message: `Device Table ID ${deviceId} not found in cache.`,
+        error: `Device Table ID ${deviceId} not found in cache.`,
       };
     }
 
@@ -231,9 +235,7 @@ export const removeIotJob = async (
 
     return { success: false, error: "Job not found" };
   } catch (error) {
-    logSystemEvent("schedule", "warn", "QUEUE_REMOVE_FAIL", error.message, {
-      scheduleId,
-    });
+    console.warn(`[IoT Queue] Job removal failed: ${error.message}`);
 
     return {
       success: false,
@@ -271,6 +273,7 @@ export const initColdStartSync = async () => {
         task.action_time,
         task.booking_id ?? "manual",
         task.schedule_id,
+        task.action_by ?? null,
       );
 
       if (result.success) {
