@@ -11,6 +11,7 @@ import {
   getBookingById,
 } from "../../services/booking";
 import { LoadingScreen } from "../../components/utils/LoadingScreen";
+import ApproveIconTitle from "../../assets/icons/schedule/TitleIcon";
 
 export const BookingStatusEnum = Object.freeze({
   PENDING: "pending",
@@ -219,11 +220,7 @@ function ApproveBookingPage() {
   return (
     <>
       <h3 className="text-lg font-semibold flex items-center gap-2 ml-4 mt-4 mb-8">
-        <img
-          src="src/assets/icons/approve-booking/approve-title.svg"
-          alt="approve"
-          className="w-[20px] h-[20px]"
-        />
+        <ApproveIconTitle size={20} />
         อนุมัติการจอง
       </h3>
 

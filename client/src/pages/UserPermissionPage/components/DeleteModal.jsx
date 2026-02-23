@@ -1,4 +1,5 @@
 import { Modal } from "antd";
+import Delete from "../../../assets/images/Delete";
 
 function DeleteConfirmModal({ open, onCancel, onConfirm }) {
   return (
@@ -11,11 +12,7 @@ function DeleteConfirmModal({ open, onCancel, onConfirm }) {
       closable
     >
       <div className="flex flex-col items-center text-center px-6 py-4">
-        <img
-          src="src/assets/images/delete.svg"
-          alt="delete"
-          className="w-[160px] h-[160px] mb-4"
-        />
+        <Delete />
 
         <h3 className="text-[18px] font-semibold">ยืนยันการลบผู้ใช้งานนี้?</h3>
 

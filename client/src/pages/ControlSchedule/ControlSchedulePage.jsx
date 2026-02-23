@@ -8,6 +8,8 @@ import ScheduleTable from "./components/ScheduleTable";
 import DeleteModal from "./components/DeleteModal";
 import { getAllSchedule } from "../../services/schedule";
 import { LoadingScreen } from "../../components/utils/LoadingScreen";
+import TitleIcon from "../../assets/icons/schedule/TitleIcon";
+import EmptyImage from "../../assets/images/schedule/Empty";
 
 function ControlSchedulePage() {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -69,11 +71,7 @@ function ControlSchedulePage() {
         <>
           <Flex className="flex items-center justify-between !pr-8 !pt-4 !pb-4">
             <h3 className="flex items-center gap-2 text-[24px] font-semibold">
-              <img
-                src="src/assets/icons/schedule/title.svg"
-                alt="title"
-                className="w-[20px] h-[20px]"
-              />
+              <TitleIcon />
               ตั้งเวลา เปิด-ปิด
             </h3>
 
@@ -113,11 +111,7 @@ function ControlSchedulePage() {
           ) : (
             <div className="flex justify-center mt-10">
               <div>
-                <img
-                  src="src/assets/images/schedule/emptyPage.svg"
-                  alt="title"
-                  className="w-[160px] h-[160px]"
-                />
+                <EmptyImage />
                 <div className="font-[18px] mt-4">
                   ยังไม่มีการตั้งเวลา เปิด-ปิด
                 </div>

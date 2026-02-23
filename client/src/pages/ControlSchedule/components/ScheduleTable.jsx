@@ -2,6 +2,7 @@ import { Table } from "antd";
 
 import { UpOutlined, DownOutlined } from "@ant-design/icons";
 import { useState, useMemo } from "react";
+import Delete from "../../../assets/icons/action/Delete";
 
 const ScheduleTable = ({
   setListDeleteId,
@@ -128,12 +129,9 @@ const ScheduleTable = ({
         width: 80,
         render: (_, record) => {
           return (
-            <img
-              src="src/assets/icons/action/delete.svg"
-              alt="delete"
-              className="w-[22px] h-[22px] cursor-pointer hover:opacity-70 transition"
-              onClick={() => onDelete(record)}
-            />
+            <div onClick={() => onDelete(record)}>
+              <Delete />
+            </div>
           );
         },
       },

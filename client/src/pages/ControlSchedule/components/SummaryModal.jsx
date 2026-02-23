@@ -10,6 +10,9 @@ import {
   EyeOutlined,
   FireOutlined,
 } from "@ant-design/icons";
+import RoomIcon from "../../../assets/icons/schedule/DeviceLightIcon";
+import FanIcon from "../../../assets/icons/schedule/FanIcon";
+import TempIcon from "../../../assets/icons/schedule/TempIcon";
 
 const colorMap = {
   1: "#FAAD14",
@@ -25,16 +28,15 @@ const colorMap = {
 
 const iconMap = {
   1: <BulbOutlined />,
-  2: <img src="src/assets/icons/schedule/fan.svg" className="w-6 h-6" />,
-  3: <img src="src/assets/icons/schedule/room.svg" className="w-6 h-6" />,
+  2: <FanIcon />,
+  3: <RoomIcon />,
   4: <DashboardOutlined />,
-  5: <img src="src/assets/icons/schedule/temp.svg" className="w-6 h-6" />,
+  5: <TempIcon />,
   6: <ThunderboltOutlined />,
   7: <CloudOutlined />,
   8: <FireOutlined />,
   9: <EyeOutlined />,
 };
-
 function SummaryModal({
   open,
   onClose,
@@ -100,10 +102,7 @@ function SummaryModal({
           {room && (
             <div className="flex items-center gap-4 p-4 rounded-2xl border border-gray-200 shadow-sm w-[300px]">
               <div className="w-14 h-14 rounded-xl bg-teal-500 flex items-center justify-center">
-                <img
-                  src="src/assets/icons/schedule/room.svg"
-                  className="w-6 h-6"
-                />
+                <RoomIcon />
               </div>
               <div>
                 <div className="font-semibold text-lg">{room.title}</div>

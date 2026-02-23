@@ -1,6 +1,7 @@
 import { Modal, notification, Button } from "antd";
 import { deleteScheduleById, getAllSchedule } from "../../../services/schedule";
 import { useState } from "react";
+import Transh from "../../../assets/images/schedule/Transh";
 
 function DeleteModal({
   open,
@@ -64,11 +65,7 @@ function DeleteModal({
   return (
     <Modal open={open} footer={null} centered width={508} onCancel={onCancel}>
       <div className="flex flex-col items-center text-center m-4">
-        <img
-          src="src/assets/images/schedule/transh.svg"
-          alt="decline"
-          className="w-[160px] h-[160px] m-4"
-        />
+        <Transh />
 
         <h3 className="text-lg font-semibold">ยืนยันการลบการตั้งเวลานี้?</h3>
 

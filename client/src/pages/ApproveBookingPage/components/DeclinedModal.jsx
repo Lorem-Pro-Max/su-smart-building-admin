@@ -1,6 +1,10 @@
 import { Modal, Form, Select } from "antd";
 import { useEffect } from "react";
 import dayjs from "dayjs";
+import CalendarOutlineIcon from "../../../assets/icons/approve-booking/CalendarOutlineIcon";
+import ClockIcon from "../../../assets/icons/approve-booking/ClockIcon";
+import DeviceIcon from "../../../assets/icons/approve-booking/ClockIcon";
+import Decline from "../../../assets/images/Decline";
 
 function DeclinedModal({ open, onCancel, onConfirm, selectedBooking }) {
   const [form] = Form.useForm();
@@ -34,11 +38,7 @@ function DeclinedModal({ open, onCancel, onConfirm, selectedBooking }) {
   return (
     <Modal open={open} footer={null} centered width={508} onCancel={onCancel}>
       <div className="flex flex-col items-center text-center m-4">
-        <img
-          src="src/assets/images/decline.svg"
-          alt="decline"
-          className="w-[160px] h-[160px] m-4"
-        />
+        <Decline />
 
         <h3 className="text-lg font-semibold">ยืนยันไม่อนุมัติการจอง?</h3>
 
@@ -57,29 +57,19 @@ function DeclinedModal({ open, onCancel, onConfirm, selectedBooking }) {
             </p>
 
             <div className="flex items-center gap-2 text-gray-600">
-              <img
-                src="src/assets/icons/approve-booking/calendar.svg"
-                alt="calendar"
-                className="w-[24px] h-[24px]"
-              />
+              <CalendarOutlineIcon />
+
               <span className="text-[16px]">{bookingDate}</span>
             </div>
 
             <div className="flex items-center gap-2 text-gray-600">
-              <img
-                src="src/assets/icons/approve-booking/time.svg"
-                alt="time"
-                className="w-[24px] h-[24px]"
-              />
+              <ClockIcon />
+
               <span className="text-[16px] text-[#08979C]">{bookingTime}</span>
             </div>
 
             <div className="flex items-start gap-2 text-gray-600">
-              <img
-                src="src/assets/icons/approve-booking/room.svg"
-                alt="room"
-                className="w-[24px] h-[24px]"
-              />
+              <DeviceIcon />
 
               <div className="flex flex-col gap-2">
                 <span className="text-[16px]">{booking?.title || "-"}</span>

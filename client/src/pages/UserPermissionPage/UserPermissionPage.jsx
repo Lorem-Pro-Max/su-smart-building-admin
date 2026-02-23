@@ -7,6 +7,7 @@ import { getUsers, deleteUser } from "../../services/user";
 import { Table, Button, Flex, Spin, notification } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { LoadingScreen } from "../../components/utils/LoadingScreen";
+import TitleIcon from "../../assets/icons/user-permission/TitleIcon.jsx";
 
 function UserPermissionPage() {
   const [users, setUsers] = useState([]);
@@ -114,11 +115,7 @@ function UserPermissionPage() {
         <>
           <Flex justify="space-between" align="center">
             <h3 className="text-lg font-semibold flex items-center gap-2 ml-4 mt-4 mb-4">
-              <img
-                src="src/assets/icons/user-permission/title.svg"
-                alt="title"
-                className="w-[20px] h-[20px]"
-              />
+              <TitleIcon />
               กำหนดสิทธิ์ผู้ใช้งาน
             </h3>
 
