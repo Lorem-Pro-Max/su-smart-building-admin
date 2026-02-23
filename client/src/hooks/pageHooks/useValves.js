@@ -10,10 +10,12 @@ export function useValves() {
   const control = useDeviceControl(config, refresh, valveService);
   const graphService = useGraphServices(valveService);
 
+  console.log("useValves", graphService);
+
   return {
     dataState: state,
     control: control,
     graphService: graphService,
-    PageToast
+    PageToast,
   };
 }

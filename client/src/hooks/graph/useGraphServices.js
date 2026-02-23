@@ -41,6 +41,8 @@ export function useGraphServices(service) {
       try {
         const meta = await service.getMetadata();
 
+        console.log("meta", meta);
+
         if (meta.available_rooms) {
           for (const floor in meta.available_rooms) {
             meta.available_rooms[floor] = [
@@ -59,6 +61,7 @@ export function useGraphServices(service) {
         const defaultDate = meta.available_dates?.[0]?.key || "";
         const defaultRoom = "all";
 
+        console.log(meta);
         const [dData, hData] = await Promise.all([
           service.fetchDaily(defaultFloor, defaultRoom),
           service.fetchHourly(defaultDate, defaultFloor, defaultRoom),
@@ -78,6 +81,7 @@ export function useGraphServices(service) {
         });
         hasInitialized.current = true;
       } catch (err) {
+        console.log("error", err.message);
         setGraphState((s) => ({
           ...s,
           isLoading: false,
@@ -89,6 +93,7 @@ export function useGraphServices(service) {
     if (!hasInitialized.current) bootstrap();
   }, [service]);
 
+  console.log("useGraphService", graphState);
   return {
     graphState: graphState,
     fetchDaily,

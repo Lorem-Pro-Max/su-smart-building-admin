@@ -77,7 +77,7 @@ export function DaysGraphRenderer({ data, measurementUnit, colorList }) {
       ],
     },
   };
-
+  console.log("555555555", measurementUnit)
   return (
     <div className="w-full h-full min-w-0">
       <div className="text-sm font-medium text-black pl-3 h-7">

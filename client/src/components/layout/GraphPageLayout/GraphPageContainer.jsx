@@ -49,6 +49,9 @@ function GraphPageContainer({
   const metadata =
     currentPage === "dashboard" ? graphService.graphState.metadata || {} : {};
 
+  console.log("meatadata", metadata)
+
+
   return (
     <>
       {contextHolder}
@@ -103,13 +106,13 @@ function GraphPageContainer({
                         onOpen={() => {
                           const ids =
                             selected.length > 0 ? selected : allRoomUidsOnFloor;
-                          handleExecuteAction(ids, "on"); 
+                          handleExecuteAction(ids, "on");
                           setTimeout(() => clearSelection(floorNum), 500);
                         }}
                         onClose={() => {
                           const ids =
                             selected.length > 0 ? selected : allRoomUidsOnFloor;
-                          handleExecuteAction(ids, "off"); 
+                          handleExecuteAction(ids, "off");
                           setTimeout(() => clearSelection(floorNum), 500);
                         }}
                       />
