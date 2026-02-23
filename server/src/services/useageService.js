@@ -1,6 +1,6 @@
 import pool from "../config/db.js";
 
-export const WATER_UPSERT_INTERVAL = 1 * 60 * 1000;
+export const WATER_UPSERT_INTERVAL = 1 * 10 * 1000;
 
 export const fetchAllDevicesUsageHistory = async (tableName, days = 7) => {
   const query = `
@@ -11,7 +11,7 @@ export const fetchAllDevicesUsageHistory = async (tableName, days = 7) => {
         SUM(w.total_usage) as daily_value
       FROM room_device rd
       JOIN rooms r ON rd.room_id = r.id
-      JOIN public.${tableName} w ON rd.id = w.device_id
+      JOIN ${tableName}_useage_hourly w ON rd.id = w.device_id
       WHERE w.recorded_hour >= NOW() - INTERVAL '${days} days'
       GROUP BY rd.device_id, r.name, DATE(w.recorded_hour)
       ORDER BY rd.device_id, usage_date ASC;
@@ -24,7 +24,7 @@ export const fetchDailySummary = async (tableName, dbDeviceId) => {
   const query = `
       SELECT 
         SUM(total_usage) as daily_total
-      FROM public.${tableName} 
+      FROM ${tableName}_useage_hourly
       WHERE device_id = $1 
       AND recorded_hour >= DATE_TRUNC('day', NOW());
     `;
@@ -38,11 +38,11 @@ export const upsertWaterHourly = async (
   recordedHour,
 ) => {
   const query = `
-      INSERT INTO public.water_usage_hourly (device_id, total_usage, recorded_hour, updated_at)
+      INSERT INTO valves_useage_hourly (device_id, total_usage, recorded_hour, updated_at)
       VALUES ($1, $2, $3, NOW())
       ON CONFLICT (device_id, recorded_hour) 
       DO UPDATE SET 
-        total_usage = public.water_usage_hourly.total_usage + EXCLUDED.total_usage,
+        total_usage = valves_useage_hourly.total_usage + EXCLUDED.total_usage,
         updated_at = NOW();
     `;
   return await pool.query(query, [dbDeviceId, usageAmount, recordedHour]);

@@ -4,6 +4,6 @@ import { protectAction } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.get("/:type/all", UsageController.GetAllUsageStats);
+router.get("/:type/all", protectAction, UsageController.GetAllUsageStats);
 
 export default router;
