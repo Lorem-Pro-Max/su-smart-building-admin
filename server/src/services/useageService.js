@@ -2,36 +2,6 @@ import pool from "../config/db.js";
 
 export const USEAGE_UPSERT_INTERVAL = 60 * 1 * 1000;
 
-// export const fetchAllDevicesUsageHistory = async (tableName, days = 7) => {
-//   const query = `
-//       SELECT
-//         rd.device_id as iot_code,
-//         r.name as room_label,
-//         DATE(w.recorded_hour) as usage_date,
-//         SUM(w.total_usage) as daily_value
-//       FROM room_device rd
-//       JOIN rooms r ON rd.room_id = r.id
-//       JOIN ${tableName}_useage_hourly w ON rd.id = w.device_id
-//       WHERE w.recorded_hour >= NOW() - INTERVAL '${days} days'
-//       GROUP BY rd.device_id, r.name, DATE(w.recorded_hour)
-//       ORDER BY rd.device_id, usage_date ASC;
-//     `;
-//   const { rows } = await pool.query(query);
-//   return rows;
-// };
-
-export const fetchDailySummary = async (tableName, dbDeviceId) => {
-  const query = `
-      SELECT 
-        SUM(total_usage) as daily_total
-      FROM ${tableName}_useage_hourly
-      WHERE device_id = $1 
-      AND recorded_hour >= DATE_TRUNC('day', NOW());
-    `;
-  const { rows } = await pool.query(query, [dbDeviceId]);
-  return rows[0];
-};
-
 export const upsertWaterHourly = async (
   dbDeviceId,
   usageAmount,
@@ -64,8 +34,6 @@ export const processWaterUsageBuffer = async (waterBuffer, deviceCache) => {
       0,
     ),
   );
-
-  console.log("water", recordedHour);
 
   for (const iotId of deviceKeys) {
     const valveData = waterBuffer[iotId];
@@ -163,8 +131,6 @@ export const processElectricityUsageBuffer = async (electricityBuffer) => {
       0,
     ),
   );
-
-  console.log("elec", recordedHour);
 
   for (const deviceId of deviceKeys) {
     const data = electricityBuffer[deviceId];
