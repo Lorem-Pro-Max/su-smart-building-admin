@@ -10,7 +10,7 @@ services:
     build:
       context: ./client
       args:
-        - VITE_API_BASE_URL=/admin-dashboard
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
     volumes:
       - frontend_dist:/shared-assets
     command: sh -c "cp -rv /app/dist/. /shared-assets/"
@@ -21,12 +21,12 @@ services:
     ports:
       - "8124:8124"
     environment:
-      - SERVER_PORT=8124
-      - DATABASE_URL=
-      - IOT_SERVER_URL=
-      - WEBSOCKET_URL=
-      - REDIS_HOST=admin-redis
-      - REDIS_PORT=6379
+      - SERVER_PORT=${SERVER_PORT}
+      - DATABASE_URL=${DATABASE_URL}
+      - IOT_SERVER_URL=${IOT_SERVER_URL}
+      - WEBSOCKET_URL=${WEBSOCKET_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
     depends_on:
       - admin-redis
     extra_hosts:

@@ -38,7 +38,6 @@ const iotWorker = new Worker(
       roomTableId,
       actionBy,
     } = job.data;
-    
 
     try {
       const now = Date.now();
@@ -104,6 +103,14 @@ const iotWorker = new Worker(
 
       await updateIotScheduleStatus(scheduleId, "done");
       logIotAction(deviceTableId, action, actionBy ? String(actionBy) : null);
+
+      logSystemEvent(
+        "schedule",
+        "info",
+        "EXECUTION_SUCCESS",
+        `${action.toUpperCase()} command verified for ${roomTitle}`,
+        { scheduleId },
+      );
     } catch (err) {
       if (job.attemptsMade + 1 >= job.opts.attempts) {
         await updateIotScheduleStatus(scheduleId, "failed");
