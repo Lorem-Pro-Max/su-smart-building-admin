@@ -9,6 +9,9 @@ import {
   EyeOutlined,
   FireOutlined,
 } from "@ant-design/icons";
+import RoomIcon from "../../../assets/icons/schedule/DeviceLightIcon";
+import FanIcon from "../../../assets/icons/schedule/FanIcon";
+import TempIcon from "../../../assets/icons/schedule/TempIcon";
 
 const colorMap = {
   1: "#FAAD14",
@@ -24,28 +27,10 @@ const colorMap = {
 
 const iconMap = {
   1: <BulbOutlined />,
-  2: (
-    <img
-      src="src/assets/icons/schedule/fan.svg"
-      alt="room"
-      className="w-6 h-6"
-    />
-  ),
-  3: (
-    <img
-      src="src/assets/icons/schedule/room.svg"
-      alt="room"
-      className="w-6 h-6"
-    />
-  ),
+  2: <FanIcon />,
+  3: <RoomIcon />,
   4: <DashboardOutlined />,
-  5: (
-    <img
-      src="src/assets/icons/schedule/temp.svg"
-      alt="room"
-      className="w-6 h-6"
-    />
-  ),
+  5: <TempIcon />,
   6: <ThunderboltOutlined />,
   7: <CloudOutlined />,
   8: <FireOutlined />,

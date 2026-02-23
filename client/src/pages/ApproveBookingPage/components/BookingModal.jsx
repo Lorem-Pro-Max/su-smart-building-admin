@@ -1,5 +1,9 @@
 import { Modal } from "antd";
 import dayjs from "dayjs";
+import CalendarOutlineIcon from "../../../assets/icons/approve-booking/CalendarOutlineIcon";
+import ClockIcon from "../../../assets/icons/approve-booking/ClockIcon";
+import DeviceIcon from "../../../assets/icons/approve-booking/ClockIcon";
+import Approve from "../../../assets/images/Approve";
 
 function BookingModal({ open, onCancel, onConfirm, selectedBooking }) {
   const booking = selectedBooking?.booking;
@@ -28,12 +32,7 @@ function BookingModal({ open, onCancel, onConfirm, selectedBooking }) {
       closable
     >
       <div className="flex flex-col items-center text-center">
-        <img
-          src="src/assets/images/approve.svg"
-          alt="approve"
-          className="w-[160px] h-[160px] m-4"
-        />
-
+        <Approve />
         <h3 className="text-lg font-semibold">ยืนยันการอนุมัติการจอง?</h3>
 
         <p className="text-gray-500 text-sm mt-1">
@@ -51,29 +50,17 @@ function BookingModal({ open, onCancel, onConfirm, selectedBooking }) {
             </p>
 
             <div className="flex items-center gap-2 text-gray-600">
-              <img
-                src="src/assets/icons/approve-booking/calendar.svg"
-                alt="calendar"
-                className="w-[24px] h-[24px]"
-              />
+              <CalendarOutlineIcon />
               <span className="text-[16px]">{bookingDate}</span>
             </div>
 
             <div className="flex items-center gap-2 text-gray-600">
-              <img
-                src="src/assets/icons/approve-booking/time.svg"
-                alt="time"
-                className="w-[24px] h-[24px]"
-              />
+              <ClockIcon />
               <span className="text-[16px] text-[#08979C]">{bookingTime}</span>
             </div>
 
             <div className="flex items-start gap-2 text-gray-600">
-              <img
-                src="src/assets/icons/approve-booking/room.svg"
-                alt="room"
-                className="w-[24px] h-[24px]"
-              />
+              <DeviceIcon />
 
               <div className="flex flex-col gap-2">
                 <span className="text-[16px]">{booking?.title || "-"}</span>

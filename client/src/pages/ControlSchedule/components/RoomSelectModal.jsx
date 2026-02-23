@@ -1,6 +1,7 @@
 import { Modal, Tabs, Button, notification, Spin } from "antd";
 import { useState, useEffect } from "react";
 import { getAllBooking } from "../../../services/schedule";
+import RoomIcon from "../../../assets/icons/schedule/DeviceLightIcon";
 
 function RoomSelectModal({ open, onClose, onSelect }) {
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -44,11 +45,7 @@ function RoomSelectModal({ open, onClose, onSelect }) {
         }`}
       >
         <div className="w-14 h-14 rounded-xl flex items-center justify-center bg-teal-500 shrink-0">
-          <img
-            src="src/assets/icons/schedule/room.svg"
-            alt="room"
-            className="w-6 h-6"
-          />
+          <RoomIcon />
         </div>
 
         <div className="flex-1 min-w-0">

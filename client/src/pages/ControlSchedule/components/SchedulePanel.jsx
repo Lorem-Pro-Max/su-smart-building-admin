@@ -13,6 +13,9 @@ import {
   EyeOutlined,
   FireOutlined,
 } from "@ant-design/icons";
+import RoomIcon from "../../../assets/icons/schedule/DeviceLightIcon";
+import FanIcon from "../../../assets/icons/schedule/FanIcon";
+import TempIcon from "../../../assets/icons/schedule/TempIcon";
 
 const colorMap = {
   1: "#FAAD14",
@@ -28,28 +31,10 @@ const colorMap = {
 
 const iconMap = {
   1: <BulbOutlined />,
-  2: (
-    <img
-      src="src/assets/icons/schedule/fan.svg"
-      alt="room"
-      className="w-6 h-6"
-    />
-  ),
-  3: (
-    <img
-      src="src/assets/icons/schedule/room.svg"
-      alt="room"
-      className="w-6 h-6"
-    />
-  ),
+  2: <FanIcon />,
+  3: <RoomIcon />,
   4: <DashboardOutlined />,
-  5: (
-    <img
-      src="src/assets/icons/schedule/temp.svg"
-      alt="room"
-      className="w-6 h-6"
-    />
-  ),
+  5: <TempIcon />,
   6: <ThunderboltOutlined />,
   7: <CloudOutlined />,
   8: <FireOutlined />,
@@ -108,11 +93,7 @@ function SchedulePanel({ selectedDate, onClose }) {
               <div className="w-[60px] h-[60px] rounded-xl flex items-center justify-center shrink-0">
                 {room ? (
                   <div className="w-full h-full rounded-xl flex items-center justify-center bg-[#22C1B4]">
-                    <img
-                      src="src/assets/icons/schedule/room.svg"
-                      alt="room"
-                      className="w-[26px] h-[26px]"
-                    />
+                    <RoomIcon />
                   </div>
                 ) : (
                   <div className="w-full h-full rounded-xl flex items-center justify-center bg-teal-50 text-teal-500">
