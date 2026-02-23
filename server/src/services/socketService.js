@@ -112,7 +112,11 @@ export const initIotSocketListener = () => {
 
   setInterval(async () => {
     await useageService.processWaterUsageBuffer(waterBuffer, deviceCache);
-  }, useageService.WATER_UPSERT_INTERVAL);
+  }, useageService.USEAGE_UPSERT_INTERVAL);
+
+  setInterval(async () => {
+    await useageService.processElectricityUsageBuffer(electricBuffer);
+  }, useageService.USEAGE_UPSERT_INTERVAL);
 
   ws.on("message", (data) => {
     try {
@@ -128,8 +132,7 @@ export const initIotSocketListener = () => {
       if (fullId) {
         const prefix = fullId.substring(0, 2);
         const deviceType = DEVICE_PREFIX_MAP[prefix];
-
-        console.log(prefix);
+        const prefixELP = fullId.substring(0, 3);
 
         if (SMOKE_DETECTION_PREFIX === prefix) {
           processSmokeDetection(fullId);
@@ -146,9 +149,21 @@ export const initIotSocketListener = () => {
           return;
         }
 
-        if (ELECTRICITY_USEAGE_PREFIX === prefix) {
-          console.log("lightdetect");
-          //useageService.processWaterData(payload, waterBuffer);
+        if (ELECTRICITY_USEAGE_PREFIX === prefixELP) {
+          const mappedDevices = deviceCache.byDeviceId[fullId];
+          const deviceId = mappedDevices[0].id;
+
+          if (!mappedDevices || mappedDevices.length === 0) {
+            console.warn(`[Mapping Missing] ${fullId}`);
+            return;
+          }
+
+          useageService.processElecticityData(
+            payload,
+            deviceId,
+            electricBuffer,
+          );
+          return;
         }
 
         if (deviceType) {

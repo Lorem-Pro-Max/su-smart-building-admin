@@ -1,24 +1,24 @@
 import pool from "../config/db.js";
 
-export const WATER_UPSERT_INTERVAL = 1 * 10 * 1000;
+export const USEAGE_UPSERT_INTERVAL = 60 * 1 * 1000;
 
-export const fetchAllDevicesUsageHistory = async (tableName, days = 7) => {
-  const query = `
-      SELECT 
-        rd.device_id as iot_code,
-        r.name as room_label,
-        DATE(w.recorded_hour) as usage_date,
-        SUM(w.total_usage) as daily_value
-      FROM room_device rd
-      JOIN rooms r ON rd.room_id = r.id
-      JOIN ${tableName}_useage_hourly w ON rd.id = w.device_id
-      WHERE w.recorded_hour >= NOW() - INTERVAL '${days} days'
-      GROUP BY rd.device_id, r.name, DATE(w.recorded_hour)
-      ORDER BY rd.device_id, usage_date ASC;
-    `;
-  const { rows } = await pool.query(query);
-  return rows;
-};
+// export const fetchAllDevicesUsageHistory = async (tableName, days = 7) => {
+//   const query = `
+//       SELECT
+//         rd.device_id as iot_code,
+//         r.name as room_label,
+//         DATE(w.recorded_hour) as usage_date,
+//         SUM(w.total_usage) as daily_value
+//       FROM room_device rd
+//       JOIN rooms r ON rd.room_id = r.id
+//       JOIN ${tableName}_useage_hourly w ON rd.id = w.device_id
+//       WHERE w.recorded_hour >= NOW() - INTERVAL '${days} days'
+//       GROUP BY rd.device_id, r.name, DATE(w.recorded_hour)
+//       ORDER BY rd.device_id, usage_date ASC;
+//     `;
+//   const { rows } = await pool.query(query);
+//   return rows;
+// };
 
 export const fetchDailySummary = async (tableName, dbDeviceId) => {
   const query = `
@@ -54,13 +54,18 @@ export const processWaterUsageBuffer = async (waterBuffer, deviceCache) => {
 
   const now = new Date();
   const recordedHour = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    now.getHours(),
-    0,
-    0,
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      now.getUTCHours(),
+      0,
+      0,
+      0,
+    ),
   );
+
+  console.log("water", recordedHour);
 
   for (const iotId of deviceKeys) {
     const valveData = waterBuffer[iotId];
@@ -70,7 +75,7 @@ export const processWaterUsageBuffer = async (waterBuffer, deviceCache) => {
       if (!readings || readings.length === 0) continue;
 
       const avgFlow = readings.reduce((a, b) => a + b, 0) / readings.length;
-      const usageInPeriod = avgFlow * (WATER_UPSERT_INTERVAL / (60 * 1000));
+      const usageInPeriod = avgFlow * (USEAGE_UPSERT_INTERVAL / (60 * 1000));
 
       const deviceInfo = deviceCache.byDeviceId[iotId]?.find(
         (d) => d.device_sub_id === subKey,
@@ -109,4 +114,106 @@ export const processWaterData = (payload, waterBuffer) => {
   if (payload.flow_rate_2 !== undefined) {
     waterBuffer[deviceId].v2.push(parseFloat(payload.flow_rate_2));
   }
+};
+
+export const processElecticityData = (payload, deviceId, electricBuffer) => {
+  if (!deviceId) return;
+
+  const currentImport = parseFloat(payload.e_import_kwh);
+  const currentExport = parseFloat(payload.e_export_kwh);
+
+  if (isNaN(currentImport) || isNaN(currentExport)) return;
+
+  if (!electricBuffer[deviceId]) {
+    electricBuffer[deviceId] = {
+      previousImport: currentImport,
+      previousExport: currentExport,
+      hourlyImport: 0,
+      hourlyExport: 0,
+    };
+    return;
+  }
+
+  const data = electricBuffer[deviceId];
+
+  const deltaImport = currentImport - data.previousImport;
+  const deltaExport = currentExport - data.previousExport;
+
+  // กันค่าติดลบ (กรณี meter reset)
+  if (deltaImport > 0) data.hourlyImport += deltaImport;
+  if (deltaExport > 0) data.hourlyExport += deltaExport;
+
+  data.previousImport = currentImport;
+  data.previousExport = currentExport;
+};
+
+export const processElectricityUsageBuffer = async (electricityBuffer) => {
+  const deviceKeys = Object.keys(electricityBuffer);
+  if (deviceKeys.length === 0) return;
+
+  const now = new Date();
+  const recordedHour = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      now.getUTCHours(),
+      0,
+      0,
+      0,
+    ),
+  );
+
+  console.log("elec", recordedHour);
+
+  for (const deviceId of deviceKeys) {
+    const data = electricityBuffer[deviceId];
+
+    data.hourlyImport += data.lastImport || 0;
+    data.hourlyExport += data.lastExport || 0;
+
+    if (data.hourlyImport === 0 && data.hourlyExport === 0) continue;
+
+    try {
+      await upsertElectricityHourly(
+        deviceId,
+        data.hourlyImport,
+        data.hourlyExport,
+        recordedHour,
+      );
+
+      data.hourlyImport = 0;
+      data.hourlyExport = 0;
+    } catch (err) {
+      console.error(
+        `[Error] Electricity upsert failed ID:${deviceId}`,
+        err.message,
+      );
+    }
+  }
+};
+
+export const upsertElectricityHourly = async (
+  dbDeviceId,
+  importAmount,
+  exportAmount,
+  recordedHour,
+) => {
+  const query = `
+    INSERT INTO electric_usage_hourly
+    (device_id, import_kwh, export_kwh, recorded_hour, updated_at)
+    VALUES ($1, $2, $3, $4, NOW())
+    ON CONFLICT (device_id, recorded_hour)
+    DO UPDATE SET
+      import_kwh = electric_usage_hourly.import_kwh + EXCLUDED.import_kwh,
+      export_kwh = electric_usage_hourly.export_kwh + EXCLUDED.export_kwh,
+      updated_at = NOW();
+  `;
+
+  return await pool.query(query, [
+    dbDeviceId,
+    importAmount,
+    exportAmount,
+    recordedHour,
+  ]);
 };

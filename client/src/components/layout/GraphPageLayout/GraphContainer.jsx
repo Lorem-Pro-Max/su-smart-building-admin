@@ -86,6 +86,8 @@ export function HoursGraph({
     total_number += value.total_usage || 0;
   });
 
+  console.log("hourly", data)
+
   return (
     <div className="w-full rounded-2xl p-8 shadow-graph-container bg-white flex flex-col gap-8">
       <div className="w-full flex justify-between items-start">
