@@ -32,19 +32,28 @@ export const handleBatchCommand = (deviceType) => async (req, res) => {
 
   try {
     if (!deviceIds || !Array.isArray(deviceIds) || !action) {
-      throw { status: 400, message: "deviceIds (array) and action are required!" };
+      throw {
+        status: 400,
+        message: "deviceIds (array) and action are required!",
+      };
     }
 
-    const execute = EXECUTION_REGISTRY[deviceType] || EXECUTION_REGISTRY.default;
-      
+    const execute =
+      EXECUTION_REGISTRY[deviceType] || EXECUTION_REGISTRY.default;
+
     const normalizedDeviceIds = deviceIds.map((item) => {
       if (typeof item === "object" && item !== null) {
-        return { id: item.id, sub_key_to: item.sub_key_to || null };
+        return { id: item.id, sub_id: item.sub_id || null };
       }
-      return { id: String(item), sub_key_to: null };
+      return { id: String(item), sub_id: null };
     });
 
-    const result = await execute(deviceType, normalizedDeviceIds, action, value);
+    const result = await execute(
+      deviceType,
+      normalizedDeviceIds,
+      action,
+      value,
+    );
 
     const failedItems = result.filter(
       (r) => !r || r.status !== 200 || r.data?.success !== true,

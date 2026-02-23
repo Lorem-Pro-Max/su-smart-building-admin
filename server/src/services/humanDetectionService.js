@@ -131,7 +131,7 @@ const executeRoomAction = async (roomId, action) => {
             subId: deviceSubId,
             ids: [],
           };
-          acc[groupKey].ids.push(deviceId);
+          acc[groupKey].ids.push({ id: deviceId, sub_id: deviceSubId });
         }
         return acc;
       },
