@@ -3,8 +3,8 @@ import { useToast } from "../../components/utils";
 const formatPayload = (deviceIds) => {
   return deviceIds.map((uid) => {
     if (typeof uid === "string" && uid.includes("::")) {
-      const [id, sub_key_to] = uid.split("::");
-      return { id, sub_key_to };
+      const [id, sub_id] = uid.split("::");
+      return { id, sub_id };
     }
     return uid;
   });
@@ -46,7 +46,7 @@ export function useDeviceControl(config, onRefresh, service) {
     }
   };
 
-const handleSingleToggle = async (roomUid, isTurningOn) => {
+  const handleSingleToggle = async (roomUid, isTurningOn) => {
     const action = isTurningOn ? config.actions.on : config.actions.off;
     const statusThai = isTurningOn ? "เปิด" : "ปิด";
     await executeAction([roomUid], action, statusThai);

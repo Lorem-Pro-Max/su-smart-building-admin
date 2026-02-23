@@ -38,6 +38,7 @@ const iotWorker = new Worker(
       roomTableId,
       actionBy,
     } = job.data;
+    
 
     try {
       const now = Date.now();
@@ -74,7 +75,12 @@ const iotWorker = new Worker(
         EXECUTION_REGISTRY[deviceType] || EXECUTION_REGISTRY.default;
       const results = await execute(
         deviceType,
-        [deviceId],
+        [
+          {
+            id: deviceId,
+            sub_id: deviceSubId || null,
+          },
+        ],
         action,
         deviceSubId,
       );

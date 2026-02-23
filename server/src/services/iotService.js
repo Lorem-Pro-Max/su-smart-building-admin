@@ -134,8 +134,8 @@ export const executeValveAction = async (
   const valveAction = DEVICE_MAP[type]["actions"][action];
 
   return Promise.all(
-    deviceObjects.map(async ({ id, sub_key_to }) => {
-      const url = `${IOT_BASE_URL}/control/water/${id}/${sub_key_to}/${valveAction}`;
+    deviceObjects.map(async ({ id, sub_id }) => {
+      const url = `${IOT_BASE_URL}/control/water/${id}/${sub_id}/${valveAction}`;
       try {
         const r = await axios.post(url);
 

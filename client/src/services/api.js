@@ -11,8 +11,8 @@ const apiClient = axios.create({
 const formatDeviceIds = (deviceIds) => {
   return deviceIds.map((uid) => {
     if (typeof uid === "string" && uid.includes("::")) {
-      const [id, sub_key_to] = uid.split("::");
-      return { id, sub_key: sub_key_to };
+      const [id, sub_id] = uid.split("::");
+      return { id: id, sub_key: sub_id };
     }
 
     if (typeof uid === "object" && uid !== null) return uid;
