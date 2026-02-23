@@ -1,4 +1,4 @@
-import { CommonDropdown } from "@components/utils/CommonDropDown";
+import { CommonDropdown } from "@components/utils/CommonDropdown";
 
 function GridItem({
   gridSetting,
