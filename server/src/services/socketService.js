@@ -26,13 +26,13 @@ const DEVICE_PREFIX_MAP = {
   IR: "ac",
   SW: "lights",
   FA: "exhaustFans",
-  SD: "smoke",
   MT: "sensors",
 };
 
 const SMOKE_DETECTION_PREFIX = "SM";
 const HUMAN_DETECTION_PREFIX = "HP";
 const WATER_USEAGE_PREFIX = "VA";
+const ELECTRICITY_USEAGE_PREFIX = "ELP";
 
 export const initDeviceMapping = async () => {
   try {
@@ -98,7 +98,7 @@ export const syncIotDevice = async (deviceType) => {
 const throttles = new Map();
 const throttleMillisec = 1000;
 let waterBuffer = {};
-let tenMinuteWaterSummary = {};
+let electricBuffer = {};
 
 let lastWsErrorLog = 0;
 const WS_ERROR_LOG_INTERVAL = 5 * 60 * 1000;
@@ -129,6 +129,8 @@ export const initIotSocketListener = () => {
         const prefix = fullId.substring(0, 2);
         const deviceType = DEVICE_PREFIX_MAP[prefix];
 
+        console.log(prefix);
+
         if (SMOKE_DETECTION_PREFIX === prefix) {
           processSmokeDetection(fullId);
           return;
@@ -141,6 +143,12 @@ export const initIotSocketListener = () => {
 
         if (WATER_USEAGE_PREFIX === prefix) {
           useageService.processWaterData(payload, waterBuffer);
+          return;
+        }
+
+        if (ELECTRICITY_USEAGE_PREFIX === prefix) {
+          console.log("lightdetect");
+          //useageService.processWaterData(payload, waterBuffer);
         }
 
         if (deviceType) {
