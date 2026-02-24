@@ -43,7 +43,8 @@ export const processWaterUsageBuffer = async (waterBuffer, deviceCache) => {
       if (!readings || readings.length === 0) continue;
 
       const avgFlow = readings.reduce((a, b) => a + b, 0) / readings.length;
-      const usageInPeriod = avgFlow * (USEAGE_UPSERT_INTERVAL / (60 * 1000));
+      const usageInPeriod =
+        (avgFlow * (USEAGE_UPSERT_INTERVAL / (60 * 1000))) / 1000;
 
       const deviceInfo = deviceCache.byDeviceId[iotId]?.find(
         (d) => d.device_sub_id === subKey,
