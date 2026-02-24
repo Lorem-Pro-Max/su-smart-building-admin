@@ -42,6 +42,7 @@ export function useGraphServices(service) {
         const meta = await service.getMetadata();
 
         if (meta.available_rooms) {
+          console.log("meta.available_rooms", meta.available_rooms);
           for (const floor in meta.available_rooms) {
             meta.available_rooms[floor] = [
               { key: "all", label: "ทุกห้อง" },

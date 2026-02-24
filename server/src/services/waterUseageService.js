@@ -23,17 +23,21 @@ export const getMetadata = async () => {
         JOIN valves_useage_hourly vuh ON vuh.device_id = rd.id
         ORDER BY r.floor, r.id;`,
     );
+    console.log("roomsRes,", roomsRes.rows);
 
     const available_rooms = {};
     roomsRes.rows.forEach((room) => {
       if (!available_rooms[room.floor]) {
         available_rooms[room.floor] = [];
-        available_rooms[room.floor].push({
-          key: room.room_id,
-          label: room.title,
-        });
       }
+
+      available_rooms[room.floor].push({
+        key: room.room_id,
+        label: room.title,
+      });
     });
+
+    console.log("roomsRes,", available_rooms);
 
     const datesRes = await pool.query(
       `SELECT DISTINCT DATE(recorded_hour) AS date
@@ -52,6 +56,7 @@ export const getMetadata = async () => {
 
     const measurementUnit = "หน่วย (m³)";
 
+    console.log(available_rooms);
     return {
       available_floors,
       available_rooms,
