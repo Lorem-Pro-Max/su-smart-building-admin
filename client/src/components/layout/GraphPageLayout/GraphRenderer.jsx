@@ -21,13 +21,11 @@ const transformChartData = (usageData) => {
       });
     }
   }
-  console.log(chartData)
 
   return chartData;
 };
 
 const transformHourlyData = (usageData) => {
-  console.log(usageData)
   const chartData = [];
   for (const roomId in usageData) {
     const room = usageData[roomId];
@@ -52,8 +50,11 @@ const transformHourlyData = (usageData) => {
 };
 
 export function DaysGraphRenderer({ data, measurementUnit, colorList }) {
+  console.log("inside renderer", data)
   const chartData = useMemo(() => transformChartData(data), [data]);
   const roomCount = Object.keys(data || {}).length;
+  console.log(roomCount)
+
 
   const config = {
     data: chartData,
