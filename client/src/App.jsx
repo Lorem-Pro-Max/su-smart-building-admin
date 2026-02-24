@@ -11,6 +11,7 @@ import {
   ElectricityPage,
   AirQualityPage,
   HistoryPage,
+  LoginPage
 } from "./pages";
 import ApproveBookingPage from "./pages/ApproveBookingPage/ApproveBooking";
 import UserPermissionPage from "./pages/UserPermissionPage/UserPermissionPage";
@@ -47,6 +48,7 @@ function App() {
         onClose={handleClose}
       />
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
         <Route element={<Layout />}>
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/device-scheduling" element={<ControlSchedulePage />} />

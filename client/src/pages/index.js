@@ -6,3 +6,4 @@ export { default as AirConditionersControlPage } from "./AirConditionersControlP
 export { default as ElectricityPage } from "./ElectricityPage/ElectricityPage.jsx";
 export { default as AirQualityPage } from "./AirQualityPage/AirQualityPage.jsx";
 export { default as HistoryPage } from "./HistoryPage/HistoryPage.jsx";
+export { default as LoginPage } from "./LoginPage/LoginPage.jsx";
