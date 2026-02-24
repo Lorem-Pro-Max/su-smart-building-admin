@@ -257,34 +257,48 @@ export const fetchHourlyByFloor = async (date, floor) => {
 
 export const fetchHourlyByRoom = async (date, floor, room_id) => {
   try {
+    console.log("parameter", date, floor, room_id);
     const query = `
-            SELECT 
-            r.id AS room_id,
-            r.title AS room_title,
-            TO_CHAR(vuh.recorded_hour, 'HH24:MI') AS hour,
-            SUM(vuh.total_usage) AS total_usage
-            FROM room r
-            JOIN room_device rd ON rd.room_id = r.id
-            JOIN valves_useage_hourly vuh ON vuh.device_id = rd.id
-            WHERE DATE(vuh.recorded_hour) = $1
-            AND r.floor = $2
-            AND r.id = $3
-            GROUP BY r.id, r.title, hour
-            ORDER BY r.id, hour;
-            `;
+        SELECT 
+          vuh.id,
+          vuh.device_id,
+          vuh.total_usage,
+          vuh.recorded_hour,
+          r.id AS room_id,
+          r.title AS room_title,
+          r.floor
+        FROM valves_useage_hourly vuh
+        JOIN room_device rd ON rd.id = vuh.device_id
+        JOIN room r ON r.id = rd.room_id
+        WHERE vuh.recorded_hour >= $1::date
+          AND r.floor = $2
+          AND r.id = $3
+        ORDER BY r.id, vuh.recorded_hour;
+  `;
     const res = await pool.query(query, [date, floor, room_id]);
+    console.log(res.rows);
 
     const data = {};
+
     res.rows.forEach((row) => {
-      data[row.room_id] = {
-        room_title: row.room_title,
-        total_usage: parseFloat(row.total_usage) || 0,
-      };
+      if (!data[row.room_id]) {
+        data[row.room_id] = {
+          label: row.room_title,
+          data: [],
+        };
+      }
+
+      data[row.room_id].data.push({
+        time: row.recorded_hour,
+        value: parseFloat(row.total_usage) || 0,
+      });
     });
+
+    console.log("service hourly", data);
 
     return data;
   } catch (err) {
-    console.error("fetchDailyByFloor error:", err);
+    console.error("fetchHourlyByRoom error:", err);
     throw err;
   }
 };

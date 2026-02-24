@@ -99,6 +99,8 @@ export function DaysGraphRenderer({ data, measurementUnit, colorList }) {
 }
 
 export function HoursGraphRenderer({ data, colorList }) {
+
+  console.log("hourly renderer", data)
   const chartData = useMemo(() => transformHourlyData(data), [data]);
   const roomCount = Object.keys(data || {}).length;
 
