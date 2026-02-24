@@ -194,7 +194,7 @@ const executeRoomAction = async (roomId, action) => {
           logSystemEvent(
             "human-detection",
             "info",
-            "BATCH_OK",
+            "EXECUTION_SUCCESS",
             `${roomTitle} | ${action.toUpperCase()}: ${successHardwareIds.join(", ")}`,
             { roomId, count: successHardwareIds.length },
           );

@@ -8,14 +8,11 @@ function AirQualityPage() {
   const { aqState, fetchRoomStatus, fetchRankings, contextHolder } =
     useAirQualityServices();
 
-  if (aqState.isLoading || !aqState.metadata) {
-    return <LoadingScreen />;
-  }
 
-  return (
+return (
     <>
       {contextHolder}
-      {aqState.isLoading || !aqState.metadata ? (
+      {aqState.isLoading ? (
         <LoadingScreen />
       ) : (
         <div className="w-full h-full overflow-y-auto bg-bottom-section-gradient">

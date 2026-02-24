@@ -36,17 +36,17 @@ export function useDeviceServices(config, service) {
       const freshData = await service.getStatus();
       setNormalizedData(freshData);
     } catch (err) {
-      try {
-        const partialData = await service.getStatus();
-        setNormalizedData(partialData);
-      } catch (innerErr) {
-        errorToast(`เกิดข้อผิดพลาดในการโหลดข้อมูลห้อง: ${innerErr.message}`);
-        setState((prev) => ({
-          ...prev,
-          isLoading: false,
-          isError: err.message,
-        }));
-      }
+      console.log(err);
+      errorToast(
+        err.message.includes("timeout")
+          ? `เซิร์ฟเวอร์ตอบสนองช้าเกินไป กรุณาลองใหม่อีกครั้ง`
+          : "ไม่สามารถเชื่อมต่อเซิฟเวอร์ได้ในขณะนี้",
+      );
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        isError: err.message,
+      }));
     }
   }, [service, setNormalizedData]);
   useEffect(() => {
