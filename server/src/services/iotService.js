@@ -139,8 +139,6 @@ export const executeValveAction = async (
       try {
         const r = await axios.post(url);
 
-        console.log(r.data.status);
-
         if (r.data.status !== "success") {
           return {
             id,

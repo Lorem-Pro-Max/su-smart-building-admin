@@ -57,7 +57,6 @@ class UserService {
 
     try {
       const { rows } = await pool.query(query, values);
-      console.log("Rows:", rows);
       return this.mapRow(rows[0]);
     } catch (err) {
       console.error("DB Error:", err.message);
