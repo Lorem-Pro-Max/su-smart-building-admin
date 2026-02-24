@@ -50,7 +50,7 @@ export const getMetadata = async () => {
       }),
     }));
 
-    const measurementUnit = "m³/s";
+    const measurementUnit = "หน่วย (m³)";
 
     return {
       available_floors,
