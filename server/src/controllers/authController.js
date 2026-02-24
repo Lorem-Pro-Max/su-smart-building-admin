@@ -23,7 +23,6 @@ export const login = async (req, res) => {
         .json({ message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
 
     if (user.role_id !== 1) {
-      console.log("no access");
       return res.status(403).json({
         access: false,
         message: "ไม่มีสิทธิ์เข้าใช้งาน (เฉพาะผู้ดูแลระบบเท่านั้น)",

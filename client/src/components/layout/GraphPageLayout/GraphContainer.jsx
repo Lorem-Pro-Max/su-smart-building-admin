@@ -20,9 +20,7 @@ export function DaysGraph({
     colorList.push(getColor(index));
   });
 
-  console.log("room", roomsItems)
-  console.log("floor", floorsItems)
-  console.log("data", data)
+
 
   return (
     <div className="w-full rounded-2xl p-8 shadow-graph-container bg-white flex flex-col gap-6">

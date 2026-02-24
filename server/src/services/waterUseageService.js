@@ -23,7 +23,6 @@ export const getMetadata = async () => {
         JOIN valves_useage_hourly vuh ON vuh.device_id = rd.id
         ORDER BY r.floor, r.id;`,
     );
-    console.log("roomsRes,", roomsRes.rows);
 
     const available_rooms = {};
     roomsRes.rows.forEach((room) => {
@@ -36,8 +35,6 @@ export const getMetadata = async () => {
         label: room.title,
       });
     });
-
-    console.log("roomsRes,", available_rooms);
 
     const datesRes = await pool.query(
       `SELECT DISTINCT DATE(recorded_hour) AS date
@@ -56,7 +53,6 @@ export const getMetadata = async () => {
 
     const measurementUnit = "หน่วย (m³)";
 
-    console.log(available_rooms);
     return {
       available_floors,
       available_rooms,
@@ -257,7 +253,6 @@ export const fetchHourlyByFloor = async (date, floor) => {
 
 export const fetchHourlyByRoom = async (date, floor, room_id) => {
   try {
-    console.log("parameter", date, floor, room_id);
     const query = `
         SELECT 
           vuh.id,
@@ -276,7 +271,6 @@ export const fetchHourlyByRoom = async (date, floor, room_id) => {
         ORDER BY r.id, vuh.recorded_hour;
   `;
     const res = await pool.query(query, [date, floor, room_id]);
-    console.log(res.rows);
 
     const data = {};
 
@@ -293,8 +287,6 @@ export const fetchHourlyByRoom = async (date, floor, room_id) => {
         value: parseFloat(row.total_usage) || 0,
       });
     });
-
-    console.log("service hourly", data);
 
     return data;
   } catch (err) {
