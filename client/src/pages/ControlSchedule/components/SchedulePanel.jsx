@@ -207,11 +207,10 @@ function SchedulePanel({ selectedDate, onClose }) {
                 <button
                   type="button"
                   onClick={() => setSettingType("on")}
-                  className={`flex-1 rounded-l-2xl text-base font-semibold transition ${
-                    settingType === "on"
+                  className={`flex-1 rounded-l-2xl text-base font-semibold transition ${settingType === "on"
                       ? "bg-white text-green-500 shadow"
                       : "text-gray-500"
-                  }`}
+                    }`}
                 >
                   เปิด
                 </button>
@@ -219,11 +218,10 @@ function SchedulePanel({ selectedDate, onClose }) {
                 <button
                   type="button"
                   onClick={() => setSettingType("off")}
-                  className={`flex-1 py-1 rounded-r-2xl text-base font-semibold transition ${
-                    settingType === "off"
+                  className={`flex-1 py-1 rounded-r-2xl text-base font-semibold transition ${settingType === "off"
                       ? "bg-white text-gray-700 shadow"
                       : "text-gray-500"
-                  }`}
+                    }`}
                 >
                   ปิด
                 </button>
@@ -233,7 +231,7 @@ function SchedulePanel({ selectedDate, onClose }) {
 
           <div className="mb-6">
             <label className="font-medium">
-              วันที่ทำการจอง <span className="text-[#F5222D]">*</span>
+              วันที่ <span className="text-[#F5222D]">*</span>
             </label>
             <DatePicker
               className="w-full !mt-2"

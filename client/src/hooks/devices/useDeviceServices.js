@@ -36,7 +36,6 @@ export function useDeviceServices(config, service) {
       const freshData = await service.getStatus();
       setNormalizedData(freshData);
     } catch (err) {
-      console.log(err);
       errorToast(
         err.message.includes("timeout")
           ? `เซิร์ฟเวอร์ตอบสนองช้าเกินไป กรุณาลองใหม่อีกครั้ง`

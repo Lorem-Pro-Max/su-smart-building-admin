@@ -1,10 +1,12 @@
 import { BurgerAntdIcon } from "@components/common/IconConverter";
 import { SuSceinceLogo, UserIcon } from "@assets/icons";
 import { Button } from "antd";
+import { useState, useEffect } from 'react';
 
 const MockName = "Nutthawara K.";
 
 function NavbarLeftMenu({ onToggle }) {
+
   return (
     <div className="h-8 w-max flex items-center gap-5.25">
       <Button
@@ -28,12 +30,19 @@ function NavbarLeftMenu({ onToggle }) {
 }
 
 function NavbarRightMenu() {
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
   return (
     <div className="w-fit h-fit gap-4 flex items-center">
       <div className="px-2 py-0.5 h-fit flex items-center bg-navbar-name-card rounded-lg gap-1">
         <UserIcon />
         <p className="font-normal tracking-figma leading-6 text-white">
-          {MockName}
+          {user ? `${user.firstname}  ${user.lastname[0]}.` : 'Admin'}
         </p>
       </div>
       <SuSceinceLogo />

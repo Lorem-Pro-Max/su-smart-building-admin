@@ -14,6 +14,6 @@ export function useValves() {
     dataState: state,
     control: control,
     graphService: graphService,
-    PageToast
+    PageToast,
   };
 }

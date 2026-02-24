@@ -47,7 +47,6 @@ const columns = [
 ];
 
 function HistoryTable({ data }) {
-  console.log(data)
   const displayData = data.map((item) => {
     return {
       key: item.id,

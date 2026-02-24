@@ -8,7 +8,7 @@ export const GetAllUsageStats = async (req, res) => {
 
     const tableMap = {
       water: "water_usage_hourly",
-      electric: "electric_usage_hourly",
+      electric: "electricity_useage_hourly",
     };
 
     const tableName = tableMap[type];

@@ -16,7 +16,6 @@ import {
   getDeviceUid,
 } from "@hooks/devices/useDeviceSelection";
 import { useGraphSelection } from "@hooks/graph/useGraphSelection";
-import { LoadingScreen } from "../../utils";
 
 function GraphPageContainer({
   pageIcon,
@@ -50,10 +49,12 @@ function GraphPageContainer({
   const metadata =
     currentPage === "dashboard" ? graphService.graphState.metadata || {} : {};
 
+
+
+
   return (
     <>
       {contextHolder}
-      {graphService.graphState.isLoading && <LoadingScreen />}
       <GraphPageHeader
         pageIcon={pageIcon}
         pageTitle={pageTitle}
