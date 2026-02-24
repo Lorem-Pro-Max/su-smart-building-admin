@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 import doorRoutes from "./routes/doorRoutes.js";
 import valveRoutes from "./routes/valveRoutes.js";
@@ -13,6 +14,7 @@ import userRoute from "./routes/user.js";
 import roomBookingRoutes from "./routes/roomBookingRoutes.js";
 import iotQueueRoute from "./routes/IotQueueRoute.js";
 import iotLogsRoute from "./routes/iotLogRoutes.js";
+import authRoute from "./routes/authRoutes.js";
 
 const app = express();
 
@@ -24,6 +26,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/api/doors", doorRoutes);
 app.use("/api/valves", valveRoutes);
@@ -37,6 +40,7 @@ app.use("/api/iot-queue", iotQueueRoute);
 app.use("/api", roomBookingRoutes);
 app.use("/api", userRoute);
 app.use("/api/logs", iotLogsRoute);
+app.use("/api/auth", authRoute);
 
 app.use((req, res) => {
   return res.status(404).json({ error: "Route not found" });

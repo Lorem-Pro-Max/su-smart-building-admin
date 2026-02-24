@@ -16,16 +16,16 @@ export const getIotLogs = async ({ limit, offset }) => {
       r.title AS room_title,
       r.floor AS room_floor,
       CONCAT(u.firstname, ' ', u.lastname) AS full_name
-    FROM public.iot_log l
-    LEFT JOIN public.user u ON l.action_by = u.id
-    LEFT JOIN public.room_device rd ON l.device_id = rd.id
-    LEFT JOIN public.device_type dt ON rd.device_type_id = dt.id
-    LEFT JOIN public.room r ON rd.room_id = r.id
+    FROM iot_log l
+    LEFT JOIN user u ON l.action_by = u.id
+    LEFT JOIN room_device rd ON l.device_id = rd.id
+    LEFT JOIN device_type dt ON rd.device_type_id = dt.id
+    LEFT JOIN room r ON rd.room_id = r.id
     ORDER BY l.action_time DESC
     LIMIT $1 OFFSET $2;
   `;
 
-    const countSql = `SELECT COUNT(*) FROM public.iot_log`;
+    const countSql = `SELECT COUNT(*) FROM iot_log`;
 
     const [dataRes, totalRes] = await Promise.all([
       pool.query(sql, [limit ?? 10, offset ?? 0]),

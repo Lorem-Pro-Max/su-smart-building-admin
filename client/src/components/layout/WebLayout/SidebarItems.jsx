@@ -9,6 +9,10 @@ import {
 } from "@components/common/IconConverter";
 import { Menu } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import LogoutModal from "../../common/LogoutModal";
+import Logout from "../../../assets/images/login/logout.svg"
+import { logoutService } from "../../../services/auth";
 
 function SideBarMenu({ collapsed }) {
   const navigate = useNavigate();
@@ -88,17 +92,48 @@ function SideBarMenu({ collapsed }) {
     },
   ];
 
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
+
+  const handleLogout = async () => {
+    try {
+      await logoutService();
+    } catch (err) {
+      console.error("Server logout failed, clearing local data anyway:", err);
+    } finally {
+
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+      localStorage.clear();
+
+      navigate("/login");
+    }
+  };
+
   const rootSubmenuKeys = sidebarItems.map((item) => item.key);
 
   return (
-    <Menu
-      theme="light"
-      mode="inline"
-      items={sidebarItems}
-      onClick={(item) => navigate(item.key)}
-      selectedKeys={[activeKey]}
-      defaultOpenKeys={rootSubmenuKeys}
-    />
+    <>
+      <div className="flex flex-col h-full">
+        <Menu
+          theme="light"
+          mode="inline"
+          items={sidebarItems}
+          onClick={(item) => navigate(item.key)}
+          selectedKeys={[activeKey]}
+          defaultOpenKeys={rootSubmenuKeys}
+        />
+        <div className="mt-auto w-full px-3 pb-4">
+          <div
+            onClick={() => setIsLogoutModalOpen(true)}
+            className="group flex items-center gap-3 h-10 rounded-lg cursor-pointer text-primary-dark hover:bg-mint-light hover:text-primary-main transition-colors"
+          >
+            <img src={Logout} className="w-[18px] h-[18px] color-red-900!" alt="logout" />
+            <p className="text-sm font-medium">ออกจากระบบ</p>
+          </div>
+        </div>
+        <LogoutModal handleLogout={handleLogout} isLogoutModalOpen={isLogoutModalOpen} setIsLogoutModalOpen={setIsLogoutModalOpen} />
+      </div>
+    </>
   );
 }
 
