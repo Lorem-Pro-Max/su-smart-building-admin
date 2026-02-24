@@ -16,7 +16,7 @@ function LoginForm() {
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      window.location.href = "/booking/";
+      window.location.href = "/admin-dashboard/";
     } catch (err) {
       const errorMsg = err.response?.data?.message || "การเชื่อมต่อผิดพลาด";
       notification.error({
