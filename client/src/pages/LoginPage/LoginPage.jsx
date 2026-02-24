@@ -1,4 +1,4 @@
-import loginBg from "../../assets/images/login/login.png"
+import loginBg from "../../../public/login/login.png"
 import LoginForm from "./components/LoginForm";
 
 export default function Login() {

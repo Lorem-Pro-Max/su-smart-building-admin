@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Form, Input, message } from "antd";
-import Logo from "../../../assets/images/login/logo2.png";
-import KeySvg from "../../../assets/images/login/key.svg";
+import Logo from "../../../../public/login/logo2.png";
+import KeySvg from "../../../../public/login/key.svg";
 import { UserOutlined } from "@ant-design/icons";
 import { loginService } from "../../../services/auth";
 import { useNavigate } from "react-router-dom";

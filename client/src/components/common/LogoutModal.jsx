@@ -1,5 +1,5 @@
 import { Modal } from 'antd';
-import LogoutImage from "../../assets/images/login/logoutModal.png"
+import LogoutImage from "../../../public/login/logoutModal.png"
 
 function LogoutModal({ isLogoutModalOpen, setIsLogoutModalOpen, handleLogout }) {
     return (

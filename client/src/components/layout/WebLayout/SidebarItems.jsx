@@ -11,7 +11,7 @@ import { Menu } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import LogoutModal from "../../common/LogoutModal";
-import Logout from "../../../assets/images/login/logout.svg"
+import Logout from "../../../../public/login/logout.svg"
 import { logoutService } from "../../../services/auth";
 
 function SideBarMenu({ collapsed }) {
