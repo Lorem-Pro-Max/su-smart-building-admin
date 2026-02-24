@@ -50,13 +50,13 @@ export const getMetadata = async () => {
       }),
     }));
 
-    const measurement_unit = "m³/s";
+    const measurementUnit = "m³/s";
 
     return {
       available_floors,
       available_rooms,
       available_dates,
-      measurement_unit,
+      measurementUnit,
     };
   } catch (err) {
     console.error("getMetadata error:", err);
@@ -66,8 +66,9 @@ export const getMetadata = async () => {
 
 const get7DaysAgo = () => {
   const d = new Date();
-  d.setDate(d.getDate() - 7);
-  return d.toISOString(); // yyyy-mm-ddTHH:mm:ss.sssZ
+  d.setDate(d.getDate() - 6); // 7 วันย้อนหลังรวมวันนี้
+  d.setHours(0, 0, 0, 0);
+  return d;
 };
 
 export const fetchDailyByRoom = async (floor, room) => {
@@ -108,29 +109,52 @@ export const fetchDailyByRoom = async (floor, room) => {
 export const fetchDailyByFloor = async (floor) => {
   try {
     const sevenDaysAgo = get7DaysAgo();
-
     const query = `
-        SELECT 
+      SELECT 
         r.id AS room_id,
         r.title AS room_title,
+        DATE(vuh.recorded_hour) AS date,
         SUM(vuh.total_usage) AS total_usage
-        FROM room r
-        JOIN room_device rd ON rd.room_id = r.id
-        JOIN valves_useage_hourly vuh ON vuh.device_id = rd.id
-        WHERE r.floor = $1
-            AND vuh.recorded_hour >= $2
-        GROUP BY r.id, r.title
-        ORDER BY r.id;
-      `;
+      FROM room r
+      JOIN room_device rd ON rd.room_id = r.id
+      JOIN valves_useage_hourly vuh ON vuh.device_id = rd.id
+      WHERE r.floor = $1
+        AND vuh.recorded_hour >= $2
+      GROUP BY r.id, r.title, DATE(vuh.recorded_hour)
+      ORDER BY r.id, date;
+    `;
+
     const res = await pool.query(query, [floor, sevenDaysAgo]);
 
     const data = {};
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      last7Days.push(d.toISOString().split("T")[0]); // yyyy-mm-dd
+    }
+
     res.rows.forEach((row) => {
-      data[row.room_id] = {
-        room_title: row.room_title,
-        total_usage: parseFloat(row.total_usage) || 0,
-      };
+      if (!data[row.room_id]) {
+        data[row.room_id] = { label: row.room_title, data: [] };
+      }
+      data[row.room_id].data.push({
+        date: row.date.toISOString().split("T")[0],
+        value: parseFloat(row.total_usage) || 0,
+      });
     });
+
+    // เติมวันที่ที่ไม่มีข้อมูล
+    for (const roomId in data) {
+      const existingDates = data[roomId].data.map((d) => d.date);
+      last7Days.forEach((d) => {
+        if (!existingDates.includes(d)) {
+          data[roomId].data.push({ date: d, value: 0 });
+        }
+      });
+      // เรียงวันที่
+      data[roomId].data.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
 
     return data;
   } catch (err) {
@@ -138,6 +162,35 @@ export const fetchDailyByFloor = async (floor) => {
     throw err;
   }
 };
+//     const query = `
+//         SELECT
+//         r.id AS room_id,
+//         r.title AS room_title,
+//         SUM(vuh.total_usage) AS total_usage
+//         FROM room r
+//         JOIN room_device rd ON rd.room_id = r.id
+//         JOIN valves_useage_hourly vuh ON vuh.device_id = rd.id
+//         WHERE r.floor = $1
+//             AND vuh.recorded_hour >= $2
+//         GROUP BY r.id, r.title
+//         ORDER BY r.id;
+//       `;
+//     const res = await pool.query(query, [floor, sevenDaysAgo]);
+
+//     const data = {};
+//     res.rows.forEach((row) => {
+//       data[row.room_id] = {
+//         label: row.room_title,
+//         total_usage: parseFloat(row.total_usage) || 0,
+//       };
+//     });
+
+//     return data;
+//   } catch (err) {
+//     console.error("fetchDailyByFloor error:", err);
+//     throw err;
+//   }
+// };
 
 export const fetchHourlyAll = async (date) => {
   try {

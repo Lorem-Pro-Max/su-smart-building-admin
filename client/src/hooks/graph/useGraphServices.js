@@ -41,8 +41,6 @@ export function useGraphServices(service) {
       try {
         const meta = await service.getMetadata();
 
-        console.log("meta", meta);
-
         if (meta.available_rooms) {
           for (const floor in meta.available_rooms) {
             meta.available_rooms[floor] = [
@@ -61,7 +59,6 @@ export function useGraphServices(service) {
         const defaultDate = meta.available_dates?.[0]?.key || "";
         const defaultRoom = "all";
 
-        console.log(meta);
         const [dData, hData] = await Promise.all([
           service.fetchDaily(defaultFloor, defaultRoom),
           service.fetchHourly(defaultDate, defaultFloor, defaultRoom),

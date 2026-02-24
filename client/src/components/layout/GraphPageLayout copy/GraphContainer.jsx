@@ -12,13 +12,15 @@ export function DaysGraph({
   const { selection, setDailyFloor, setDailyRoom } = selectionService;
   const floorsItems = metadata.available_floors || [];
   const roomsItems = metadata?.available_rooms?.[selection.dailyFloor] || null;
-  const mUnit = metadata.measurementUnit;
+  const mUnit = metadata.measurement_unit;
   const usageData = data || {};
   let colorList = [];
 
   Object.entries(usageData).forEach((_, index) => {
     colorList.push(getColor(index));
   });
+
+
 
   return (
     <div className="w-full rounded-2xl p-8 shadow-graph-container bg-white flex flex-col gap-6">
@@ -51,11 +53,11 @@ export function DaysGraph({
         </div>
       </div>
       <div className="h-68.5 w-full flex items-center justify-center">
-        <DaysGraphRenderer
+        {/* <DaysGraphRenderer
           data={data}
           measurementUnit={mUnit}
           colorList={colorList}
-        />
+        /> */}
       </div>
     </div>
   );
@@ -84,7 +86,7 @@ export function HoursGraph({
     total_number += value.total_usage || 0;
   });
 
-  console.log("hourly5555", datesItmes, data)
+
 
   return (
     <div className="w-full rounded-2xl p-8 shadow-graph-container bg-white flex flex-col gap-8">
