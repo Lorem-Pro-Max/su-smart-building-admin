@@ -3,6 +3,7 @@ import HistoryTable from "./components/HistoryTable";
 import HistoryPagination from "./components/HistoryPagination";
 import { useState, useEffect } from "react";
 import { getIotLogs } from "../../services/history";
+import { LoadingScreen } from "../../components/utils/LoadingScreen";
 
 function HistoryPage() {
   const [logs, setLogs] = useState([]);
@@ -35,7 +36,8 @@ function HistoryPage() {
   }, [currentPage]);
 
 
-  return (
+  return (<>
+    {loading && <LoadingScreen />}
     <div className=" bg-white w-full h-full px-7 py-6 flex justify-center">
       <div className="w-full h-full flex flex-col gap-4">
         <div className="w-full h-max flex gap-2 items-center">
@@ -50,7 +52,7 @@ function HistoryPage() {
         </div>
       </div>
     </div>
-  );
+  </>);
 }
 
 export default HistoryPage;

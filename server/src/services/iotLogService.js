@@ -3,8 +3,8 @@ import pool from "../config/db.js";
 export const getIotLogs = async ({ limit, offset }) => {
   try {
     const sql = `
-    SELECT 
-      l.id, 
+    SELECT
+      l.id,
       l.device_id, 
       l.action, 
       l.action_by, 
@@ -17,7 +17,7 @@ export const getIotLogs = async ({ limit, offset }) => {
       r.floor AS room_floor,
       CONCAT(u.firstname, ' ', u.lastname) AS full_name
     FROM iot_log l
-    LEFT JOIN user u ON l.action_by = u.id
+    LEFT JOIN "user" u ON l.action_by = u.id
     LEFT JOIN room_device rd ON l.device_id = rd.id
     LEFT JOIN device_type dt ON rd.device_type_id = dt.id
     LEFT JOIN room r ON rd.room_id = r.id
