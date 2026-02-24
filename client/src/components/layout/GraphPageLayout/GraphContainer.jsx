@@ -81,10 +81,10 @@ export function HoursGraph({
 
   Object.entries(usageData).forEach(([_, value], index) => {
     colorList.push(getColor(index));
-    total_number += value.total_usage || 0;
+    const roomTotal = value.data.reduce((sum, d) => sum + (d.value || 0), 0);
+    total_number += roomTotal || 0;
   });
 
-  console.log("hourly5555", datesItmes, data)
 
   return (
     <div className="w-full rounded-2xl p-8 shadow-graph-container bg-white flex flex-col gap-8">

@@ -78,7 +78,6 @@ export function useGraphServices(service) {
         });
         hasInitialized.current = true;
       } catch (err) {
-        console.log("error", err.message);
         setGraphState((s) => ({
           ...s,
           isLoading: false,
@@ -90,7 +89,6 @@ export function useGraphServices(service) {
     if (!hasInitialized.current) bootstrap();
   }, [service]);
 
-  console.log("useGraphService", graphState);
   return {
     graphState: graphState,
     fetchDaily,

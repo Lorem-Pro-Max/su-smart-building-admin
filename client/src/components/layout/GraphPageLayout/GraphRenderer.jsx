@@ -21,19 +21,28 @@ const transformChartData = (usageData) => {
       });
     }
   }
+  console.log(chartData)
 
   return chartData;
 };
 
 const transformHourlyData = (usageData) => {
+  console.log(usageData)
   const chartData = [];
   for (const roomId in usageData) {
     const room = usageData[roomId];
     if (!room?.data) continue;
     for (let i = 0; i < room.data.length; i++) {
       const p = room.data[i];
+      const date = new Date(p.time);
+
+      const hour = date.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
       chartData.push({
-        hour: p.time,
+        hour: hour,
         value: p.value,
         label: room.label,
       });
@@ -88,9 +97,11 @@ export function DaysGraphRenderer({ data, measurementUnit, colorList }) {
   );
 }
 
-export function HoursGraphRenderer({ data, measurementUnit, colorList }) {
+export function HoursGraphRenderer({ data, colorList }) {
   const chartData = useMemo(() => transformHourlyData(data), [data]);
   const roomCount = Object.keys(data || {}).length;
+
+  const measurementUnit = "หน่วย"
 
   const config = {
     data: chartData,

@@ -56,11 +56,9 @@ export const getHourlyUsage = async (req, res) => {
 
     let data;
 
-    if (floor === "all" && room === "all") {
-      data = await waterUseageService.fetchHourlyAll(date);
-    } else if (floor !== "all" && room === "all") {
+    if (room === "all") {
       data = await waterUseageService.fetchHourlyByFloor(date, floor);
-    } else if (floor !== "all" && room !== "all") {
+    } else {
       data = await waterUseageService.fetchHourlyByRoom(date, floor, room);
     }
 
