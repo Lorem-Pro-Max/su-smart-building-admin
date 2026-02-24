@@ -27,7 +27,7 @@ function LoginForm() {
   return (
     <div className="w-full h-full max-w-[550px] bg-white flex flex-col p-6 gap-5 items-center justify-center">
       <img src={Logo} className="w-50 item" />
-      <div>
+      <div className="text-center">
         <h1 className="font-extrabold text-xl">ระบบจองห้องประชุม</h1>
         <p>คณะวิทยาศาสตร์ มหาวิทยาลัยศิลปากร</p>
       </div>
@@ -54,7 +54,7 @@ function LoginForm() {
         </Form.Item>
 
         <Form.Item label={null}>
-          <Button type="primary" block htmlType="submit" shape="round">
+          <Button type="primary" block htmlType="submit" shape="round" className="bg-teal-500! hover:bg-teal-600! text-white border-none">
             เข้าสู่ระบบ
           </Button>
         </Form.Item>
