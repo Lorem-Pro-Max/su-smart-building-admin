@@ -167,13 +167,13 @@ export const upsertElectricityHourly = async (
   recordedHour,
 ) => {
   const query = `
-    INSERT INTO electric_usage_hourly
+    INSERT INTO electricity_useage_hourly
     (device_id, import_kwh, export_kwh, recorded_hour, updated_at)
     VALUES ($1, $2, $3, $4, NOW())
     ON CONFLICT (device_id, recorded_hour)
     DO UPDATE SET
-      import_kwh = electric_usage_hourly.import_kwh + EXCLUDED.import_kwh,
-      export_kwh = electric_usage_hourly.export_kwh + EXCLUDED.export_kwh,
+      import_kwh = electricity_useage_hourly.import_kwh + EXCLUDED.import_kwh,
+      export_kwh = electricity_useage_hourly.export_kwh + EXCLUDED.export_kwh,
       updated_at = NOW();
   `;
 

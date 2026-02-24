@@ -18,7 +18,7 @@ export const valveService = {
 
 export const electricityService = {
   ...createMetaFetch(DEVICE_CONFIGS.ELECTRICITY.type),
-  ...createUsageFetchWithoutRooms(DEVICE_CONFIGS.ELECTRICITY.type),
+  ...createUsageFetchWithRooms(DEVICE_CONFIGS.ELECTRICITY.type),
 };
 
 export const doorService = {

@@ -20,6 +20,8 @@ export function DaysGraph({
     colorList.push(getColor(index));
   });
 
+  console.log("roomItem", metadata)
+
 
 
   return (

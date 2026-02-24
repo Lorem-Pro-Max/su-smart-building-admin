@@ -1,9 +1,4 @@
 import {
-  valveDailyUsageData,
-  valveHourlyUsageData,
-} from "../data/valveMockData.js";
-import { metaWithRoom } from "../data/mockMeta.js";
-import {
   getStatusHandler,
   handleBatchCommand,
 } from "../utils/controllerWrapper.js";
@@ -42,8 +37,6 @@ export const getDailyUsage = async (req, res) => {
 export const getHourlyUsage = async (req, res) => {
   const { date, floor, room } = req.query;
   try {
-    console.log(date, floor, room);
-
     if (!floor || !room || !date) {
       return res
         .status(400)
