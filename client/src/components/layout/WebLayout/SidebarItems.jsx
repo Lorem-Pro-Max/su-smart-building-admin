@@ -113,24 +113,26 @@ function SideBarMenu({ collapsed }) {
 
   return (
     <>
-      <Menu
-        theme="light"
-        mode="inline"
-        items={sidebarItems}
-        onClick={(item) => navigate(item.key)}
-        selectedKeys={[activeKey]}
-        defaultOpenKeys={rootSubmenuKeys}
-      />
-      <div className="w-full px-3">
-        <div
-          onClick={() => setIsLogoutModalOpen(true)}
-          className="group flex items-center gap-3 h-10 rounded-lg cursor-pointer text-primary-dark hover:bg-mint-light hover:text-primary-main transition-colors"
-        >
-          <img src={Logout} className="w-[18px] h-[18px]" alt="logout" />
-          <p className="text-sm font-medium pt-4">Logout</p>
+      <div className="flex flex-col h-full">
+        <Menu
+          theme="light"
+          mode="inline"
+          items={sidebarItems}
+          onClick={(item) => navigate(item.key)}
+          selectedKeys={[activeKey]}
+          defaultOpenKeys={rootSubmenuKeys}
+        />
+        <div className="mt-auto w-full px-3 pb-4">
+          <div
+            onClick={() => setIsLogoutModalOpen(true)}
+            className="group flex items-center gap-3 h-10 rounded-lg cursor-pointer text-primary-dark hover:bg-mint-light hover:text-primary-main transition-colors"
+          >
+            <img src={Logout} className="w-[18px] h-[18px] color-red-900!" alt="logout" />
+            <p className="text-sm font-medium">ออกจากระบบ</p>
+          </div>
         </div>
+        <LogoutModal handleLogout={handleLogout} isLogoutModalOpen={isLogoutModalOpen} setIsLogoutModalOpen={setIsLogoutModalOpen} />
       </div>
-      <LogoutModal handleLogout={handleLogout} isLogoutModalOpen={isLogoutModalOpen} setIsLogoutModalOpen={setIsLogoutModalOpen} />
     </>
   );
 }
