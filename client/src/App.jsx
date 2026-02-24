@@ -17,6 +17,7 @@ import ApproveBookingPage from "./pages/ApproveBookingPage/ApproveBooking";
 import UserPermissionPage from "./pages/UserPermissionPage/UserPermissionPage";
 import ControlSchedulePage from "./pages/ControlSchedule/ControlSchedulePage";
 import { SmokeAlertModal, useIdleWarning } from "./components/utils";
+import AdminProtectedRoute from "./components/common/AdminProtectedRoute"
 
 function App() {
   const [smokeData, setSmokeData] = useState(null);
@@ -49,25 +50,27 @@ function App() {
       />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route element={<Layout />}>
-          <Route path="/history" element={<HistoryPage />} />
-          <Route path="/device-scheduling" element={<ControlSchedulePage />} />
-          <Route path="/doors" element={<DoorsControlPage />} />
-          <Route path="/lights" element={<LightsControlPage />} />
-          <Route path="/exhaust-fans" element={<ExhaustFansControlPage />} />
-          <Route path="/valves" element={<ValvesControlPage />} />
-          <Route
-            path="/air-conditioners"
-            element={<AirConditionersControlPage />}
-          />
-          <Route path="/air-quality" element={<AirQualityPage />} />
-          <Route path="/electricity" element={<ElectricityPage />} />
-          <Route path="/approve-booking" element={<ApproveBookingPage />} />
-          <Route path="/user-permissions" element={<UserPermissionPage />} />
-          <Route
-            path="*"
-            element={<Navigate to="/approve-booking" replace />}
-          />
+        <Route element={<AdminProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="/device-scheduling" element={<ControlSchedulePage />} />
+            <Route path="/doors" element={<DoorsControlPage />} />
+            <Route path="/lights" element={<LightsControlPage />} />
+            <Route path="/exhaust-fans" element={<ExhaustFansControlPage />} />
+            <Route path="/valves" element={<ValvesControlPage />} />
+            <Route
+              path="/air-conditioners"
+              element={<AirConditionersControlPage />}
+            />
+            <Route path="/air-quality" element={<AirQualityPage />} />
+            <Route path="/electricity" element={<ElectricityPage />} />
+            <Route path="/approve-booking" element={<ApproveBookingPage />} />
+            <Route path="/user-permissions" element={<UserPermissionPage />} />
+            <Route
+              path="*"
+              element={<Navigate to="/approve-booking" replace />}
+            />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

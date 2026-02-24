@@ -10,7 +10,6 @@ const apiClient = axios.create({
 export const loginService = async (username, password) => {
   const response = await apiClient.post("/auth/login", { username, password });
   return response.data;
-  å;
 };
 
 export const logoutService = async () => {

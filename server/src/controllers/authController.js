@@ -10,7 +10,7 @@ export const login = async (req, res) => {
   const { username, password } = req.body;
   try {
     const user = await findUserByUsername(username);
-    console.log(process.env.JWT_ACCESS_SECRET);
+
     if (!user)
       return res
         .status(401)
@@ -21,6 +21,14 @@ export const login = async (req, res) => {
       return res
         .status(401)
         .json({ message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
+
+    if (user.role_id !== 1) {
+      console.log("no access");
+      return res.status(403).json({
+        access: false,
+        message: "ไม่มีสิทธิ์เข้าใช้งาน (เฉพาะผู้ดูแลระบบเท่านั้น)",
+      });
+    }
 
     const accessToken = jwt.sign(
       { id: user.id, role: user.role_id },
