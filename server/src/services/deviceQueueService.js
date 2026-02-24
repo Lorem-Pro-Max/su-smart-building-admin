@@ -108,7 +108,7 @@ const iotWorker = new Worker(
         "schedule",
         "info",
         "EXECUTION_SUCCESS",
-        `${action.toUpperCase()} command verified for ${roomTitle}`,
+        `${action.toUpperCase()} : ${roomTitle}`,
         { scheduleId },
       );
     } catch (err) {

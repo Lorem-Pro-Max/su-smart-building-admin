@@ -15,7 +15,7 @@ export const useToast = () => {
         : message;
 
     api[type]({
-      message: isError ? "ดำเนินการล้มเหลว" : "ดำเนินการสำเร็จ",
+      title: isError ? "ดำเนินการล้มเหลว" : "ดำเนินการสำเร็จ",
       description: String(description),
       placement: "topRight",
       duration: duration,

@@ -19,7 +19,7 @@ export function useAirQualityServices() {
 
   const getErrorMessage = (err, defaultMsg) => {
     if (!err.response) {
-      return "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้";
+      return "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้";
     }
     const status = err.response?.status;
     if (status === 404) return "ไม่พบสถานะจากอุปกรณ์ในห้อง (Sensor is Offline)";
@@ -42,7 +42,6 @@ export function useAirQualityServices() {
           `ไม่สามารถโหลดข้อมูลห้องที่เลือกได้`,
         );
         errorToast(message);
-
         setAqState((s) => ({ ...s, roomStatus: { data: {}, floor, roomId } }));
       }
     },

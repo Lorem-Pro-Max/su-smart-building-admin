@@ -30,7 +30,7 @@ const ERROR_LOG_INTERVAL = 60000;
 
 const getFormattedDateTime = () => {
   const now = new Date();
-  
+
   const options = {
     timeZone: "Asia/Bangkok",
     day: "2-digit",
@@ -62,6 +62,7 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
     const roomId = meta.room_id;
     const START_TIME_KEY = `occupancy:start:${sensorId}:${roomId}`;
     const LEVEL_KEY = `occupancy:level:${sensorId}:${roomId}`;
+    const LOCK_KEY = `proc:lock:${roomId}`;
 
     try {
       if (isHumanPresent) {
@@ -72,9 +73,14 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
           currentLevel === ROOM_STATE.CLOSED ||
           currentLevel === ROOM_STATE.NOTIFIED
         ) {
+
+          const isProcessing = await redisConnection.get(LOCK_KEY);
+          if (isProcessing) continue;
+          
+          await redisConnection.set(LOCK_KEY, "true", "EX", 15);
           await handleHumanReentry(roomId);
+          await redisConnection.del(LEVEL_KEY);
         }
-        await redisConnection.del(LEVEL_KEY);
         continue;
       }
 
@@ -91,8 +97,15 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
         idleMinutes >= ROOM_SHUTDOWN_MINUTE_TRIGGER &&
         currentLevel !== ROOM_STATE.CLOSED
       ) {
+
+        const isProcessing = await redisConnection.get(LOCK_KEY);
+        if (isProcessing) continue;
+
+        await redisConnection.set(LOCK_KEY, "true", "EX", 15);
+
         await triggerShutdownAction(roomId);
         await redisConnection.set(LEVEL_KEY, ROOM_STATE.CLOSED);
+
       } else if (idleMinutes >= NOTI_MINUTE_TRIGGER && !currentLevel) {
         const currentTime = getFormattedDateTime();
         await triggerNotiAction(meta, currentTime);
@@ -154,12 +167,17 @@ const executeRoomAction = async (roomId, action) => {
           (r) => !r || r.status !== 200 || r.data?.success !== true,
         );
 
+        const successHardwareIds = [];
+        let roomTitle = `Room ${roomId}`;
+        
         successes.forEach((res) => {
           try {
             const deviceMetaList = getDeviceByHardwareId(res.id);
             deviceMetaList.forEach((meta) => {
               if (meta.id && String(meta.room_id) === String(roomId)) {
                 logIotAction(meta.id, action, null);
+                successHardwareIds.push(res.id);
+                if (meta.title) roomTitle = meta.title;
               }
             });
           } catch (mappingErr) {
@@ -171,6 +189,16 @@ const executeRoomAction = async (roomId, action) => {
             );
           }
         });
+
+        if (successHardwareIds.length > 0) {
+          logSystemEvent(
+            "human-detection",
+            "info",
+            "EXECUTION_SUCCESS",
+            `${roomTitle} | ${action.toUpperCase()}: ${successHardwareIds.join(", ")}`,
+            { roomId, count: successHardwareIds.length },
+          );
+        }
 
         if (failures.length > 0) {
           const failKey = `partial-fail:${roomId}:${type}`;

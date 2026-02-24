@@ -6,7 +6,18 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const apiClient = axios.create({
   baseURL: `${BASE_URL}/api`,
   headers: { "Content-Type": "application/json" },
+  timeout: 20000,
 });
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+      error.message = 'Request timeout'; 
+    }
+    return Promise.reject(error);
+  }
+);
 
 const formatDeviceIds = (deviceIds) => {
   return deviceIds.map((uid) => {
