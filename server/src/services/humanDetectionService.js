@@ -60,8 +60,8 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
 
   for (const meta of sensorMappings) {
     const roomId = meta.room_id;
-    const START_TIME_KEY = `occupancy:start:${sensorId}:${roomId}`;
-    const LEVEL_KEY = `occupancy:level:${sensorId}:${roomId}`;
+    const START_TIME_KEY = `occupancy:start:room:${roomId}`;
+    const LEVEL_KEY = `occupancy:level:room:${roomId}`;
     const LOCK_KEY = `proc:lock:${roomId}`;
 
     try {
@@ -73,11 +73,17 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
           currentLevel === ROOM_STATE.CLOSED ||
           currentLevel === ROOM_STATE.NOTIFIED
         ) {
+          const acquiredLock = await redisConnection.set(
+            LOCK_KEY,
+            "true",
+            "EX",
+            15,
+            "NX",
+          );
+          if (!acquiredLock) {
+            continue;
+          }
 
-          const isProcessing = await redisConnection.get(LOCK_KEY);
-          if (isProcessing) continue;
-          
-          await redisConnection.set(LOCK_KEY, "true", "EX", 15);
           await handleHumanReentry(roomId);
           await redisConnection.del(LEVEL_KEY);
         }
@@ -97,15 +103,19 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
         idleMinutes >= ROOM_SHUTDOWN_MINUTE_TRIGGER &&
         currentLevel !== ROOM_STATE.CLOSED
       ) {
-
-        const isProcessing = await redisConnection.get(LOCK_KEY);
-        if (isProcessing) continue;
-
-        await redisConnection.set(LOCK_KEY, "true", "EX", 15);
+        const acquiredLock = await redisConnection.set(
+          LOCK_KEY,
+          "true",
+          "EX",
+          15,
+          "NX",
+        );
+        if (!acquiredLock) {
+          continue;
+        }
 
         await triggerShutdownAction(roomId);
         await redisConnection.set(LEVEL_KEY, ROOM_STATE.CLOSED);
-
       } else if (idleMinutes >= NOTI_MINUTE_TRIGGER && !currentLevel) {
         const currentTime = getFormattedDateTime();
         await triggerNotiAction(meta, currentTime);
@@ -169,7 +179,8 @@ const executeRoomAction = async (roomId, action) => {
 
         const successHardwareIds = [];
         let roomTitle = `Room ${roomId}`;
-        
+        let roomFloor = "Unknown";
+
         successes.forEach((res) => {
           try {
             const deviceMetaList = getDeviceByHardwareId(res.id);
@@ -178,6 +189,7 @@ const executeRoomAction = async (roomId, action) => {
                 logIotAction(meta.id, action, null);
                 successHardwareIds.push(res.id);
                 if (meta.title) roomTitle = meta.title;
+                if (meta.floor) roomFloor = meta.floor;
               }
             });
           } catch (mappingErr) {
@@ -195,8 +207,13 @@ const executeRoomAction = async (roomId, action) => {
             "human-detection",
             "info",
             "EXECUTION_SUCCESS",
-            `${roomTitle} | ${action.toUpperCase()}: ${successHardwareIds.join(", ")}`,
-            { roomId, count: successHardwareIds.length },
+            `${action.toUpperCase()} | Floor ${roomFloor} | ${roomTitle} | ${successHardwareIds.join(", ")}`,
+            {
+              roomId,
+              roomTitle,
+              floor: roomFloor,
+              success_count: successHardwareIds.length,
+            },
           );
         }
 
@@ -205,11 +222,23 @@ const executeRoomAction = async (roomId, action) => {
           const now = Date.now();
           if (now - (errorThrottles.get(failKey) || 0) > ERROR_LOG_INTERVAL) {
             errorThrottles.set(failKey, now);
+
+            const errorDetails = failures
+              .map((f) => {
+                const exactError =
+                  f.data?.error ||
+                  f.data?.detail ||
+                  f.error ||
+                  "Unknown Failure";
+                return `${f.id} (${exactError})`;
+              })
+              .join(" | ");
+
             logSystemEvent(
               "human-detection",
               "warn",
               "PARTIAL_EXECUTION_FAIL",
-              `Some ${type} failed.`,
+              `${type.toUpperCase()} execution issues: ${errorDetails}`,
               { failures },
             );
           }
@@ -266,20 +295,10 @@ const handleHumanReentry = async (roomId) => {
 };
 
 export const isRoomStillInactive = async (roomId, thresholdMinutes = 30) => {
-  const sensorIds = getSensorsByRoomId(roomId);
-  if (sensorIds.length === 0) return true;
+  const startTime = await redisConnection.get(`occupancy:start:room:${roomId}`);
 
-  const results = await Promise.all(
-    sensorIds.map(async (id) => {
-      const startTime = await redisConnection.get(
-        `occupancy:start:${id}:${roomId}`,
-      );
-      if (!startTime) return true;
+  if (!startTime) return true;
 
-      const idleMinutes = (Date.now() - parseInt(startTime)) / 60000;
-      return idleMinutes >= thresholdMinutes;
-    }),
-  );
-
-  return results.every((status) => status === true);
+  const idleMinutes = (Date.now() - parseInt(startTime)) / 60000;
+  return idleMinutes >= thresholdMinutes;
 };
