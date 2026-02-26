@@ -98,7 +98,9 @@ const iotWorker = new Worker(
           firstErr?.data?.error ||
           firstErr?.error ||
           "Unknown Failure";
-        throw new Error(`EXECUTION_FAILED: ${errMsg}`);
+        throw new Error(
+          `Failed to process: ${action} | ${roomTitle} | ${deviceId} | ${errMsg}`,
+        );
       }
 
       await updateIotScheduleStatus(scheduleId, "done");
@@ -124,7 +126,11 @@ const iotWorker = new Worker(
       throw err;
     }
   },
-  { connection: redisConnection },
+  {
+    connection: redisConnection,
+    concurrency: 20,
+    lockDuration: 30000,
+  },
 );
 
 export const addIotJob = async (
@@ -166,7 +172,11 @@ export const addIotJob = async (
     }
 
     const now = Date.now();
-    const delay = Math.max(0, scheduledTime - now);
+    let delay = Math.max(0, scheduledTime - now);
+
+    if (normalizedAction == "on") {
+      delay += 10000;
+    }
 
     const jobId = `${scheduleId}-${bookingId}-${normalizedAction}-${meta.device_id}-${meta.device_sub_id || "null"}`;
 
