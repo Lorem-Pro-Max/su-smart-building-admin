@@ -31,19 +31,23 @@ const ERROR_LOG_INTERVAL = 60000;
 const getFormattedDateTime = () => {
   const now = new Date();
 
-  const options = {
+  const dateOptions = {
     timeZone: "Asia/Bangkok",
     day: "2-digit",
     month: "2-digit",
     year: "2-digit",
+  };
+
+  const timeOptions = {
+    timeZone: "Asia/Bangkok",
     hour12: false,
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
   };
 
-  const date = now.toLocaleDateString("en-GB", options);
-  const time = now.toLocaleTimeString("en-GB", options);
+  const date = now.toLocaleDateString("en-GB", dateOptions);
+  const time = now.toLocaleTimeString("en-GB", timeOptions);
 
   return { date, time };
 };
