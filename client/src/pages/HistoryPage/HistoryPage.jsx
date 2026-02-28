@@ -33,8 +33,7 @@ function HistoryPage() {
 
   useEffect(() => {
     fetchHistory();
-  }, [currentPage]);
-
+  }, [currentPage, limit]);
 
   return (<>
     {loading && <LoadingScreen />}

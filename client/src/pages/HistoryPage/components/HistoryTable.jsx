@@ -47,6 +47,7 @@ const columns = [
 ];
 
 function HistoryTable({ data }) {
+
   const displayData = data.map((item) => {
     return {
       key: item.id,
@@ -70,6 +71,7 @@ function HistoryTable({ data }) {
       approver_name: item.action_by ? item.full_name : "SYSTEM"
     }
   })
+
   return (
     <ConfigProvider theme={HistoryTableTheme}>
       <Table
@@ -94,9 +96,8 @@ function HistoryTable({ data }) {
           },
         }}
         dataSource={displayData}
-        pagination={{
-          placement: ["none"],
-        }}
+        pagination={false}
+        scroll={{ y: 800 }}
       />
     </ConfigProvider>
   );
