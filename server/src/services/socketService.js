@@ -32,7 +32,8 @@ const DEVICE_PREFIX_MAP = {
 const SMOKE_DETECTION_PREFIX = "SD";
 const HUMAN_DETECTION_PREFIX = "HP";
 const WATER_USEAGE_PREFIX = "VA";
-const ELECTRICITY_USEAGE_PREFIX = "ELP";
+const ELECTRICITY_ELP_PREFIX = "ELP";
+const ELECTRICITY_LP_PREFIX = "LP";
 
 export const initDeviceMapping = async () => {
   try {
@@ -169,7 +170,24 @@ export const initIotSocketListener = () => {
           return;
         }
 
-        if (ELECTRICITY_USEAGE_PREFIX === prefixELP) {
+        if (ELECTRICITY_ELP_PREFIX === prefixELP) {
+          const mappedDevices = deviceCache.byDeviceId[fullId];
+          const deviceId = mappedDevices[0].id;
+
+          if (!mappedDevices || mappedDevices.length === 0) {
+            console.warn(`[Mapping Missing] ${fullId}`);
+            return;
+          }
+
+          useageService.processElecticityData(
+            payload,
+            deviceId,
+            electricBuffer,
+          );
+          return;
+        }
+
+        if (ELECTRICITY_LP_PREFIX === prefix) {
           const mappedDevices = deviceCache.byDeviceId[fullId];
           const deviceId = mappedDevices[0].id;
 

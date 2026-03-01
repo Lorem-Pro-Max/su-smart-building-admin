@@ -88,32 +88,39 @@ export const processWaterData = (payload, waterBuffer) => {
 export const processElecticityData = (payload, deviceId, electricBuffer) => {
   if (!deviceId) return;
 
-  const currentImport = parseFloat(payload.e_import_kwh);
-  const currentExport = parseFloat(payload.e_export_kwh);
+  const phases = ["a", "b", "c"];
+  if (!electricBuffer[deviceId]) electricBuffer[deviceId] = {};
 
-  if (isNaN(currentImport) || isNaN(currentExport)) return;
+  phases.forEach((phase) => {
+    const importKey = `e${phase}_import_kwh`;
+    const exportKey = `e${phase}_export_kwh`;
 
-  if (!electricBuffer[deviceId]) {
-    electricBuffer[deviceId] = {
-      previousImport: currentImport,
-      previousExport: currentExport,
-      hourlyImport: 0,
-      hourlyExport: 0,
-    };
-    return;
-  }
+    const currentImport = parseFloat(payload[importKey]);
+    const currentExport = parseFloat(payload[exportKey]);
 
-  const data = electricBuffer[deviceId];
+    if (isNaN(currentImport) || isNaN(currentExport)) return;
 
-  const deltaImport = currentImport - data.previousImport;
-  const deltaExport = currentExport - data.previousExport;
+    if (!electricBuffer[deviceId][phase]) {
+      electricBuffer[deviceId][phase] = {
+        previousImport: currentImport,
+        previousExport: currentExport,
+        hourlyImport: 0,
+        hourlyExport: 0,
+      };
+      return;
+    }
 
-  // กันค่าติดลบ (กรณี meter reset)
-  if (deltaImport > 0) data.hourlyImport += deltaImport;
-  if (deltaExport > 0) data.hourlyExport += deltaExport;
+    const data = electricBuffer[deviceId][phase];
 
-  data.previousImport = currentImport;
-  data.previousExport = currentExport;
+    const deltaImport = currentImport - data.previousImport;
+    const deltaExport = currentExport - data.previousExport;
+
+    if (deltaImport > 0) data.hourlyImport += deltaImport;
+    if (deltaExport > 0) data.hourlyExport += deltaExport;
+
+    data.previousImport = currentImport;
+    data.previousExport = currentExport;
+  });
 };
 
 export const processElectricityUsageBuffer = async (electricityBuffer) => {
@@ -134,28 +141,36 @@ export const processElectricityUsageBuffer = async (electricityBuffer) => {
   );
 
   for (const deviceId of deviceKeys) {
-    const data = electricityBuffer[deviceId];
+    const deviceData = electricityBuffer[deviceId];
+    if (!deviceData) continue;
 
-    data.hourlyImport += data.lastImport || 0;
-    data.hourlyExport += data.lastExport || 0;
+    const phases = ["a", "b", "c"];
+    for (const phase of phases) {
+      const data = deviceData[phase];
+      if (!data) continue;
 
-    if (data.hourlyImport === 0 && data.hourlyExport === 0) continue;
+      data.hourlyImport += data.lastImport || 0;
+      data.hourlyExport += data.lastExport || 0;
 
-    try {
-      await upsertElectricityHourly(
-        deviceId,
-        data.hourlyImport,
-        data.hourlyExport,
-        recordedHour,
-      );
+      if (data.hourlyImport === 0 && data.hourlyExport === 0) continue;
 
-      data.hourlyImport = 0;
-      data.hourlyExport = 0;
-    } catch (err) {
-      console.error(
-        `[Error] Electricity upsert failed ID:${deviceId}`,
-        err.message,
-      );
+      try {
+        await upsertElectricityHourly(
+          deviceId,
+          data.hourlyImport,
+          data.hourlyExport,
+          recordedHour,
+          phase,
+        );
+
+        data.hourlyImport = 0;
+        data.hourlyExport = 0;
+      } catch (err) {
+        console.error(
+          `[Error] Electricity upsert failed ID:${deviceId} Phase:${phase}`,
+          err.message,
+        );
+      }
     }
   }
 };
@@ -165,12 +180,13 @@ export const upsertElectricityHourly = async (
   importAmount,
   exportAmount,
   recordedHour,
+  phase,
 ) => {
   const query = `
     INSERT INTO electricity_useage_hourly
-    (device_id, import_kwh, export_kwh, recorded_hour, updated_at)
-    VALUES ($1, $2, $3, $4, NOW())
-    ON CONFLICT (device_id, recorded_hour)
+      (device_id, import_kwh, export_kwh, recorded_hour, phase, updated_at)
+    VALUES ($1, $2, $3, $4, $5, NOW())
+    ON CONFLICT (device_id, recorded_hour, phase)
     DO UPDATE SET
       import_kwh = electricity_useage_hourly.import_kwh + EXCLUDED.import_kwh,
       export_kwh = electricity_useage_hourly.export_kwh + EXCLUDED.export_kwh,
@@ -182,5 +198,6 @@ export const upsertElectricityHourly = async (
     importAmount,
     exportAmount,
     recordedHour,
+    phase,
   ]);
 };
