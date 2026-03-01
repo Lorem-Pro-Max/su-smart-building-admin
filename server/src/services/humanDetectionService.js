@@ -55,7 +55,6 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
   if (!sensorId) return;
 
   const sensorMappings = getDeviceByHardwareId(sensorId);
-
   if (!sensorMappings || sensorMappings.length === 0) return;
 
   const now = Date.now();
