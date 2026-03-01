@@ -205,6 +205,7 @@ export const getAllRoomByBooking = async () => {
            b.name AS building_name
     FROM room r
     LEFT JOIN building b ON r.building_id = b.id
+    ORDER BY r.title ASC
   `;
 
   const deviceQuery = `
@@ -212,6 +213,7 @@ export const getAllRoomByBooking = async () => {
            dt.type, dt.key
     FROM room_device rd
     INNER JOIN device_type dt ON rd.device_type_id = dt.id
+    ORDER BY dt.type ASC
   `;
 
   const { rows: rooms } = await pool.query(roomQuery);

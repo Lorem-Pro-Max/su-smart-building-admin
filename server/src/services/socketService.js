@@ -29,7 +29,7 @@ const DEVICE_PREFIX_MAP = {
   MT: "sensors",
 };
 
-const SMOKE_DETECTION_PREFIX = "SM";
+const SMOKE_DETECTION_PREFIX = "SD";
 const HUMAN_DETECTION_PREFIX = "HP";
 const WATER_USEAGE_PREFIX = "VA";
 const ELECTRICITY_USEAGE_PREFIX = "ELP";
@@ -103,20 +103,40 @@ let electricBuffer = {};
 let lastWsErrorLog = 0;
 const WS_ERROR_LOG_INTERVAL = 5 * 60 * 1000;
 
+setInterval(async () => {
+  await useageService.processWaterUsageBuffer(waterBuffer, deviceCache);
+}, useageService.USEAGE_UPSERT_INTERVAL);
+
+setInterval(async () => {
+  await useageService.processElectricityUsageBuffer(electricBuffer);
+}, useageService.USEAGE_UPSERT_INTERVAL);
+
 export const initIotSocketListener = () => {
   const ws = new WebSocket(SOCKET_URL);
 
+  let isAlive = true;
+  let pingInterval = null;
+
   ws.on("open", () => {
     console.log("[Websocket] IoT server connected");
+    isAlive = true;
+
+    pingInterval = setInterval(() => {
+      if (isAlive === false) {
+        console.warn(
+          "[Websocket] Connection drop detected. Terminating socket...",
+        );
+        return ws.terminate();
+      }
+
+      isAlive = false;
+      ws.ping();
+    }, 30000);
   });
 
-  setInterval(async () => {
-    await useageService.processWaterUsageBuffer(waterBuffer, deviceCache);
-  }, useageService.USEAGE_UPSERT_INTERVAL);
-
-  setInterval(async () => {
-    await useageService.processElectricityUsageBuffer(electricBuffer);
-  }, useageService.USEAGE_UPSERT_INTERVAL);
+  ws.on("pong", () => {
+    isAlive = true;
+  });
 
   ws.on("message", (data) => {
     try {
@@ -192,6 +212,8 @@ export const initIotSocketListener = () => {
   });
 
   ws.on("close", () => {
+    if (pingInterval) clearInterval(pingInterval);
+
     console.warn("[Websocket] IoT connection lost. Retrying in 5s...");
     setTimeout(initIotSocketListener, 5000);
   });

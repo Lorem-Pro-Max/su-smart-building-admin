@@ -43,6 +43,12 @@ export const formatDeviceUpdate = (iotStatusData, deviceType) => {
     }
   }
 
+  for (const floor in grouped) {
+    grouped[floor].sort((a, b) =>
+      a.name.localeCompare(b.name, "th", { numeric: true }),
+    );
+  }
+
   return grouped;
 };
 
@@ -62,7 +68,7 @@ export const formatDeviceMetadata = (deviceIds) => {
         }
 
         metadata.available_rooms[floorKey].push({
-          key: id, 
+          key: id,
           label: title,
           type: key,
           device_sub_id: device_sub_id || null,
@@ -77,7 +83,16 @@ export const formatDeviceMetadata = (deviceIds) => {
       });
     }
   }
-  metadata.available_floors.sort((a, b) => a.key.localeCompare(b.key));
+  metadata.available_floors.sort((a, b) =>
+    a.key.localeCompare(b.key, "en", { numeric: true }),
+  );
+
+  for (const floorKey in metadata.available_rooms) {
+    metadata.available_rooms[floorKey].sort((a, b) =>
+      a.label.localeCompare(b.label, "th", { numeric: true }),
+    );
+  }
+
   return metadata;
 };
 
