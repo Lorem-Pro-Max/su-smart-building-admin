@@ -54,7 +54,7 @@ function HistoryTable({ data }) {
       room: item.room_title,
       floor: item.room_floor,
       device_name: item.device_type_name,
-      device_status: item.action === "ON" || item.action === "OPEN" ? "เปิด" : "ปิด",
+      device_status: item.action === "on" ? "เปิด" : "ปิด",
 
       date: new Date(item.action_time).toLocaleDateString("en-GB", {
         day: "numeric",
