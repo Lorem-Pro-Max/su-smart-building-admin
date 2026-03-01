@@ -10,7 +10,14 @@ const displayConfig = {
 function ElectricityPage() {
   const { graphService } = useElectricity();
   return (
-    <p>ElectricityPage</p>
+    <GraphPageContainer
+      pageIcon={<ElectricityTitleIcon />}
+      pageTitle={"กระแสไฟฟ้า"}
+      alternateTitle={"ไฟ"}
+      displayConfig={displayConfig}
+      graphService={graphService}
+      totalUsageIcon={<TotalUsageIconOrange />}
+    />
   );
 }
 
