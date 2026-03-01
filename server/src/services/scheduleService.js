@@ -26,6 +26,7 @@ export const getAll = async () => {
     ON s.device_id = rd.id
   INNER JOIN device_type dt ON rd.device_type_id = dt.id
   INNER JOIN room r ON rd.room_id = r.id
+  ORDER BY s.action_time ASC
 `;
   const { rows } = await pool.query(query);
 
@@ -103,7 +104,7 @@ export const createSchedules = async ({
         item.action_time,
         item.booking_id ?? null,
         item.id,
-        item.action_by
+        item.action_by,
       ),
     ),
   );
@@ -205,6 +206,7 @@ export const getAllRoomByBooking = async () => {
            b.name AS building_name
     FROM room r
     LEFT JOIN building b ON r.building_id = b.id
+    ORDER BY r.title ASC
   `;
 
   const deviceQuery = `
@@ -212,6 +214,7 @@ export const getAllRoomByBooking = async () => {
            dt.type, dt.key
     FROM room_device rd
     INNER JOIN device_type dt ON rd.device_type_id = dt.id
+    ORDER BY dt.type ASC
   `;
 
   const { rows: rooms } = await pool.query(roomQuery);

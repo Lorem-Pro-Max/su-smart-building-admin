@@ -6,7 +6,6 @@ import { getIO } from "../config/socket.js";
 import {
   getDeviceByHardwareId,
   getDevicesByRoomId,
-  getSensorsByRoomId,
 } from "../utils/deviceMap.js";
 
 const NOTI_MINUTE_TRIGGER = 20;
@@ -56,7 +55,6 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
   if (!sensorId) return;
 
   const sensorMappings = getDeviceByHardwareId(sensorId);
-
   if (!sensorMappings || sensorMappings.length === 0) return;
 
   const now = Date.now();
@@ -67,8 +65,11 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
     const START_TIME_KEY = `occupancy:start:room:${roomId}`;
     const LEVEL_KEY = `occupancy:level:room:${roomId}`;
     const LOCK_KEY = `proc:lock:${roomId}`;
+    const BOOKING_KEY = `booking:active:room:${roomId}`;
 
     try {
+      const isRoomBooked = await redisConnection.get(BOOKING_KEY);
+
       if (isHumanPresent) {
         await redisConnection.set(START_TIME_KEY, now);
         const currentLevel = await redisConnection.get(LEVEL_KEY);
@@ -97,6 +98,12 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
       const startTime = await redisConnection.get(START_TIME_KEY);
       if (!startTime) {
         await redisConnection.set(START_TIME_KEY, now);
+        continue;
+      }
+
+      if (isRoomBooked) {
+        await redisConnection.set(START_TIME_KEY, now);
+        await redisConnection.del(LEVEL_KEY); 
         continue;
       }
 
@@ -211,7 +218,7 @@ const executeRoomAction = async (roomId, action) => {
             "human-detection",
             "info",
             "EXECUTION_SUCCESS",
-            `${action.toUpperCase()} | Floor ${roomFloor} | ${roomTitle} | ${successHardwareIds.join(", ")}`,
+            `[${action.toUpperCase()}] (F${roomFloor})${roomTitle} -> ${successHardwareIds.join(", ")}`,
             {
               roomId,
               roomTitle,

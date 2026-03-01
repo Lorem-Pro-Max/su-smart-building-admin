@@ -320,3 +320,56 @@ export const initColdStartSync = async () => {
     logSystemEvent("schedule", "fatal", "COLD_START_FATAL", error.message);
   }
 };
+
+export const setActiveRoom = async (roomId, endDateTime) => {
+  try {
+    if (!roomId || !endDateTime) {
+      return {
+        success: false,
+        status: 400,
+        error: "REQUIRED_KEYS: roomId and endDateTime",
+      };
+    }
+
+    const endTime = new Date(endDateTime).getTime();
+    if (isNaN(endTime)) {
+      return {
+        success: false,
+        status: 400,
+        error: `Invalid time format (require timestampz): ${endDateTime}`,
+      };
+    }
+
+    const now = Date.now();
+    const secondsUntilEnd = Math.floor((endTime - now) / 1000);
+
+    if (secondsUntilEnd > 0) {
+      await redisConnection.set(
+        `booking:active:room:${roomId}`,
+        "true",
+        "EX",
+        secondsUntilEnd,
+      );
+      return {
+        success: true,
+        message: `Locked room ${roomId} for ${secondsUntilEnd}s`,
+      };
+    }
+
+    return { success: false, error: "Booking has already expired" };
+  } catch (error) {
+    logSystemEvent(
+      "schedule",
+      "error",
+      "ACTIVE_ROOM_SET_FAIL",
+      error.message,
+      { roomId, endDateTime },
+    );
+    console.error(`[Room Booking] Failed to set active room: ${error.message}`);
+    return {
+      success: false,
+      error: error.message || "Internal Redis Error",
+      status: error.status || 500,
+    };
+  }
+};

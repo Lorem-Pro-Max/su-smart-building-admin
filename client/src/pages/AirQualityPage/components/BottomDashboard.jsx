@@ -1,14 +1,7 @@
-import { CommonDropdown } from "@components/utils/CommonDropdown";
+import { CommonDropdown, getAirQualityColor } from "@components/utils";
 
 function AirQualityItem({ rank, item, orderBy }) {
-  const bestToWorstColors = ["#52C41A", "#FADB14", "#FA8C16", "#F5222D"];
-  const worstToBestColors = ["#F5222D", "#FA8C16", "#FADB14", "#52C41A"];
-
-  const activePalette =
-    orderBy === "best" ? bestToWorstColors : worstToBestColors;
-
-  const dotColor =
-    activePalette[rank] || (orderBy === "best" ? "#F5222D" : "#52C41A");
+  const dotColor = getAirQualityColor(item.type, item.value);
 
   const unitMap = {
     pm25: "ug/m³",
@@ -16,7 +9,6 @@ function AirQualityItem({ rank, item, orderBy }) {
     temp: "°C",
     co2: "ppm",
     co: "ppm",
-    smoke: "mg/m³",
   };
 
   return (
@@ -64,7 +56,6 @@ function BottomDashboard({ rankings, onFetchRankings }) {
     { key: "temp", label: "Temperature" },
     { key: "co2", label: "CO2" },
     { key: "co", label: "CO" },
-    { key: "smoke", label: "Smoke" },
   ];
 
   const orderOptions = [
