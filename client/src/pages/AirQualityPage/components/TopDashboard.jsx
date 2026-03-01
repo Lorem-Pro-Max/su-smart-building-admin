@@ -1,4 +1,4 @@
-import { CommonDropdown } from "@components/utils/CommonDropdown";
+import { CommonDropdown, getAirQualityColor } from "@components/utils";
 
 function GridItem({
   gridSetting,
@@ -39,21 +39,21 @@ function GridDashboard({ data }) {
       <GridItem
         gridSetting="col-span-6 row-span-6"
         label="PM 2.5"
-        valueColor="#52C41A"
+        valueColor={getAirQualityColor("pm25", data.pm25)}
         value={data.pm25 ?? "--"}
         measurement="ug/m³"
       />
       <GridItem
         gridSetting="col-span-3 row-span-8"
         label="Temp"
-        measurement="ํC"
-        valueColor="#000"
+        measurement="°C"
+        valueColor={getAirQualityColor("temp", data.temp)}
         value={data.temp ?? "--"}
       />
       <GridItem
         gridSetting="col-span-3 row-span-4"
         label="CO"
-        valueColor="#FA8C16"
+        valueColor={getAirQualityColor("co", data.co)}
         ValueSize="48px"
         value={data.co ?? "--"}
         measurement="ppm"
@@ -64,23 +64,24 @@ function GridDashboard({ data }) {
         label="CO2"
         measurement="ppm"
         ValueSize="48px"
-        valueColor="#722ED1"
+        valueColor={getAirQualityColor("co2", data.co2)}
         value={data.co2 ?? "--"}
         measurementSize="38px"
       />
       <GridItem
         gridSetting="col-span-6 row-span-6"
         label="PM 10"
-        valueColor="#FADB14"
+        valueColor={getAirQualityColor("pm10", data.pm10)}
         value={data.pm10 ?? "--"}
         measurement="ug/m³"
       />
       <GridItem
         gridSetting="col-span-6 row-span-4"
         label="Smoke"
+        valueColor="#000000A6"
         value={data.smoke ?? "--"}
         ValueSize="48px"
-        measurement="mg/m³"
+        measurement=""
         measurementSize="38px"
       />
     </div>
@@ -88,7 +89,6 @@ function GridDashboard({ data }) {
 }
 
 function TopDashboard({ data, metadata, onFetchRoom }) {
-
   const currentFloor = data?.floor || "";
   const currentRoom = data?.roomId || "";
 
@@ -122,7 +122,6 @@ function TopDashboard({ data, metadata, onFetchRoom }) {
             <div className="flex items-center gap-2">
               <span className="text-sm text-black">ห้อง</span>
               <CommonDropdown
-
                 items={roomsOnFloor}
                 currentItem={currentRoom}
                 onSelect={(roomKey) => onFetchRoom(currentFloor, roomKey)}

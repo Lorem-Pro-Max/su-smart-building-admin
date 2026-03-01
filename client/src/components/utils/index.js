@@ -7,3 +7,4 @@ export { LoadingScreen } from "./LoadingScreen";
 export { useToast } from "./NotificationToast";
 export { SmokeAlertModal } from "./SmokeDetectionModal";
 export { useIdleWarning } from "./NotificationToast";
+export { getAirQualityColor } from "./airQualityColotPalette";
