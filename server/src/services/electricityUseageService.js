@@ -9,6 +9,7 @@ export const getMetadata = async () => {
         JOIN electricity_useage_hourly euh ON euh.device_id = rd.id
         ORDER BY r.floor
       `);
+      
     const available_floors = floorsRes.rows.map((f) => ({
       key: f.floor,
       label: `ชั้น ${f.floor}`,
