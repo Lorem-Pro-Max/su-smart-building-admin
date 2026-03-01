@@ -145,11 +145,10 @@ function SummaryModal({
             <div>
               <div className="text-gray-500 text-sm">ประเภท</div>
               <div
-                className={`font-semibold ${
-                  settingType === "open" ? "text-green-600" : "text-red-500"
-                }`}
+                className={`font-semibold ${settingType === "on" ? "text-green-600" : "text-red-500"
+                  }`}
               >
-                {settingType === "open" ? "เปิด" : "ปิด"}
+                {settingType === "on" ? "เปิด" : "ปิด"}
               </div>
             </div>
 

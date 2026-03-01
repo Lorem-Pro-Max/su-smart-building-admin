@@ -47,13 +47,14 @@ const columns = [
 ];
 
 function HistoryTable({ data }) {
+
   const displayData = data.map((item) => {
     return {
       key: item.id,
       room: item.room_title,
       floor: item.room_floor,
       device_name: item.device_type_name,
-      device_status: item.action === "ON" || item.action === "OPEN" ? "เปิด" : "ปิด",
+      device_status: item.action === "on" ? "เปิด" : "ปิด",
 
       date: new Date(item.action_time).toLocaleDateString("en-GB", {
         day: "numeric",
@@ -70,6 +71,7 @@ function HistoryTable({ data }) {
       approver_name: item.action_by ? item.full_name : "SYSTEM"
     }
   })
+
   return (
     <ConfigProvider theme={HistoryTableTheme}>
       <Table
@@ -94,9 +96,8 @@ function HistoryTable({ data }) {
           },
         }}
         dataSource={displayData}
-        pagination={{
-          placement: ["none"],
-        }}
+        pagination={false}
+        scroll={{ y: 800 }}
       />
     </ConfigProvider>
   );
