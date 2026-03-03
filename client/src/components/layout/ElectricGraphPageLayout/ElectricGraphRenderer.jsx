@@ -3,21 +3,26 @@ import { Line, Area } from "@ant-design/plots";
 import { full30MinDomain, visibleTicks } from "@components/utils";
 
 const transformChartData = (usageData) => {
-  const roomsDictionary = usageData;
-  if (!roomsDictionary) return [];
+  if (!usageData) return [];
+
   const chartData = [];
 
-  for (const roomId in roomsDictionary) {
-    const room = roomsDictionary[roomId];
-    const label = room.label;
+  for (const deviceId in usageData) {
+    const device = usageData[deviceId];
+    const label = device.label;
 
-    for (let i = 0; i < room.data.length; i++) {
-      const point = room.data[i];
+    for (const point of device.data) {
+      const date = point.date?.replaceAll("-", "/");
 
-      chartData.push({
-        date: point.date.replaceAll("-", "/"),
-        value: point.value,
-        label: label,
+      // ดึง phase ทั้งหมด
+      const phases = ["a", "b", "c"];
+
+      phases.forEach((phase) => {
+        chartData.push({
+          date,
+          value: Number(point[phase] || 0), // ถ้าไม่มี = 0
+          label: `${label} - ${phase.toUpperCase()}`,
+        });
       });
     }
   }
