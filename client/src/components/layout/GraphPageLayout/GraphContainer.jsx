@@ -129,7 +129,7 @@ export function HoursGraph({
       <TotalUsageBanner
         icon={totalUsageIcon}
         label={`ใช้${alternateTitle || title}รวมทั้งหมด`}
-        value={total_number}
+        value={total_number.toFixed(3)}
         isBlue={roomsItems ? true : false}
       />
 

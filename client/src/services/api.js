@@ -107,8 +107,11 @@ export const createUsageFetchWithRooms = (device) => ({
   },
 
   fetchHourly: async (date, floor, room) => {
+    const formattedDate = dayjs(date).format("YYYY-MM-DD");
+
+    console.log("formattedDate", formattedDate);
     const { data } = await apiClient.get(`/${device}/usage/hourly`, {
-      params: { date: date, floor: floor, room: room },
+      params: { date: formattedDate, floor: floor, room: room },
     });
     return data.data;
   },
