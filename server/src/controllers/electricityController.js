@@ -34,29 +34,27 @@ export const getDailyUsage = async (req, res) => {
 };
 
 export const getHourlyUsage = async (req, res) => {
-  const { date, floor, room } = req.query;
   try {
-    if (!floor || !room || !date) {
-      return res
-        .status(400)
-        .json({ error: "Floor, Rooms, and Date are required" });
-    }
+    const { date, floor = "all", device = "all" } = req.query;
 
     if (!date) {
-      return res.status(400).json({ error: "Date is required" });
+      return res.status(400).json({
+        success: false,
+        message: "date is required",
+      });
     }
 
-    let data;
+    const data = await electricityService.fetchHourlyUsage(date, floor, device);
 
-    if (room === "all") {
-      data = await electricityService.fetchHourlyByFloor(date, floor);
-    } else {
-      data = await electricityService.fetchHourlyByRoom(date, floor, room);
-    }
-
-    return res.json({ success: true, data });
+    return res.json({
+      success: true,
+      data,
+    });
   } catch (err) {
     console.error("getHourlyUsage error:", err);
-    return res.status(500).json({ success: false, message: err.message });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };

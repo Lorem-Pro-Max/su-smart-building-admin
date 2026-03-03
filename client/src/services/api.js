@@ -150,16 +150,22 @@ export const createElectricityUsageFetch = (device) => ({
   },
 
   fetchHourlyByFloor: async (date, floor) => {
+    const formattedDate = new Date(date).toISOString().split("T")[0];
+
     const { data } = await apiClient.get(`/${device}/usage/hourly`, {
-      params: { date, floor, room: "all" },
+      params: { date: formattedDate, floor, device: "all" },
     });
+
     return data.data;
   },
 
   fetchHourlyByDevice: async (date, floor, deviceId) => {
+    const formattedDate = new Date(date).toISOString().split("T")[0];
+
     const { data } = await apiClient.get(`/${device}/usage/hourly`, {
-      params: { date, floor, room: deviceId },
+      params: { date: formattedDate, floor, device: deviceId },
     });
+
     return data.data;
   },
 });
