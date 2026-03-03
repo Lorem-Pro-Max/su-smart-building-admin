@@ -1,4 +1,3 @@
-// src/hooks/pageHooks/useElectricityGraphServices.js
 import { useState, useEffect, useCallback, useRef } from "react";
 import { electricityService } from "@/services/deviceService";
 
@@ -38,7 +37,6 @@ export function useElectricityGraphServices() {
     [],
   );
 
-  // --- fetch hourly ---
   const fetchHourly = useCallback(
     async (date, floor, deviceId = "all", phase = "all") => {
       try {
@@ -63,7 +61,6 @@ export function useElectricityGraphServices() {
     [],
   );
 
-  // --- bootstrap metadata + default fetch ---
   useEffect(() => {
     const bootstrap = async () => {
       setGraphState((s) => ({ ...s, isLoading: true }));

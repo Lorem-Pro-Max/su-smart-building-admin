@@ -13,7 +13,7 @@ export const findUserByUsername = async (username) => {
 
     if (!rows.length) return null;
 
-    return rows[0]; // คืน row แรก
+    return rows[0];
   } catch (err) {
     console.error("DB query error:", err);
     throw err;

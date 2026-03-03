@@ -15,7 +15,6 @@ export const getMetadata = async () => {
       label: `ชั้น ${f.floor}`,
     }));
 
-    // Devices + Phases
     const devicesRes = await pool.query(`
       SELECT 
         rd.id AS device_id,
@@ -34,8 +33,8 @@ export const getMetadata = async () => {
       if (!available_devices[row.floor]) available_devices[row.floor] = [];
       available_devices[row.floor].push({
         key: row.device_id,
-        label: row.device_label || `Device ${row.device_id}`, // fallback
-        phases: row.phases, // ['A','B','C']
+        label: row.device_label || `Device ${row.device_id}`,
+        phases: row.phases,
       });
     });
 
@@ -119,7 +118,6 @@ export const fetchDailyUsage = async ({ floor, device }) => {
 
     const res = await pool.query(query, params);
 
-    // ---- สร้าง 7 วันย้อนหลัง ----
     const last7Days = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
@@ -145,12 +143,10 @@ export const fetchDailyUsage = async ({ floor, device }) => {
         };
       }
 
-      // ใช้ phase จากตารางตรง ๆ
       data[row.device_id].data[dateStr][row.phase] =
         parseFloat(row.total_kwh) || 0;
     });
 
-    // ---- เติมวันที่ที่ไม่มีข้อมูล ----
     for (const deviceId in data) {
       last7Days.forEach((date) => {
         if (!data[deviceId].data[date]) {
@@ -222,7 +218,6 @@ export const fetchDailyByRoom = async (floor, room) => {
       });
     });
 
-    // เติมวันที่ไม่มีข้อมูล
     for (const roomId in data) {
       const existingDates = data[roomId].data.map((d) => d.date);
 
@@ -277,7 +272,7 @@ export const fetchDailyByFloor = async (floor) => {
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      last7Days.push(d.toISOString().split("T")[0]); // yyyy-mm-dd
+      last7Days.push(d.toISOString().split("T")[0]);
     }
 
     res.rows.forEach((row) => {

@@ -14,13 +14,12 @@ const transformChartData = (usageData) => {
     for (const point of device.data) {
       const date = point.date?.replaceAll("-", "/");
 
-      // ดึง phase ทั้งหมด
       const phases = ["a", "b", "c"];
 
       phases.forEach((phase) => {
         chartData.push({
           date,
-          value: Number(point[phase] || 0), // ถ้าไม่มี = 0
+          value: Number(point[phase] || 0),
           label: `${label} - ${phase.toUpperCase()}`,
         });
       });

@@ -67,7 +67,7 @@ export const getMetadata = async () => {
 
 const get7DaysAgo = () => {
   const d = new Date();
-  d.setDate(d.getDate() - 6); // 7 วันย้อนหลังรวมวันนี้
+  d.setDate(d.getDate() - 6);
   d.setHours(0, 0, 0, 0);
   return d;
 };
@@ -122,7 +122,6 @@ export const fetchDailyByRoom = async (floor, room) => {
       });
     });
 
-    // เติมวันที่ไม่มีข้อมูล
     for (const roomId in data) {
       const existingDates = data[roomId].data.map((d) => d.date);
 
@@ -167,7 +166,7 @@ export const fetchDailyByFloor = async (floor) => {
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      last7Days.push(d.toISOString().split("T")[0]); // yyyy-mm-dd
+      last7Days.push(d.toISOString().split("T")[0]);
     }
 
     res.rows.forEach((row) => {

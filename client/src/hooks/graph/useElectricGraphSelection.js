@@ -8,7 +8,7 @@ export function useElectricGraphSelection(graphState, actions) {
   };
 
   const setDailyFloor = (floor) => {
-    actions.fetchDailyByFloor(floor, graphState.daily.deviceId || "all");
+    actions.fetchDailyByFloor(floor, "all");
   };
 
   const setDailyDevice = (deviceId) => {

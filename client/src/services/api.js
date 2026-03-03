@@ -131,13 +131,11 @@ export const createUsageFetchWithoutRooms = (device) => ({
 
 export const createElectricityUsageFetch = (device) => ({
   getMetadata: async () => {
-    console.log("start metedata");
     const { data } = await apiClient.get(`/${device}/usage/metadata`);
     return data.data;
   },
 
   fetchDailyByFloor: async (floor) => {
-    console.log("start daily data");
     const { data } = await apiClient.get(`/${device}/usage/daily`, {
       params: { floor, device: "all" },
     });
@@ -151,7 +149,6 @@ export const createElectricityUsageFetch = (device) => ({
     return data.data;
   },
 
-  // fetch hourly usage
   fetchHourlyByFloor: async (date, floor) => {
     const { data } = await apiClient.get(`/${device}/usage/hourly`, {
       params: { date, floor, room: "all" },

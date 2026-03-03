@@ -25,10 +25,18 @@ export function ElectricDaysGraph({
     ];
 
     deviceItems = uniqueDevices;
+
   } else {
-    deviceItems = metadata?.devices?.[selection.dailyFloor] || [];
+
+    const floorDevices = metadata?.devices?.[selection.dailyFloor] || [];
+
+    deviceItems = [
+      { key: "all", label: "ทุกอุปกรณ์" },
+      ...floorDevices,
+    ];
   }
-  const mUnit = metadata.measurement_unit;
+
+  const mUnit = "kWh"
   const usageData = data || {};
   let colorList = [];
 
@@ -99,8 +107,6 @@ export function ElectricHoursGraph({
     colorList.push(getColor(index));
     total_number += value.total_usage || 0;
   });
-
-  console.log("usageData", usageData)
 
 
   return (
