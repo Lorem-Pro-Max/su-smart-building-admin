@@ -114,7 +114,7 @@ export function ElectricHoursGraph({
       ...(metadata.devices?.[selection.hourlyFloor] || []),
     ];
   }
-  const mUnit = metadata.measurement_unit;
+  const mUnit = "kWh";
   const usageData = data || {};
   let colorList = [];
   let total_number = 0;
@@ -123,9 +123,6 @@ export function ElectricHoursGraph({
     colorList.push(getColor(index));
     total_number += value.total_usage || 0;
   });
-
-  console.log("meatadate", metadata)
-
 
   return (
     <div className="w-full rounded-2xl p-8 shadow-graph-container bg-white flex flex-col gap-8">
@@ -179,6 +176,7 @@ export function ElectricHoursGraph({
           data={data}
           measurementUnit={mUnit}
           colorList={colorList}
+          selectedDevice={selection.hourlyDevice}
         />
       </div>
     </div>

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { socket } from "../services/socket";
+import dayjs from "dayjs";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -150,7 +151,7 @@ export const createElectricityUsageFetch = (device) => ({
   },
 
   fetchHourlyByFloor: async (date, floor) => {
-    const formattedDate = new Date(date).toISOString().split("T")[0];
+    const formattedDate = dayjs(date).format("YYYY-MM-DD");
 
     const { data } = await apiClient.get(`/${device}/usage/hourly`, {
       params: { date: formattedDate, floor, device: "all" },
@@ -160,7 +161,7 @@ export const createElectricityUsageFetch = (device) => ({
   },
 
   fetchHourlyByDevice: async (date, floor, deviceId) => {
-    const formattedDate = new Date(date).toISOString().split("T")[0];
+    const formattedDate = dayjs(date).format("YYYY-MM-DD");
 
     const { data } = await apiClient.get(`/${device}/usage/hourly`, {
       params: { date: formattedDate, floor, device: deviceId },

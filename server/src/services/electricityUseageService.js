@@ -170,8 +170,11 @@ export const fetchDailyUsage = async ({ floor, device }) => {
 
 export const fetchHourlyUsage = async (date, floor, device) => {
   try {
-    const start = new Date(`${date}T00:00:00+07:00`);
+    const start = new Date(`${date}T00:00:00`);
+    start.setHours(start.getHours() - 7);
+
     const end = new Date(start);
+    end.setDate(end.getDate() + 1);
     end.setDate(end.getDate() + 1);
 
     let query = `

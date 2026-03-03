@@ -29,20 +29,56 @@ const transformChartData = (usageData) => {
   return chartData;
 };
 
-const transformHourlyData = (usageData) => {
-  const chartData = [];
-  for (const roomId in usageData) {
-    const room = usageData[roomId];
-    if (!room?.data) continue;
-    for (let i = 0; i < room.data.length; i++) {
-      const p = room.data[i];
-      chartData.push({
-        hour: p.time,
-        value: p.value,
-        label: room.label,
+const transformHourlyData = (usageData, selectedDevice) => {
+  const deviceMap = {};
+
+  for (const deviceId in usageData) {
+    const device = usageData[deviceId];
+    if (!device?.data) continue;
+
+    if (selectedDevice !== "all" && deviceId !== selectedDevice) continue;
+
+    deviceMap[deviceId] = {
+      label: device.label,
+      points: {},
+    };
+
+    for (const point of device.data) {
+      const hour = new Date(point.time).toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Asia/Bangkok",
+      });
+
+      if (!deviceMap[deviceId].points[hour]) {
+        deviceMap[deviceId].points[hour] = {};
+      }
+
+      ["a", "b", "c"].forEach((phase) => {
+        if (point[phase] !== undefined) {
+          deviceMap[deviceId].points[hour][phase] = point[phase];
+        }
       });
     }
   }
+
+  const chartData = [];
+
+  // 🔥 เติม 0 ให้ครบทุกช่วงเวลา
+  for (const deviceId in deviceMap) {
+    const { label, points } = deviceMap[deviceId];
+
+    full30MinDomain.forEach((hour) => {
+      ["a", "b", "c"].forEach((phase) => {
+        chartData.push({
+          hour,
+          value: points[hour]?.[phase] ?? 0,
+          label: `${label}-${phase.toUpperCase()}`,
+        });
+      });
+    });
+  }
+
   return chartData;
 };
 
@@ -92,8 +128,19 @@ export function ElectricDaysGraphRenderer({ data, measurementUnit, colorList }) 
   );
 }
 
-export function ElectricHoursGraphRenderer({ data, measurementUnit, colorList }) {
-  const chartData = useMemo(() => transformHourlyData(data), [data]);
+export function ElectricHoursGraphRenderer({
+  data,
+  measurementUnit,
+  colorList,
+  selectedDevice,
+}) {
+  const chartData = useMemo(
+    () => transformHourlyData(data, selectedDevice),
+    [data, selectedDevice]
+  );
+
+  console.log("chartData", chartData);
+
   const roomCount = Object.keys(data || {}).length;
 
   const config = {
@@ -146,7 +193,7 @@ export function ElectricHoursGraphRenderer({ data, measurementUnit, colorList })
       <div className="text-sm font-medium text-black pl-3 h-7">
         {measurementUnit}
       </div>
-      <Area {...config} key={`hours-graph-${roomCount}`} />
+      <Area {...config} key={`hours-graph-${chartData.length}`} />
     </div>
   );
 }
