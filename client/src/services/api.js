@@ -139,7 +139,7 @@ export const createElectricityUsageFetch = (device) => ({
   fetchDailyByFloor: async (floor) => {
     console.log("start daily data");
     const { data } = await apiClient.get(`/${device}/usage/daily`, {
-      params: { floor, room: "all" },
+      params: { floor, device: "all" },
     });
     return data.data;
   },

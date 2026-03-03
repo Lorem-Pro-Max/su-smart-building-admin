@@ -10,18 +10,26 @@ export const getMetadata = async (req, res) => {
 };
 
 export const getDailyUsage = async (req, res) => {
-  const { floor, room } = req.query;
+  try {
+    const { floor, device } = req.query;
 
-  if (!floor || !room) {
-    return res.status(400).json({ error: "Floor and Rooms are required" });
-  }
+    if (!floor || !device) {
+      return res.status(400).json({
+        error: "Floor and Device are required",
+      });
+    }
 
-  if (room === "all") {
-    const data = await electricityService.fetchDailyByFloor(floor);
-    return res.json({ data: data });
-  } else {
-    const data = await electricityService.fetchDailyByRoom(floor, room);
-    return res.json({ data: data });
+    const data = await electricityService.fetchDailyUsage({
+      floor,
+      device,
+    });
+
+    return res.json({ data });
+  } catch (err) {
+    console.error("getDailyUsage error:", err);
+    return res.status(500).json({
+      error: "Internal server error",
+    });
   }
 };
 

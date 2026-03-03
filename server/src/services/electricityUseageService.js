@@ -75,6 +75,103 @@ const get7DaysAgo = () => {
   return d;
 };
 
+export const fetchDailyUsage = async ({ floor, device }) => {
+  try {
+    const sevenDaysAgo = get7DaysAgo();
+
+    let conditions = [];
+    let params = [];
+    let idx = 1;
+
+    if (floor !== "all") {
+      conditions.push(`r.floor = $${idx++}`);
+      params.push(floor);
+    }
+
+    if (device !== "all") {
+      conditions.push(`rd.id = $${idx++}`);
+      params.push(device);
+    }
+
+    conditions.push(`euh.recorded_hour >= $${idx++}`);
+    params.push(sevenDaysAgo);
+
+    const whereClause = `WHERE ${conditions.join(" AND ")}`;
+
+    const query = `
+    SELECT 
+      rd.id AS device_id,
+      rd.device_id AS device_title,
+      DATE(euh.recorded_hour AT TIME ZONE 'Asia/Bangkok') AS date,
+      euh.phase,
+      SUM(euh.import_kwh) AS total_kwh
+    FROM room r
+    JOIN room_device rd ON rd.room_id = r.id
+    JOIN electricity_useage_hourly euh ON euh.device_id = rd.id
+    ${whereClause}
+    GROUP BY 
+      rd.id,
+      rd.device_id,
+      DATE(euh.recorded_hour AT TIME ZONE 'Asia/Bangkok'),
+      euh.phase
+    ORDER BY rd.id, date;
+  `;
+
+    const res = await pool.query(query, params);
+
+    // ---- สร้าง 7 วันย้อนหลัง ----
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      last7Days.push(d.toISOString().split("T")[0]);
+    }
+
+    const data = {};
+
+    res.rows.forEach((row) => {
+      const dateStr = row.date.toISOString().split("T")[0];
+
+      if (!data[row.device_id]) {
+        data[row.device_id] = {
+          label: row.device_title,
+          data: {},
+        };
+      }
+
+      if (!data[row.device_id].data[dateStr]) {
+        data[row.device_id].data[dateStr] = {
+          date: dateStr,
+        };
+      }
+
+      // ใช้ phase จากตารางตรง ๆ
+      data[row.device_id].data[dateStr][row.phase] =
+        parseFloat(row.total_kwh) || 0;
+    });
+
+    // ---- เติมวันที่ที่ไม่มีข้อมูล ----
+    for (const deviceId in data) {
+      last7Days.forEach((date) => {
+        if (!data[deviceId].data[date]) {
+          data[deviceId].data[date] = {
+            date,
+          };
+        }
+      });
+
+      data[deviceId].data = Object.values(data[deviceId].data).sort(
+        (a, b) => new Date(a.date) - new Date(b.date),
+      );
+    }
+
+    return data;
+  } catch (err) {
+    console.error("fetchDailyUsage error:", err);
+    throw err;
+  }
+};
+
 export const fetchDailyByRoom = async (floor, room) => {
   try {
     const sevenDaysAgo = get7DaysAgo();
