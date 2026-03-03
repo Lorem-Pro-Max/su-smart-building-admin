@@ -1,8 +1,8 @@
-import { useGraphServices } from "@hooks/graph/useGraphServices";
 import { electricityService } from "@services/deviceService";
+import { useElectricityGraphServices } from "../graph/useElectricityGraphServices";
 
 export function useElectricity() {
-  const graphService = useGraphServices(electricityService);
+  const graphService = useElectricityGraphServices(electricityService);
 
   return {
     graphService: graphService,

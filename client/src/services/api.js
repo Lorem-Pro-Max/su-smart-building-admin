@@ -12,11 +12,11 @@ const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-      error.message = 'Request timeout'; 
+    if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+      error.message = "Request timeout";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 const formatDeviceIds = (deviceIds) => {
@@ -124,6 +124,44 @@ export const createUsageFetchWithoutRooms = (device) => ({
   fetchHourly: async (date, floor) => {
     const { data } = await apiClient.get(`/${device}/usage/hourly`, {
       params: { date: date, floor: floor },
+    });
+    return data.data;
+  },
+});
+
+export const createElectricityUsageFetch = (device) => ({
+  getMetadata: async () => {
+    console.log("start metedata");
+    const { data } = await apiClient.get(`/${device}/usage/metadata`);
+    return data.data;
+  },
+
+  fetchDailyByFloor: async (floor) => {
+    console.log("start daily data");
+    const { data } = await apiClient.get(`/${device}/usage/daily`, {
+      params: { floor, room: "all" },
+    });
+    return data.data;
+  },
+
+  fetchDailyByDevice: async (floor, deviceId) => {
+    const { data } = await apiClient.get(`/${device}/usage/daily`, {
+      params: { floor, room: deviceId },
+    });
+    return data.data;
+  },
+
+  // fetch hourly usage
+  fetchHourlyByFloor: async (date, floor) => {
+    const { data } = await apiClient.get(`/${device}/usage/hourly`, {
+      params: { date, floor, room: "all" },
+    });
+    return data.data;
+  },
+
+  fetchHourlyByDevice: async (date, floor, deviceId) => {
+    const { data } = await apiClient.get(`/${device}/usage/hourly`, {
+      params: { date, floor, room: deviceId },
     });
     return data.data;
   },

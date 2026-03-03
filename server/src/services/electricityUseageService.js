@@ -15,25 +15,27 @@ export const getMetadata = async () => {
       label: `ชั้น ${f.floor}`,
     }));
 
-    const roomsRes = await pool.query(
-      `SELECT DISTINCT r.id AS room_id,
-                r.floor,
-                r.title
-        FROM room r
-        JOIN room_device rd ON rd.room_id = r.id
-        JOIN electricity_useage_hourly euh ON euh.device_id = rd.id
-        ORDER BY r.floor, r.id;`,
-    );
+    // Devices + Phases
+    const devicesRes = await pool.query(`
+      SELECT 
+        rd.id AS device_id,
+        rd.device_id AS device_label,
+        r.floor,
+        array_agg(DISTINCT euh.phase) AS phases
+      FROM room_device rd
+      JOIN room r ON r.id = rd.room_id
+      JOIN electricity_useage_hourly euh ON euh.device_id = rd.id
+      GROUP BY rd.id, rd.device_id, r.floor
+      ORDER BY r.floor, rd.id;
+    `);
 
-    const available_rooms = {};
-    roomsRes.rows.forEach((room) => {
-      if (!available_rooms[room.floor]) {
-        available_rooms[room.floor] = [];
-      }
-
-      available_rooms[room.floor].push({
-        key: room.room_id,
-        label: room.title,
+    const available_devices = {};
+    devicesRes.rows.forEach((row) => {
+      if (!available_devices[row.floor]) available_devices[row.floor] = [];
+      available_devices[row.floor].push({
+        key: row.device_id,
+        label: row.device_label || `Device ${row.device_id}`, // fallback
+        phases: row.phases, // ['A','B','C']
       });
     });
 
@@ -56,7 +58,7 @@ export const getMetadata = async () => {
 
     return {
       available_floors,
-      available_rooms,
+      available_devices,
       available_dates,
       measurementUnit,
     };

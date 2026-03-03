@@ -13,6 +13,7 @@ export const getMetadata = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 export const getDailyUsage = async (req, res) => {
   const { floor, room } = req.query;
 
