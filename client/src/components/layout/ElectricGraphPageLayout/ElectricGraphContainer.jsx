@@ -36,9 +36,6 @@ export function ElectricDaysGraph({
     colorList.push(getColor(index));
   });
 
-  console.log("metedata", metadata)
-  console.log("selection", selection)
-  console.log("deviceItems", deviceItems)
   return (
     <div className="w-full rounded-2xl p-8 shadow-graph-container bg-white flex flex-col gap-6">
       <div className="w-full flex justify-between items-center">

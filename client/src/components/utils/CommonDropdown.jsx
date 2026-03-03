@@ -6,7 +6,6 @@ export function CommonDropdown({ items = [], currentItem, onSelect }) {
   const activeItem = items.find((item) => item.key === currentItem);
   const displayLabel =
     activeItem?.label || (items.length > 0 ? items[0].label : "กำลังโหลด...");
-  console.log("items", items, currentItem, displayLabel)
 
   return (
     <ConfigProvider theme={CommonDropdownTheme}>

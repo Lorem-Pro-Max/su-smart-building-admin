@@ -1,7 +1,7 @@
 export function useElectricGraphSelection(graphState, actions) {
   const selection = {
     dailyFloor: graphState.daily.floor,
-    dailyDevice: graphState.daily.device,
+    dailyDevice: graphState.daily.deviceId,
     hourlyFloor: graphState.hourly.floor,
     hourlyRoom: graphState.hourly.room,
     hourlyDate: graphState.hourly.date,
