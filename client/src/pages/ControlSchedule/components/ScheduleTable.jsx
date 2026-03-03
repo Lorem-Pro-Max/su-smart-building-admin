@@ -21,7 +21,8 @@ const ScheduleTable = ({
   const handleToggle = (record) => {
     if (record.schedules.length <= 1) return;
 
-    setExpandedRow((prev) => (prev === record.room.id ? null : record.room.id));
+    const uniqueId = record.schedules[0].id;
+    setExpandedRow((prev) => (prev === uniqueId ? null : uniqueId));
   };
 
   const columns = useMemo(
@@ -40,7 +41,7 @@ const ScheduleTable = ({
         width: 220,
         responsive: ["xs", "sm", "md", "lg"],
         render: (_, record) => {
-          const isExpanded = expandedRow === record.room.id;
+          const isExpanded = expandedRow === record.schedules[0].id;
 
           const devices = isExpanded
             ? record.schedules
@@ -146,7 +147,7 @@ const ScheduleTable = ({
         dataSource={tableData}
         loading={loading}
         disabl
-        rowKey={(record) => record.room.id}
+        rowKey={(record) => record.schedules[0].id}
         pagination={false}
         scroll={{ x: "max-content" }}
         className="rounded-xl overflow-hidden shadow-sm"
