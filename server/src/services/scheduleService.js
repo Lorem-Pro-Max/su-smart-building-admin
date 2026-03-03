@@ -8,6 +8,7 @@ export const getAll = async () => {
     s.booking_id,
     s.action,
     s.action_time,
+    s.created_at,
     u.id AS user_id,
     u.firstname,
     u.lastname,
@@ -27,6 +28,7 @@ export const getAll = async () => {
   INNER JOIN device_type dt ON rd.device_type_id = dt.id
   INNER JOIN room r ON rd.room_id = r.id
   WHERE s.booking_id IS NULL
+  ORDER BY s.action_time DESC
 `;
   const { rows } = await pool.query(query);
 
@@ -35,10 +37,10 @@ export const getAll = async () => {
   const grouped = {};
 
   for (const item of rows) {
-    const roomId = item.room_id;
+    const groupKey = `${item.room_id}_${item.action_time}_${item.action}_${item.created_at}`;
 
-    if (!grouped[roomId]) {
-      grouped[roomId] = {
+    if (!grouped[groupKey]) {
+      grouped[groupKey] = {
         booking_id: item.booking_id,
         meeting_name: item.title,
         room: {
@@ -50,7 +52,7 @@ export const getAll = async () => {
       };
     }
 
-    grouped[roomId].schedules.push({
+    grouped[groupKey].schedules.push({
       id: item.id,
       booking_id: item.booking_id,
       action: item.action,
