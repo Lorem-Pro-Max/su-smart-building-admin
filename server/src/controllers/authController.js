@@ -92,17 +92,15 @@ export const refreshToken = async (req, res) => {
 export const logout = async (req, res) => {
   const token = req.cookies.refreshToken;
 
-  // 1. ลบ Refresh Token ใน Database (ถ้ามี)
   if (token) {
-    await deleteRefreshToken(token); // ฟังก์ชันใน repository ของคุณ
+    await deleteRefreshToken(token);
   }
 
-  // 2. ลบ Cookie ใน Browser
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "Strict",
-    path: "/api/auth/refresh", // ต้องตรงกับตอนที่ set ไว้
+    path: "/api/auth/refresh",
   });
 
   res.json({ message: "Logged out successfully" });

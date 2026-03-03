@@ -72,19 +72,16 @@ export const fetchDailyUsage = async ({ floor, device }) => {
     let params = [];
     let idx = 1;
 
-    // 🔹 Filter ชั้น
     if (floor !== "all") {
       conditions.push(`r.floor = $${idx++}`);
       params.push(floor);
     }
 
-    // 🔹 Filter device
     if (device !== "all") {
       conditions.push(`rd.id = $${idx++}`);
       params.push(device);
     }
 
-    // 🔥 Filter ตาม "วันไทย"
     conditions.push(`
       TO_CHAR(
         euh.recorded_hour AT TIME ZONE 'Asia/Bangkok',
@@ -92,7 +89,6 @@ export const fetchDailyUsage = async ({ floor, device }) => {
       ) >= $${idx++}
     `);
 
-    // 🔥 สร้างวันที่ไทยย้อนหลัง 6 วัน (รวมวันนี้ = 7 วัน)
     const nowThai = new Date(
       new Date().toLocaleString("en-US", {
         timeZone: "Asia/Bangkok",
@@ -133,7 +129,6 @@ export const fetchDailyUsage = async ({ floor, device }) => {
 
     const res = await pool.query(query, params);
 
-    // 🔥 สร้าง array 7 วันล่าสุด (วันไทย)
     const last7Days = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(
@@ -154,7 +149,7 @@ export const fetchDailyUsage = async ({ floor, device }) => {
     const data = {};
 
     res.rows.forEach((row) => {
-      const dateStr = row.date; // 🔥 string ตรงจาก SQL
+      const dateStr = row.date;
 
       if (!data[row.device_id]) {
         data[row.device_id] = {
@@ -176,7 +171,6 @@ export const fetchDailyUsage = async ({ floor, device }) => {
         parseFloat(row.total_kwh) || 0;
     });
 
-    // 🔥 เติมวันที่ไม่มีข้อมูลให้เป็น 0
     for (const deviceId in data) {
       last7Days.forEach((date) => {
         if (!data[deviceId].data[date]) {
