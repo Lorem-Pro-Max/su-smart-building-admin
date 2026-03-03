@@ -1,6 +1,7 @@
 import { CommonDropdown } from "@components/utils";
 import { ElectricDaysGraphRenderer, ElectricHoursGraphRenderer } from "@components/layout";
 import { getColor } from "@components/utils";
+import { useMemo } from "react";
 
 export function ElectricDaysGraph({
   title,
@@ -116,13 +117,34 @@ export function ElectricHoursGraph({
   }
   const mUnit = "kWh";
   const usageData = data || {};
-  let colorList = [];
-  let total_number = 0;
 
-  Object.entries(usageData).forEach(([_, value], index) => {
-    colorList.push(getColor(index));
-    total_number += value.total_usage || 0;
-  });
+  const { totalNumber, colorList } = useMemo(() => {
+    let total = 0;
+    const colors = [];
+
+    Object.entries(usageData).forEach(([deviceId, device], index) => {
+      if (
+        selection.hourlyDevice !== "all" &&
+        deviceId !== selection.hourlyDevice
+      ) {
+        return;
+      }
+
+      colors.push(getColor(colors.length));
+
+      device.data?.forEach((point) => {
+        total +=
+          (point.a || 0) +
+          (point.b || 0) +
+          (point.c || 0);
+      });
+    });
+
+    return {
+      totalNumber: total,
+      colorList: colors,
+    };
+  }, [usageData, selection.hourlyDevice]);
 
   return (
     <div className="w-full rounded-2xl p-8 shadow-graph-container bg-white flex flex-col gap-8">
@@ -167,7 +189,7 @@ export function ElectricHoursGraph({
       <TotalUsageBanner
         icon={totalUsageIcon}
         label={`ใช้${alternateTitle || title}รวมทั้งหมด`}
-        value={total_number}
+        value={totalNumber}
         isBlue={deviceItems ? true : false}
       />
 
@@ -212,7 +234,7 @@ const TotalUsageBanner = ({ icon, label, value, isBlue }) => (
       <span
         className={`text-5xl font-bold ${isBlue ? "text-[#08979C]" : "text-[#FA8C16]"}`}
       >
-        {value}
+        {value.toFixed(3)}
       </span>
       <span className="text-xl font-bold text-gray-800 leading-8">หน่วย</span>
     </div>

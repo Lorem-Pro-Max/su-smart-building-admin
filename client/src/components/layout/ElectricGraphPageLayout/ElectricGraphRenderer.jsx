@@ -64,7 +64,6 @@ const transformHourlyData = (usageData, selectedDevice) => {
 
   const chartData = [];
 
-  // 🔥 เติม 0 ให้ครบทุกช่วงเวลา
   for (const deviceId in deviceMap) {
     const { label, points } = deviceMap[deviceId];
 
@@ -138,10 +137,6 @@ export function ElectricHoursGraphRenderer({
     () => transformHourlyData(data, selectedDevice),
     [data, selectedDevice]
   );
-
-  console.log("chartData", chartData);
-
-  const roomCount = Object.keys(data || {}).length;
 
   const config = {
     data: chartData,
