@@ -85,12 +85,13 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
             15,
             "NX",
           );
+
           if (!acquiredLock) {
             continue;
           }
 
-          await handleHumanReentry(roomId);
           await redisConnection.del(LEVEL_KEY);
+          await handleHumanReentry(roomId);
         }
         continue;
       }
@@ -103,7 +104,7 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
 
       if (isRoomBooked) {
         await redisConnection.set(START_TIME_KEY, now);
-        await redisConnection.del(LEVEL_KEY); 
+        await redisConnection.del(LEVEL_KEY);
         continue;
       }
 
@@ -125,12 +126,12 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
           continue;
         }
 
-        await triggerShutdownAction(roomId);
         await redisConnection.set(LEVEL_KEY, ROOM_STATE.CLOSED);
+        await triggerShutdownAction(roomId);
       } else if (idleMinutes >= NOTI_MINUTE_TRIGGER && !currentLevel) {
         const currentTime = getFormattedDateTime();
-        await triggerNotiAction(meta, currentTime);
         await redisConnection.set(LEVEL_KEY, ROOM_STATE.NOTIFIED);
+        await triggerNotiAction(meta, currentTime);
       }
     } catch (error) {
       const errorKey = `crash:${sensorId}:${roomId}`;
@@ -218,7 +219,7 @@ const executeRoomAction = async (roomId, action) => {
             "human-detection",
             "info",
             "EXECUTION_SUCCESS",
-            `[${action.toUpperCase()}] (F${roomFloor})${roomTitle} -> ${successHardwareIds.join(", ")}`,
+            `[${action.toUpperCase()}] (F${roomFloor}) ${roomTitle} -> ${successHardwareIds.join(", ")}`,
             {
               roomId,
               roomTitle,
@@ -306,10 +307,19 @@ const handleHumanReentry = async (roomId) => {
 };
 
 export const isRoomStillInactive = async (roomId, thresholdMinutes = 30) => {
-  const startTime = await redisConnection.get(`occupancy:start:room:${roomId}`);
+  const BOOKING_KEY = `booking:active:room:${roomId}`;
+  const START_TIME_KEY = `occupancy:start:room:${roomId}`;
 
+  const isBooked = await redisConnection.get(BOOKING_KEY);
+
+  if (isBooked) {
+    return false;
+  }
+
+  const startTime = await redisConnection.get(START_TIME_KEY);
   if (!startTime) return true;
 
   const idleMinutes = (Date.now() - parseInt(startTime)) / 60000;
+
   return idleMinutes >= thresholdMinutes;
 };

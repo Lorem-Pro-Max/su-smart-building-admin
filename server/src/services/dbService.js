@@ -113,3 +113,16 @@ export const logIotAction = (deviceDbId, action, actionBy = 1) => {
     console.error(`[IOT_LOG_FAIL] Device ${deviceDbId}: ${err.message}`);
   });
 };
+
+export const fetchActiveBookings = async () => {
+  const query = `
+    SELECT 
+    room_id, 
+    "end_dateTime"
+    FROM room_booking
+    WHERE status_id = 5 
+    AND "end_dateTime" > NOW()
+  `;
+  const { rows } = await pool.query(query);
+  return rows;
+};
