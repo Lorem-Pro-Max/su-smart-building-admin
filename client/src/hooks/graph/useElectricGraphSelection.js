@@ -3,7 +3,7 @@ export function useElectricGraphSelection(graphState, actions) {
     dailyFloor: graphState.daily.floor,
     dailyDevice: graphState.daily.deviceId,
     hourlyFloor: graphState.hourly.floor,
-    hourlyRoom: graphState.hourly.room,
+    hourlyDevice: graphState.hourly.deviceId,
     hourlyDate: graphState.hourly.date,
   };
 
@@ -19,11 +19,11 @@ export function useElectricGraphSelection(graphState, actions) {
     actions.fetchHourlyByFloor(graphState.hourly.date, floor);
   };
 
-  const setHourlyDevice = (device) => {
-    actions.fetchHourlyByDevice(
+  const setHourlyDevice = (deviceId) => {
+    actions.fetchHourlyByFloor(
       graphState.hourly.date,
       graphState.hourly.floor,
-      device,
+      deviceId,
     );
   };
 

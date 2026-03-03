@@ -93,11 +93,27 @@ export function ElectricHoursGraph({
   metadata,
   alternateTitle,
 }) {
-  const { selection, setHourlyFloor, setHourlyRoom, setHourlyDate } =
+  const { selection, setHourlyFloor, setHourlyDevice, setHourlyDate } =
     selectionService;
-  const datesItmes = metadata.available_dates || [];
-  const floorsItems = metadata.available_floors || [];
-  const roomsItems = metadata?.available_rooms?.[selection.hourlyFloor] || null;
+  const datesItems = metadata.dates || [];
+  const floorsItems = metadata.floors || [];
+  let deviceItems = [];
+
+  if (selection.hourlyFloor === "all") {
+    const allDevices = Object.values(metadata.devices || {}).flat();
+
+    deviceItems = [
+      { key: "all", label: "ทุกอุปกรณ์" },
+      ...Array.from(
+        new Map(allDevices.map((d) => [d.key, d])).values()
+      ),
+    ];
+  } else {
+    deviceItems = [
+      { key: "all", label: "ทุกอุปกรณ์" },
+      ...(metadata.devices?.[selection.hourlyFloor] || []),
+    ];
+  }
   const mUnit = metadata.measurement_unit;
   const usageData = data || {};
   let colorList = [];
@@ -107,6 +123,8 @@ export function ElectricHoursGraph({
     colorList.push(getColor(index));
     total_number += value.total_usage || 0;
   });
+
+  console.log("meatadate", metadata)
 
 
   return (
@@ -123,7 +141,7 @@ export function ElectricHoursGraph({
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-400 w-max">วันที่</span>
             <CommonDropdown
-              items={datesItmes}
+              items={datesItems}
               currentItem={selection.hourlyDate}
               onSelect={setHourlyDate}
             />
@@ -136,13 +154,13 @@ export function ElectricHoursGraph({
               onSelect={setHourlyFloor}
             />
           </div>
-          {roomsItems && (
+          {deviceItems && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-400">ห้อง</span>
               <CommonDropdown
-                items={roomsItems}
-                currentItem={selection.hourlyRoom}
-                onSelect={setHourlyRoom}
+                items={deviceItems}
+                currentItem={selection.hourlyDevice}
+                onSelect={setHourlyDevice}
               />
             </div>
           )}
@@ -153,7 +171,7 @@ export function ElectricHoursGraph({
         icon={totalUsageIcon}
         label={`ใช้${alternateTitle || title}รวมทั้งหมด`}
         value={total_number}
-        isBlue={roomsItems ? true : false}
+        isBlue={deviceItems ? true : false}
       />
 
       <div className="h-68.5 w-full flex items-center justify-center">
