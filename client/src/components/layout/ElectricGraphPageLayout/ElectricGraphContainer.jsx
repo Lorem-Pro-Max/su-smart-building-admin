@@ -1,17 +1,17 @@
 import { CommonDropdown } from "@components/utils";
-import { DaysGraphRenderer, HoursGraphRenderer } from "@components/layout";
+import { ElectricDaysGraphRenderer, ElectricHoursGraphRenderer } from "@components/layout";
 import { getColor } from "@components/utils";
 
-export function DaysGraph({
+export function ElectricDaysGraph({
   title,
   data,
   selectionService,
   metadata,
   alternateTitle,
 }) {
-  const { selection, setDailyFloor, setDailyRoom } = selectionService;
-  const floorsItems = metadata.available_floors || [];
-  const roomsItems = metadata?.available_rooms?.[selection.dailyFloor] || null;
+  const { selection, setDailyFloor, setDailyDevice } = selectionService;
+  const floorsItems = metadata.floors || [];
+  const deviceItems = metadata?.devices?.[selection.dailyFloor] || [];
   const mUnit = metadata.measurement_unit;
   const usageData = data || {};
   let colorList = [];
@@ -20,8 +20,9 @@ export function DaysGraph({
     colorList.push(getColor(index));
   });
 
-
-
+  console.log("metedata", metadata)
+  console.log("selection", selection)
+  console.log("deviceItems", deviceItems)
   return (
     <div className="w-full rounded-2xl p-8 shadow-graph-container bg-white flex flex-col gap-6">
       <div className="w-full flex justify-between items-center">
@@ -40,30 +41,30 @@ export function DaysGraph({
               onSelect={setDailyFloor}
             />
           </div>
-          {roomsItems && (
+          {deviceItems && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400">ห้อง</span>
+              <span className="text-sm text-gray-400">อุปกรณ์</span>
               <CommonDropdown
-                items={roomsItems}
-                currentItem={selection.dailyRoom}
-                onSelect={setDailyRoom}
+                items={deviceItems}
+                currentItem={selection.dailyDevice}
+                onSelect={setDailyDevice}
               />
             </div>
           )}
         </div>
       </div>
       <div className="h-68.5 w-full flex items-center justify-center">
-        {/* <DaysGraphRenderer
+        <ElectricDaysGraphRenderer
           data={data}
           measurementUnit={mUnit}
           colorList={colorList}
-        /> */}
+        />
       </div>
     </div>
   );
 }
 
-export function HoursGraph({
+export function ElectricHoursGraph({
   title,
   data,
   selectionService,
@@ -136,7 +137,7 @@ export function HoursGraph({
       />
 
       <div className="h-68.5 w-full flex items-center justify-center">
-        <HoursGraphRenderer
+        <ElectricHoursGraphRenderer
           data={data}
           measurementUnit={mUnit}
           colorList={colorList}
@@ -182,6 +183,6 @@ const TotalUsageBanner = ({ icon, label, value, isBlue }) => (
   </div>
 );
 
-export function GraphContainer({ children }) {
+export function ElectricGraphContainer({ children }) {
   return <div className="w-full flex flex-col gap-8 min-w-0">{children}</div>;
 }

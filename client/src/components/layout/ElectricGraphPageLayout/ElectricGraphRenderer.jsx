@@ -42,7 +42,7 @@ const transformHourlyData = (usageData) => {
   return chartData;
 };
 
-export function DaysGraphRenderer({ data, measurementUnit, colorList }) {
+export function ElectricDaysGraphRenderer({ data, measurementUnit, colorList }) {
   const chartData = useMemo(() => transformChartData(data), [data]);
   const roomCount = Object.keys(data || {}).length;
 
@@ -88,7 +88,7 @@ export function DaysGraphRenderer({ data, measurementUnit, colorList }) {
   );
 }
 
-export function HoursGraphRenderer({ data, measurementUnit, colorList }) {
+export function ElectricHoursGraphRenderer({ data, measurementUnit, colorList }) {
   const chartData = useMemo(() => transformHourlyData(data), [data]);
   const roomCount = Object.keys(data || {}).length;
 

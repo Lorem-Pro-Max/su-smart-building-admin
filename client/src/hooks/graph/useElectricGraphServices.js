@@ -6,8 +6,8 @@ export function useElectricityGraphServices() {
   const [graphState, setGraphState] = useState({
     metadata: {
       floors: [],
-      devices: {}, // { floor: [{ key: deviceId, label: deviceId }] }
-      phases: [], // ["L1", "L2", "L3"] หรือ phase ที่มี
+      devices: {},
+      phases: [],
       dates: [],
     },
     daily: { data: {}, floor: "", deviceId: "", phase: "" },
@@ -68,38 +68,41 @@ export function useElectricityGraphServices() {
     const bootstrap = async () => {
       setGraphState((s) => ({ ...s, isLoading: true }));
       try {
-        console.log("start bootstrap");
         const meta = await electricityService.getMetadata();
-        console.log("meta", meta);
-        // เพิ่มค่า default "all" สำหรับ floor, device, phase
         const floors = [
           { key: "all", label: "แสดงทุกชั้น" },
-          ...meta.available_floors,
+          ...meta.available_floors.map((f) => ({
+            key: String(f.key),
+            label: f.label,
+          })),
         ];
+
         const devices = {};
+
         for (const floor in meta.available_devices) {
-          devices[floor] = [
-            { key: "all", label: "ทุกอุปกรณ์" },
-            ...meta.available_devices[floor],
+          devices[String(floor)] = [
+            ...meta.available_devices[floor].map((d) => ({
+              ...d,
+              key: String(d.key),
+            })),
           ];
         }
         const phases = ["all", "a", "b", "c"];
         const dates = meta.available_dates;
+        const measurementUnit = meta.measurement_unit;
 
-        const defaultFloor = floors[0]?.key || "all";
+        const defaultFloor = floors[0]?.key;
         const defaultDevice = "all";
         const defaultPhase = "all";
         const defaultDate = dates[0]?.key || "";
 
-        // fetch default daily + hourly
-        console.log("start fetch default daily + hourly");
         const [dailyData, hourlyData] = await Promise.all([
           electricityService.fetchDailyByFloor(defaultFloor),
           electricityService.fetchHourlyByFloor(defaultDate, defaultFloor),
         ]);
 
         setGraphState({
-          metadata: { floors, devices, phases, dates },
+          metadata: { floors, devices, phases, dates, measurementUnit },
           daily: {
             data: dailyData,
             floor: defaultFloor,
@@ -130,5 +133,9 @@ export function useElectricityGraphServices() {
     if (!hasInitialized.current) bootstrap();
   }, []);
 
-  return { graphState, fetchDaily, fetchHourly };
+  return {
+    graphState,
+    fetchDailyByFloor: fetchDaily,
+    fetchHourlyByFloor: fetchHourly,
+  };
 }

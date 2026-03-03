@@ -1,8 +1,3 @@
-import { metaWithoutRoom } from "../data/mockMeta.js";
-import {
-  electricDailyUsageData,
-  electricHourlyUsageData,
-} from "../data/electronicMockData.js";
 import * as electricityService from "../services/electricityUseageService.js";
 
 export const getMetadata = async (req, res) => {

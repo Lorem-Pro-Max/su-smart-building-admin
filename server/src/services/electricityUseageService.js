@@ -9,7 +9,7 @@ export const getMetadata = async () => {
         JOIN electricity_useage_hourly euh ON euh.device_id = rd.id
         ORDER BY r.floor
       `);
-      
+
     const available_floors = floorsRes.rows.map((f) => ({
       key: f.floor,
       label: `ชั้น ${f.floor}`,
@@ -148,7 +148,8 @@ export const fetchDailyByRoom = async (floor, room) => {
 export const fetchDailyByFloor = async (floor) => {
   try {
     const sevenDaysAgo = get7DaysAgo();
-    const query = `
+
+    let query = `
         SELECT 
           r.id AS room_id,
           r.title AS room_title,
@@ -157,13 +158,22 @@ export const fetchDailyByFloor = async (floor) => {
         FROM room r
         JOIN room_device rd ON rd.room_id = r.id
         JOIN electricity_useage_hourly euh ON euh.device_id = rd.id
-        WHERE r.floor = $1
-          AND euh.recorded_hour >= $2
+        WHERE euh.recorded_hour >= $1
+      `;
+
+    const params = [sevenDaysAgo];
+
+    if (floor !== "all") {
+      query += ` AND r.floor = $2`;
+      params.push(floor);
+    }
+
+    query += `
         GROUP BY r.id, r.title, DATE(euh.recorded_hour)
         ORDER BY r.id, date;
       `;
 
-    const res = await pool.query(query, [floor, sevenDaysAgo]);
+    const res = await pool.query(query, params);
 
     const data = {};
     const last7Days = [];
@@ -209,29 +219,35 @@ export const fetchDailyByFloor = async (floor) => {
 
 export const fetchHourlyByFloor = async (date, floor) => {
   try {
-    const utcTime = new Date(date);
+    const thailandTime = new Date(
+      new Date(date).getTime() + 7 * 60 * 60 * 1000,
+    );
 
-    const thailandTime = new Date(utcTime.getTime() + 7 * 60 * 60 * 1000);
+    let query = `
+      SELECT 
+        euh.id,
+        euh.device_id,
+        euh.import_kwh,
+        euh.recorded_hour,
+        r.id AS room_id,
+        r.title AS room_title,
+        r.floor
+      FROM electricity_useage_hourly euh
+      JOIN room_device rd ON rd.id = euh.device_id
+      JOIN room r ON r.id = rd.room_id
+      WHERE euh.recorded_hour >= $1::date
+    `;
 
-    const dateOnly = new Date(date).toISOString().slice(0, 10);
-    const query = `
-        SELECT 
-          euh.id,
-          euh.device_id,
-          euh.import_kwh,
-          euh.recorded_hour,
-          r.id AS room_id,
-          r.title AS room_title,
-          r.floor
-        FROM electricity_useage_hourly euh
-        JOIN room_device rd ON rd.id = euh.device_id
-        JOIN room r ON r.id = rd.room_id
-        WHERE euh.recorded_hour >= $1::date
-          AND r.floor = $2
-        ORDER BY r.id, euh.recorded_hour;
-      `;
+    const params = [thailandTime];
 
-    const res = await pool.query(query, [thailandTime, floor]);
+    if (floor !== "all") {
+      query += ` AND r.floor = $2`;
+      params.push(floor);
+    }
+
+    query += ` ORDER BY r.id, euh.recorded_hour;`;
+
+    const res = await pool.query(query, params);
 
     const data = {};
     res.rows.forEach((row) => {
