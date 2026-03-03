@@ -1,26 +1,49 @@
 import { CommonDropdown } from "@components/utils";
-import { DaysGraphRenderer, HoursGraphRenderer } from "@components/layout";
+import { ElectricDaysGraphRenderer, ElectricHoursGraphRenderer } from "@components/layout";
 import { getColor } from "@components/utils";
+import { useMemo } from "react";
 
-export function DaysGraph({
+export function ElectricDaysGraph({
   title,
   data,
   selectionService,
   metadata,
   alternateTitle,
 }) {
-  const { selection, setDailyFloor, setDailyRoom } = selectionService;
-  const floorsItems = metadata.available_floors || [];
-  const roomsItems = metadata?.available_rooms?.[selection.dailyFloor] || null;
-  const mUnit = metadata.measurement_unit;
+  const { selection, setDailyFloor, setDailyDevice } = selectionService;
+  const floorsItems = metadata.floors || [];
+  let deviceItems = [];
+
+  if (selection.dailyFloor === "all") {
+
+    const allDevices = Object.values(metadata.devices || {}).flat();
+
+    const uniqueDevices = [
+      { key: "all", label: "ทุกอุปกรณ์" },
+      ...Array.from(
+        new Map(allDevices.map(d => [d.key, d])).values()
+      ),
+    ];
+
+    deviceItems = uniqueDevices;
+
+  } else {
+
+    const floorDevices = metadata?.devices?.[selection.dailyFloor] || [];
+
+    deviceItems = [
+      { key: "all", label: "ทุกอุปกรณ์" },
+      ...floorDevices,
+    ];
+  }
+
+  const mUnit = "kWh"
   const usageData = data || {};
   let colorList = [];
 
   Object.entries(usageData).forEach((_, index) => {
     colorList.push(getColor(index));
   });
-
-
 
   return (
     <div className="w-full rounded-2xl p-8 shadow-graph-container bg-white flex flex-col gap-6">
@@ -40,30 +63,30 @@ export function DaysGraph({
               onSelect={setDailyFloor}
             />
           </div>
-          {roomsItems && (
+          {deviceItems && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400">ห้อง</span>
+              <span className="text-sm text-gray-400">อุปกรณ์</span>
               <CommonDropdown
-                items={roomsItems}
-                currentItem={selection.dailyRoom}
-                onSelect={setDailyRoom}
+                items={deviceItems}
+                currentItem={selection.dailyDevice}
+                onSelect={setDailyDevice}
               />
             </div>
           )}
         </div>
       </div>
       <div className="h-68.5 w-full flex items-center justify-center">
-        {/* <DaysGraphRenderer
+        <ElectricDaysGraphRenderer
           data={data}
           measurementUnit={mUnit}
           colorList={colorList}
-        /> */}
+        />
       </div>
     </div>
   );
 }
 
-export function HoursGraph({
+export function ElectricHoursGraph({
   title,
   data,
   selectionService,
@@ -71,22 +94,57 @@ export function HoursGraph({
   metadata,
   alternateTitle,
 }) {
-  const { selection, setHourlyFloor, setHourlyRoom, setHourlyDate } =
+  const { selection, setHourlyFloor, setHourlyDevice, setHourlyDate } =
     selectionService;
-  const datesItmes = metadata.available_dates || [];
-  const floorsItems = metadata.available_floors || [];
-  const roomsItems = metadata?.available_rooms?.[selection.hourlyFloor] || null;
-  const mUnit = metadata.measurement_unit;
+  const datesItems = metadata.dates || [];
+  const floorsItems = metadata.floors || [];
+  let deviceItems = [];
+
+  if (selection.hourlyFloor === "all") {
+    const allDevices = Object.values(metadata.devices || {}).flat();
+
+    deviceItems = [
+      { key: "all", label: "ทุกอุปกรณ์" },
+      ...Array.from(
+        new Map(allDevices.map((d) => [d.key, d])).values()
+      ),
+    ];
+  } else {
+    deviceItems = [
+      { key: "all", label: "ทุกอุปกรณ์" },
+      ...(metadata.devices?.[selection.hourlyFloor] || []),
+    ];
+  }
+  const mUnit = "kWh";
   const usageData = data || {};
-  let colorList = [];
-  let total_number = 0;
 
-  Object.entries(usageData).forEach(([_, value], index) => {
-    colorList.push(getColor(index));
-    total_number += value.total_usage || 0;
-  });
+  const { totalNumber, colorList } = useMemo(() => {
+    let total = 0;
+    const colors = [];
 
+    Object.entries(usageData).forEach(([deviceId, device], index) => {
+      if (
+        selection.hourlyDevice !== "all" &&
+        deviceId !== selection.hourlyDevice
+      ) {
+        return;
+      }
 
+      colors.push(getColor(colors.length));
+
+      device.data?.forEach((point) => {
+        total +=
+          (point.a || 0) +
+          (point.b || 0) +
+          (point.c || 0);
+      });
+    });
+
+    return {
+      totalNumber: total,
+      colorList: colors,
+    };
+  }, [usageData, selection.hourlyDevice]);
 
   return (
     <div className="w-full rounded-2xl p-8 shadow-graph-container bg-white flex flex-col gap-8">
@@ -102,7 +160,7 @@ export function HoursGraph({
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-400 w-max">วันที่</span>
             <CommonDropdown
-              items={datesItmes}
+              items={datesItems}
               currentItem={selection.hourlyDate}
               onSelect={setHourlyDate}
             />
@@ -115,13 +173,13 @@ export function HoursGraph({
               onSelect={setHourlyFloor}
             />
           </div>
-          {roomsItems && (
+          {deviceItems && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-400">ห้อง</span>
               <CommonDropdown
-                items={roomsItems}
-                currentItem={selection.hourlyRoom}
-                onSelect={setHourlyRoom}
+                items={deviceItems}
+                currentItem={selection.hourlyDevice}
+                onSelect={setHourlyDevice}
               />
             </div>
           )}
@@ -131,15 +189,16 @@ export function HoursGraph({
       <TotalUsageBanner
         icon={totalUsageIcon}
         label={`ใช้${alternateTitle || title}รวมทั้งหมด`}
-        value={total_number}
-        isBlue={roomsItems ? true : false}
+        value={totalNumber}
+        isBlue={deviceItems ? true : false}
       />
 
       <div className="h-68.5 w-full flex items-center justify-center">
-        <HoursGraphRenderer
+        <ElectricHoursGraphRenderer
           data={data}
           measurementUnit={mUnit}
           colorList={colorList}
+          selectedDevice={selection.hourlyDevice}
         />
       </div>
     </div>
@@ -175,13 +234,13 @@ const TotalUsageBanner = ({ icon, label, value, isBlue }) => (
       <span
         className={`text-5xl font-bold ${isBlue ? "text-[#08979C]" : "text-[#FA8C16]"}`}
       >
-        {value}
+        {value.toFixed(3)}
       </span>
       <span className="text-xl font-bold text-gray-800 leading-8">หน่วย</span>
     </div>
   </div>
 );
 
-export function GraphContainer({ children }) {
+export function ElectricGraphContainer({ children }) {
   return <div className="w-full flex flex-col gap-8 min-w-0">{children}</div>;
 }

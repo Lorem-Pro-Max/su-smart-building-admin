@@ -3,8 +3,8 @@ import {
   createDeviceDataFetch,
   createMetaFetch,
   createUsageFetchWithRooms,
-  createUsageFetchWithoutRooms,
   createSensorDataFetch,
+  createElectricityUsageFetch,
 } from "./api.js";
 
 import { DEVICE_CONFIGS } from "../config/devices.js";
@@ -17,8 +17,7 @@ export const valveService = {
 };
 
 export const electricityService = {
-  ...createMetaFetch(DEVICE_CONFIGS.ELECTRICITY.type),
-  ...createUsageFetchWithRooms(DEVICE_CONFIGS.ELECTRICITY.type),
+  ...createElectricityUsageFetch(DEVICE_CONFIGS.ELECTRICITY.type),
 };
 
 export const doorService = {

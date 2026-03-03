@@ -3,7 +3,7 @@ import { handleError } from "../utils/errorFormatter.js";
 
 export const GetAllUsageStats = async (req, res) => {
   try {
-    const { type } = req.params; // 'water' หรือ 'electric'
+    const { type } = req.params;
     const days = req.query.days ? parseInt(req.query.days) : 7;
 
     const tableMap = {
@@ -20,7 +20,7 @@ export const GetAllUsageStats = async (req, res) => {
     );
 
     const formattedData = rawData.reduce((acc, row) => {
-      const key = row.iot_code; // เช่น "sci-101"
+      const key = row.iot_code;
 
       if (!acc[key]) {
         acc[key] = {
@@ -33,7 +33,7 @@ export const GetAllUsageStats = async (req, res) => {
       const dailyValue = parseFloat(row.daily_value || 0);
       acc[key].total_usage += dailyValue;
       acc[key].data.push({
-        date: row.usage_date.toISOString().split("T")[0], // format: YYYY-MM-DD
+        date: row.usage_date.toISOString().split("T")[0],
         value: dailyValue,
       });
 

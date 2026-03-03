@@ -1,8 +1,3 @@
-import { metaWithoutRoom } from "../data/mockMeta.js";
-import {
-  electricDailyUsageData,
-  electricHourlyUsageData,
-} from "../data/electronicMockData.js";
 import * as electricityService from "../services/electricityUseageService.js";
 
 export const getMetadata = async (req, res) => {
@@ -13,46 +8,53 @@ export const getMetadata = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 export const getDailyUsage = async (req, res) => {
-  const { floor, room } = req.query;
+  try {
+    const { floor, device } = req.query;
 
-  if (!floor || !room) {
-    return res.status(400).json({ error: "Floor and Rooms are required" });
-  }
+    if (!floor || !device) {
+      return res.status(400).json({
+        error: "Floor and Device are required",
+      });
+    }
 
-  if (room === "all") {
-    const data = await electricityService.fetchDailyByFloor(floor);
-    return res.json({ data: data });
-  } else {
-    const data = await electricityService.fetchDailyByRoom(floor, room);
-    return res.json({ data: data });
+    const data = await electricityService.fetchDailyUsage({
+      floor,
+      device,
+    });
+
+    return res.json({ data });
+  } catch (err) {
+    console.error("getDailyUsage error:", err);
+    return res.status(500).json({
+      error: "Internal server error",
+    });
   }
 };
 
 export const getHourlyUsage = async (req, res) => {
-  const { date, floor, room } = req.query;
   try {
-    if (!floor || !room || !date) {
-      return res
-        .status(400)
-        .json({ error: "Floor, Rooms, and Date are required" });
-    }
+    const { date, floor = "all", device = "all" } = req.query;
 
     if (!date) {
-      return res.status(400).json({ error: "Date is required" });
+      return res.status(400).json({
+        success: false,
+        message: "date is required",
+      });
     }
 
-    let data;
+    const data = await electricityService.fetchHourlyUsage(date, floor, device);
 
-    if (room === "all") {
-      data = await electricityService.fetchHourlyByFloor(date, floor);
-    } else {
-      data = await electricityService.fetchHourlyByRoom(date, floor, room);
-    }
-
-    return res.json({ success: true, data });
+    return res.json({
+      success: true,
+      data,
+    });
   } catch (err) {
     console.error("getHourlyUsage error:", err);
-    return res.status(500).json({ success: false, message: err.message });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };

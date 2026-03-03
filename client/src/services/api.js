@@ -1,5 +1,6 @@
 import axios from "axios";
 import { socket } from "../services/socket";
+import dayjs from "dayjs";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -12,11 +13,11 @@ const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-      error.message = 'Request timeout'; 
+    if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+      error.message = "Request timeout";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 const formatDeviceIds = (deviceIds) => {
@@ -125,6 +126,47 @@ export const createUsageFetchWithoutRooms = (device) => ({
     const { data } = await apiClient.get(`/${device}/usage/hourly`, {
       params: { date: date, floor: floor },
     });
+    return data.data;
+  },
+});
+
+export const createElectricityUsageFetch = (device) => ({
+  getMetadata: async () => {
+    const { data } = await apiClient.get(`/${device}/usage/metadata`);
+    return data.data;
+  },
+
+  fetchDailyByFloor: async (floor) => {
+    const { data } = await apiClient.get(`/${device}/usage/daily`, {
+      params: { floor, device: "all" },
+    });
+    return data.data;
+  },
+
+  fetchDailyByDevice: async (floor, deviceId) => {
+    const { data } = await apiClient.get(`/${device}/usage/daily`, {
+      params: { floor, device: deviceId },
+    });
+    return data.data;
+  },
+
+  fetchHourlyByFloor: async (date, floor) => {
+    const formattedDate = dayjs(date).format("YYYY-MM-DD");
+
+    const { data } = await apiClient.get(`/${device}/usage/hourly`, {
+      params: { date: formattedDate, floor, device: "all" },
+    });
+
+    return data.data;
+  },
+
+  fetchHourlyByDevice: async (date, floor, deviceId) => {
+    const formattedDate = dayjs(date).format("YYYY-MM-DD");
+
+    const { data } = await apiClient.get(`/${device}/usage/hourly`, {
+      params: { date: formattedDate, floor, device: deviceId },
+    });
+
     return data.data;
   },
 });

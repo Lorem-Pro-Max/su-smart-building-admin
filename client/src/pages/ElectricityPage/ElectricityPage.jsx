@@ -1,6 +1,6 @@
-import { GraphPageContainer } from "@components/layout";
+import { ElectricGraphPageContainer } from "@components/layout";
 import { ElectricityTitleIcon, TotalUsageIconOrange } from "@assets/icons";
-import { useElectricity } from "@hooks/pageHooks/useElectricity";
+import { useElectricityGraphServices } from "../../hooks/graph/useElectricGraphServices";
 
 const displayConfig = {
   multiTabs: false,
@@ -8,9 +8,15 @@ const displayConfig = {
 };
 
 function ElectricityPage() {
-  const { graphService } = useElectricity();
+  const { graphState, fetchDailyByFloor, fetchHourlyByFloor } = useElectricityGraphServices();
+
+  const graphService = {
+    graphState,
+    fetchDailyByFloor,
+    fetchHourlyByFloor,
+  };
   return (
-    <GraphPageContainer
+    <ElectricGraphPageContainer
       pageIcon={<ElectricityTitleIcon />}
       pageTitle={"กระแสไฟฟ้า"}
       alternateTitle={"ไฟ"}

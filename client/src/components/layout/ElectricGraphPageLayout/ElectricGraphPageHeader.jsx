@@ -1,6 +1,6 @@
 import { HeaderButton } from "@components/utils";
 
-function GraphPageHeader({
+function ElectricGraphPageHeader({
   pageIcon,
   pageTitle,
   children,
@@ -56,4 +56,4 @@ function GraphPageHeader({
   );
 }
 
-export default GraphPageHeader;
+export default ElectricGraphPageHeader;

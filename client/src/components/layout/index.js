@@ -26,3 +26,17 @@ export {
   DaysGraphRenderer,
   HoursGraphRenderer,
 } from "./GraphPageLayout/GraphRenderer";
+
+export { default as ElectricGraphPageContainer } from "./ElectricGraphPageLayout/ElectricGraphPageContainer";
+export { default as ElectricGraphPageHeader } from "./ElectricGraphPageLayout/ElectricGraphPageHeader";
+
+export {
+  ElectricGraphContainer,
+  ElectricDaysGraph,
+  ElectricHoursGraph,
+} from "./ElectricGraphPageLayout/ElectricGraphContainer";
+
+export {
+  ElectricDaysGraphRenderer,
+  ElectricHoursGraphRenderer,
+} from "./ElectricGraphPageLayout/ElectricGraphRenderer";

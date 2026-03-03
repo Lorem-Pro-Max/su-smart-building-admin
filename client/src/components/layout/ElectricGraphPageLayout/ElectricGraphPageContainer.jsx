@@ -1,23 +1,23 @@
 import { useState, useMemo } from "react";
 import {
-  GraphPageHeader,
+  ElectricGraphPageHeader,
   TabsMenu,
   RoomControlMenu,
   RoomCard,
   RoomControlBody,
   RoomControl,
   RoomNotFound,
-  GraphContainer,
-  DaysGraph,
-  HoursGraph,
+  ElectricGraphContainer,
+  ElectricDaysGraph,
+  ElectricHoursGraph,
 } from "@components/layout";
 import {
   useDeviceSelection,
   getDeviceUid,
 } from "@hooks/devices/useDeviceSelection";
-import { useGraphSelection } from "@hooks/graph/useGraphSelection";
+import { useElectricGraphSelection } from "../../../hooks/graph/useElectricGraphSelection";
 
-function GraphPageContainer({
+function ElectricGraphPageContainer({
   pageIcon,
   pageTitle,
   pageButtonIcon,
@@ -39,23 +39,20 @@ function GraphPageContainer({
   const selectionService = useMemo(() => {
     if (currentPage !== "dashboard") return null;
 
-    const { graphState, fetchDaily, fetchHourly } = graphService;
-    return useGraphSelection(graphState, {
-      fetchDaily,
-      fetchHourly,
+    const { graphState, fetchDailyByFloor, fetchHourlyByFloor } = graphService;
+    return useElectricGraphSelection(graphState, {
+      fetchDailyByFloor,
+      fetchHourlyByFloor,
     });
   }, [currentPage, graphService]);
 
   const metadata =
     currentPage === "dashboard" ? graphService.graphState.metadata || {} : {};
 
-
-
-
   return (
     <>
       {contextHolder}
-      <GraphPageHeader
+      <ElectricGraphPageHeader
         pageIcon={pageIcon}
         pageTitle={pageTitle}
         multiTabs={multiTabs}
@@ -64,15 +61,15 @@ function GraphPageContainer({
       >
         <div key="page-content-wrapper" className="w-full h-full">
           {currentPage === "dashboard" ? (
-            <GraphContainer key="dashboard-view">
-              <DaysGraph
+            <ElectricGraphContainer key="dashboard-view">
+              <ElectricDaysGraph
                 title={pageTitle}
                 data={graphService.graphState.daily.data}
                 selectionService={selectionService}
                 metadata={metadata}
                 alternateTitle={alternateTitle}
               />
-              <HoursGraph
+              <ElectricHoursGraph
                 title={pageTitle}
                 data={graphService.graphState.hourly.data}
                 selectionService={selectionService}
@@ -80,7 +77,7 @@ function GraphPageContainer({
                 metadata={metadata}
                 alternateTitle={alternateTitle}
               />
-            </GraphContainer>
+            </ElectricGraphContainer>
           ) : (
             <div key="control-view">
               <TabsMenu>
@@ -144,9 +141,9 @@ function GraphPageContainer({
             </div>
           )}
         </div>
-      </GraphPageHeader>
+      </ElectricGraphPageHeader>
     </>
   );
 }
 
-export default GraphPageContainer;
+export default ElectricGraphPageContainer;
