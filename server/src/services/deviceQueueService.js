@@ -159,6 +159,8 @@ export const addIotJob = async (
       };
     }
 
+    const safeBookingId = bookingId ?? "manual";
+
     const normalizedAction = ACTION_MAP[action] || action;
     const meta = getDeviceByTableId(String(deviceId));
 
@@ -186,7 +188,7 @@ export const addIotJob = async (
       delay += 10000;
     }
 
-    const jobId = `${scheduleId}-${bookingId}-${normalizedAction}-${meta.device_id}-${meta.device_sub_id || "null"}`;
+    const jobId = `${scheduleId}-${safeBookingId}-${normalizedAction}-${meta.device_id}-${meta.device_sub_id || "null"}`;
 
     const job = await iotQueue.add(
       "toggle-device",
@@ -243,6 +245,8 @@ export const removeIotJob = async (
       };
     }
 
+    const safeBookingId = bookingId ?? "manual";
+
     const normalizedAction = ACTION_MAP[action] || action;
     const meta = getDeviceByTableId(String(deviceId));
 
@@ -254,13 +258,20 @@ export const removeIotJob = async (
       };
     }
 
-    const jobId = `${scheduleId}-${bookingId}-${normalizedAction}-${meta.device_id}-${meta.device_sub_id || "null"}`;
+    const jobId = `${scheduleId}-${safeBookingId}-${normalizedAction}-${meta.device_id}-${meta.device_sub_id || "null"}`;
 
     const job = await iotQueue.getJob(jobId);
 
     if (job) {
       await job.remove();
       await updateIotScheduleStatus(scheduleId, "canceled");
+      logSystemEvent(
+        "schedule",
+        "info",
+        "JOB_REMOVED",
+        `Canceled ${normalizedAction.toUpperCase()} for ${meta.title} (ID: ${scheduleId})`,
+        { scheduleId, jobId },
+      );
       return { success: true };
     }
 
