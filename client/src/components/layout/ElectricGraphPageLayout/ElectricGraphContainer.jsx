@@ -11,7 +11,23 @@ export function ElectricDaysGraph({
 }) {
   const { selection, setDailyFloor, setDailyDevice } = selectionService;
   const floorsItems = metadata.floors || [];
-  const deviceItems = metadata?.devices?.[selection.dailyFloor] || [];
+  let deviceItems = [];
+
+  if (selection.dailyFloor === "all") {
+
+    const allDevices = Object.values(metadata.devices || {}).flat();
+
+    const uniqueDevices = [
+      { key: "all", label: "ทุกอุปกรณ์" },
+      ...Array.from(
+        new Map(allDevices.map(d => [d.key, d])).values()
+      ),
+    ];
+
+    deviceItems = uniqueDevices;
+  } else {
+    deviceItems = metadata?.devices?.[selection.dailyFloor] || [];
+  }
   const mUnit = metadata.measurement_unit;
   const usageData = data || {};
   let colorList = [];
@@ -87,6 +103,7 @@ export function ElectricHoursGraph({
     total_number += value.total_usage || 0;
   });
 
+  console.log("usageData", usageData)
 
 
   return (
