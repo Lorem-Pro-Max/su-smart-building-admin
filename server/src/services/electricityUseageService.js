@@ -66,69 +66,95 @@ export const getMetadata = async () => {
     throw err;
   }
 };
-
-const get7DaysAgo = () => {
-  const d = new Date();
-  d.setDate(d.getDate() - 6);
-  d.setHours(0, 0, 0, 0);
-  return d;
-};
-
 export const fetchDailyUsage = async ({ floor, device }) => {
   try {
-    const sevenDaysAgo = get7DaysAgo();
-
     let conditions = [];
     let params = [];
     let idx = 1;
 
+    // 🔹 Filter ชั้น
     if (floor !== "all") {
       conditions.push(`r.floor = $${idx++}`);
       params.push(floor);
     }
 
+    // 🔹 Filter device
     if (device !== "all") {
       conditions.push(`rd.id = $${idx++}`);
       params.push(device);
     }
 
-    conditions.push(`euh.recorded_hour >= $${idx++}`);
+    // 🔥 Filter ตาม "วันไทย"
+    conditions.push(`
+      TO_CHAR(
+        euh.recorded_hour AT TIME ZONE 'Asia/Bangkok',
+        'YYYY-MM-DD'
+      ) >= $${idx++}
+    `);
+
+    // 🔥 สร้างวันที่ไทยย้อนหลัง 6 วัน (รวมวันนี้ = 7 วัน)
+    const nowThai = new Date(
+      new Date().toLocaleString("en-US", {
+        timeZone: "Asia/Bangkok",
+      }),
+    );
+
+    nowThai.setDate(nowThai.getDate() - 6);
+
+    const sevenDaysAgo = nowThai.toLocaleDateString("en-CA", {
+      timeZone: "Asia/Bangkok",
+    });
+
     params.push(sevenDaysAgo);
 
     const whereClause = `WHERE ${conditions.join(" AND ")}`;
 
     const query = `
-    SELECT 
-      rd.id AS device_id,
-      rd.device_id AS device_title,
-      DATE(euh.recorded_hour AT TIME ZONE 'Asia/Bangkok') AS date,
-      euh.phase,
-      SUM(euh.import_kwh) AS total_kwh
-    FROM room r
-    JOIN room_device rd ON rd.room_id = r.id
-    JOIN electricity_useage_hourly euh ON euh.device_id = rd.id
-    ${whereClause}
-    GROUP BY 
-      rd.id,
-      rd.device_id,
-      DATE(euh.recorded_hour AT TIME ZONE 'Asia/Bangkok'),
-      euh.phase
-    ORDER BY rd.id, date;
-  `;
+      SELECT 
+        rd.id AS device_id,
+        rd.device_id AS device_title,
+        TO_CHAR(
+          euh.recorded_hour AT TIME ZONE 'Asia/Bangkok',
+          'YYYY-MM-DD'
+        ) AS date,
+        euh.phase,
+        SUM(euh.import_kwh) AS total_kwh
+      FROM room r
+      JOIN room_device rd ON rd.room_id = r.id
+      JOIN electricity_useage_hourly euh ON euh.device_id = rd.id
+      ${whereClause}
+      GROUP BY 
+        rd.id,
+        rd.device_id,
+        date,
+        euh.phase
+      ORDER BY rd.id, date;
+    `;
 
     const res = await pool.query(query, params);
 
+    // 🔥 สร้าง array 7 วันล่าสุด (วันไทย)
     const last7Days = [];
     for (let i = 6; i >= 0; i--) {
-      const d = new Date();
+      const d = new Date(
+        new Date().toLocaleString("en-US", {
+          timeZone: "Asia/Bangkok",
+        }),
+      );
+
       d.setDate(d.getDate() - i);
-      last7Days.push(d.toISOString().split("T")[0]);
+
+      last7Days.push(
+        d.toLocaleDateString("en-CA", {
+          timeZone: "Asia/Bangkok",
+        }),
+      );
     }
 
     const data = {};
 
     res.rows.forEach((row) => {
-      const dateStr = row.date.toISOString().split("T")[0];
+      const dateStr = row.date; // 🔥 string ตรงจาก SQL
 
       if (!data[row.device_id]) {
         data[row.device_id] = {
@@ -140,6 +166,9 @@ export const fetchDailyUsage = async ({ floor, device }) => {
       if (!data[row.device_id].data[dateStr]) {
         data[row.device_id].data[dateStr] = {
           date: dateStr,
+          a: 0,
+          b: 0,
+          c: 0,
         };
       }
 
@@ -147,17 +176,21 @@ export const fetchDailyUsage = async ({ floor, device }) => {
         parseFloat(row.total_kwh) || 0;
     });
 
+    // 🔥 เติมวันที่ไม่มีข้อมูลให้เป็น 0
     for (const deviceId in data) {
       last7Days.forEach((date) => {
         if (!data[deviceId].data[date]) {
           data[deviceId].data[date] = {
             date,
+            a: 0,
+            b: 0,
+            c: 0,
           };
         }
       });
 
-      data[deviceId].data = Object.values(data[deviceId].data).sort(
-        (a, b) => new Date(a.date) - new Date(b.date),
+      data[deviceId].data = Object.values(data[deviceId].data).sort((a, b) =>
+        a.date.localeCompare(b.date),
       );
     }
 
