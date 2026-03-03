@@ -21,12 +21,12 @@ export const getAll = async () => {
     r.floor
   FROM iot_schedule s
   LEFT JOIN "user" u 
-    ON s.action_by = u.id
+  ON s.action_by = u.id
   INNER JOIN room_device rd 
-    ON s.device_id = rd.id
+  ON s.device_id = rd.id
   INNER JOIN device_type dt ON rd.device_type_id = dt.id
   INNER JOIN room r ON rd.room_id = r.id
-  ORDER BY s.action_time ASC
+  WHERE s.booking_id IS NULL
 `;
   const { rows } = await pool.query(query);
 

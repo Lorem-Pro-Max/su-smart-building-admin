@@ -8,6 +8,7 @@ import {
   logSystemEvent,
   updateIotScheduleStatus,
   logIotAction,
+  fetchActiveBookings,
 } from "./dbService.js";
 
 export const iotQueue = new Queue("iot-scheduling", {
@@ -62,7 +63,7 @@ const iotWorker = new Worker(
             "schedule",
             "info",
             "OFF_ABORTED",
-            `Occupancy detected in ${roomTitle}. Skipping shutdown.`,
+            `Occupancy detected or Room is Booked (${roomTitle}). Skipping shutdown.`,
             { scheduleId, roomId: roomTableId },
           );
           await updateIotScheduleStatus(scheduleId, "canceled");
@@ -110,8 +111,15 @@ const iotWorker = new Worker(
         "schedule",
         "info",
         "EXECUTION_SUCCESS",
-        `${action.toUpperCase()} : ${roomTitle}`,
-        { scheduleId },
+        `Scheduled ${action.toUpperCase()} for ${roomTitle} (${deviceType} | ${deviceId})`,
+        {
+          scheduleId,
+          deviceId,
+          deviceType,
+          action,
+          roomTableId,
+          actionBy: actionBy || "SYSTEM",
+        },
       );
     } catch (err) {
       if (job.attemptsMade + 1 >= job.opts.attempts) {
@@ -313,7 +321,7 @@ export const initColdStartSync = async () => {
     }
 
     console.log(
-      `[IoT Queue] Cold Start: Recovery complete (${successCount}/${pendingTasks.length} jobs queued).`,
+      `[IoT Queue] Recovery complete (${successCount}/${pendingTasks.length} jobs queued).`,
     );
   } catch (error) {
     console.error(`[IoT Queue] Cold Start FATAL ERROR: ${error.message}`);
@@ -352,24 +360,55 @@ export const setActiveRoom = async (roomId, endDateTime) => {
       );
       return {
         success: true,
-        message: `Locked room ${roomId} for ${secondsUntilEnd}s`,
+        message: `Set Active room ${roomId} for ${secondsUntilEnd}s`,
       };
     }
 
     return { success: false, error: "Booking has already expired" };
   } catch (error) {
-    logSystemEvent(
-      "schedule",
-      "error",
-      "ACTIVE_ROOM_SET_FAIL",
-      error.message,
-      { roomId, endDateTime },
-    );
-    console.error(`[Room Booking] Failed to set active room: ${error.message}`);
+    logSystemEvent("schedule", "error", "ACTIVE_ROOM_SET_FAIL", error.message, {
+      roomId,
+      endDateTime,
+    });
+    console.error(`[Active Room] Failed to set active room: ${error.message}`);
     return {
       success: false,
       error: error.message || "Internal Redis Error",
       status: error.status || 500,
     };
+  }
+};
+
+export const initActiveRoomSync = async () => {
+  try {
+    const activeBookings = await fetchActiveBookings();
+
+    if (!activeBookings || activeBookings.length === 0) {
+      console.log("[Active Room] No active bookings to restore.");
+      return;
+    }
+
+    console.log(
+      `[Active Room] Restoring ${activeBookings.length} active room locks...`,
+    );
+
+    let successCount = 0;
+
+    for (const booking of activeBookings) {
+      const result = await setActiveRoom(booking.room_id, booking.end_dateTime);
+      if (result.success) successCount++;
+    }
+
+    logSystemEvent(
+      "schedule",
+      "info",
+      "COLD_START_ROOM_SYNC",
+      `Restored ${successCount}/${activeBookings.length} active room locks`,
+    );
+
+    console.log(`[Active Room] Successfully restored ${successCount} locks.`);
+  } catch (error) {
+    console.error(`[Active Room] Cold Start FATAL: ${error.message}`);
+    logSystemEvent("schedule", "fatal", "COLD_START_ROOM_FATAL", error.message);
   }
 };
