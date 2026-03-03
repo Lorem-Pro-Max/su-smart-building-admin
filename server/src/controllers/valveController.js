@@ -35,7 +35,8 @@ export const getDailyUsage = async (req, res) => {
 };
 
 export const getHourlyUsage = async (req, res) => {
-  const { date, floor, room } = req.query;
+  let { date, floor, room } = req.query;
+
   try {
     if (!floor || !room || !date) {
       return res
@@ -43,8 +44,8 @@ export const getHourlyUsage = async (req, res) => {
         .json({ error: "Floor, Rooms, and Date are required" });
     }
 
-    if (!date) {
-      return res.status(400).json({ error: "Date is required" });
+    if (date.includes("T")) {
+      date = date.split("T")[0];
     }
 
     let data;
