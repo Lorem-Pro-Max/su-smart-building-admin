@@ -171,7 +171,7 @@ export const initIotSocketListener = () => {
         }
 
         if (ELECTRICITY_ELP_PREFIX === prefixELP) {
-          const mappedDevices = deviceCache.byDeviceId[fullId];
+          const mappedDevices = deviceCache.byDeviceId[fullId];    
           const deviceId = mappedDevices[0].id;
 
           if (!mappedDevices || mappedDevices.length === 0) {

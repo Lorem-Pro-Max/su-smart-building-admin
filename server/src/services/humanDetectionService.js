@@ -71,6 +71,20 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
       const isRoomBooked = await redisConnection.get(BOOKING_KEY);
 
       if (isHumanPresent) {
+        const prevStart = await redisConnection.get(START_TIME_KEY);
+        if (prevStart) {
+          const idleMins = (now - parseInt(prevStart)) / 60000;
+          if (idleMins >= 3) {
+            logSystemEvent(
+              "human-detection",
+              "info",
+              "MOTION_RETURN",
+              `Motion detected. Resetting timer after ${idleMins.toFixed(2)} mins idle.`,
+              { roomId, sensorId, idleMins },
+            );
+          }
+        }
+
         await redisConnection.set(START_TIME_KEY, now);
         const currentLevel = await redisConnection.get(LEVEL_KEY);
 
@@ -82,7 +96,7 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
             LOCK_KEY,
             "true",
             "EX",
-            15,
+            5,
             "NX",
           );
 
@@ -90,13 +104,22 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
             continue;
           }
 
-          await redisConnection.del(LEVEL_KEY);
+          logSystemEvent(
+            "human-detection",
+            "info",
+            "ATTEMPT_UNLOCK",
+            `Unlocking room. State was ${currentLevel}.`,
+            { roomId },
+          );
+
           await handleHumanReentry(roomId);
+          await redisConnection.del(LEVEL_KEY);
         }
         continue;
       }
 
       const startTime = await redisConnection.get(START_TIME_KEY);
+
       if (!startTime) {
         await redisConnection.set(START_TIME_KEY, now);
         continue;
@@ -119,19 +142,33 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
           LOCK_KEY,
           "true",
           "EX",
-          15,
+          5,
           "NX",
         );
         if (!acquiredLock) {
           continue;
         }
 
-        await redisConnection.set(LEVEL_KEY, ROOM_STATE.CLOSED);
+        logSystemEvent(
+          "human-detection",
+          "info",
+          "ROOM_SHUTDOWN",
+          `Shutting down room. No motion for: ${idleMinutes.toFixed(2)} mins.`,
+          { roomId, sensorId, idleMinutes },
+        );
         await triggerShutdownAction(roomId);
+        await redisConnection.set(LEVEL_KEY, ROOM_STATE.CLOSED);
       } else if (idleMinutes >= NOTI_MINUTE_TRIGGER && !currentLevel) {
         const currentTime = getFormattedDateTime();
-        await redisConnection.set(LEVEL_KEY, ROOM_STATE.NOTIFIED);
+        logSystemEvent(
+          "human-detection",
+          "info",
+          "ROOM_WARNING",
+          `Warning sent. No motion for: ${idleMinutes.toFixed(2)} mins.`,
+          { roomId, sensorId, idleMinutes },
+        );
         await triggerNotiAction(meta, currentTime);
+        await redisConnection.set(LEVEL_KEY, ROOM_STATE.NOTIFIED);
       }
     } catch (error) {
       const errorKey = `crash:${sensorId}:${roomId}`;
