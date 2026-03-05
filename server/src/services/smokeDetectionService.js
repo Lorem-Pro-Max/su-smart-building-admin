@@ -3,10 +3,13 @@ import { logSystemEvent } from "./dbService.js";
 import { getDeviceByHardwareId } from "../utils/deviceMap.js";
 
 const alertThrottles = new Map();
-const ALERT_LOG_INTERVAL = 30000;
+const ALERT_LOG_INTERVAL = 15000;
 
-export const processSmokeDetection = (sensorId) => {
+export const processSmokeDetection = (sensorId, payload) => {
   try {
+    const alert = payload.smoke === "ALARM";
+    if (!alert) return;
+
     const deviceMetaList = getDeviceByHardwareId(sensorId);
 
     if (!deviceMetaList || deviceMetaList.length === 0) {
@@ -31,7 +34,7 @@ export const processSmokeDetection = (sensorId) => {
         });
 
         logSystemEvent(
-          "security",
+          "socket",
           "fatal",
           "SMOKE_DETECTED",
           `Smoke alarm triggered in ${deviceMeta.title} (Floor ${deviceMeta.floor})`,

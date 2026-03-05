@@ -6,13 +6,13 @@ const columns = [
     title: "ห้อง/พื้นที่",
     dataIndex: "room",
     key: "room",
-    width: "30%",
+    width: "20%",
   },
   {
     title: "ชั้น",
     dataIndex: "floor",
     key: "floor",
-    width: "5%",
+    width: "8%",
   },
   {
     title: "ชื่ออุปกรณ์",
@@ -24,7 +24,7 @@ const columns = [
     title: "สถานะ",
     dataIndex: "device_status",
     key: "device_status",
-    width: "5%",
+    width: "10%",
   },
   {
     title: "วันที่",
@@ -43,11 +43,11 @@ const columns = [
     title: "ผู้ดำเนินการ",
     dataIndex: "approver_name",
     key: "approver_name",
+    width: "10%",
   },
 ];
 
 function HistoryTable({ data }) {
-
   const displayData = data.map((item) => {
     return {
       key: item.id,
@@ -68,9 +68,9 @@ function HistoryTable({ data }) {
         hour12: false,
       }),
 
-      approver_name: item.action_by ? item.full_name : "SYSTEM"
-    }
-  })
+      approver_name: item.action_by ? item.full_name : "SYSTEM",
+    };
+  });
 
   return (
     <ConfigProvider theme={HistoryTableTheme}>

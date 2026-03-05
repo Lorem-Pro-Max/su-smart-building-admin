@@ -118,7 +118,17 @@ export const initIotSocketListener = () => {
   let isAlive = true;
   let pingInterval = null;
 
+  const connectionTimeout = setTimeout(() => {
+    if (ws.readyState === WebSocket.CONNECTING) {
+      console.warn(
+        "[Websocket] Connection hanging in CONNECTING state. Forcing retry...",
+      );
+      ws.terminate();
+    }
+  }, 5000);
+
   ws.on("open", () => {
+    clearTimeout(connectionTimeout);
     console.log("[Websocket] IoT server connected");
     isAlive = true;
 
@@ -156,7 +166,7 @@ export const initIotSocketListener = () => {
         const prefixELP = fullId.substring(0, 3);
 
         if (SMOKE_DETECTION_PREFIX === prefix) {
-          processSmokeDetection(fullId);
+          processSmokeDetection(fullId, payload);
           return;
         }
 
@@ -171,7 +181,7 @@ export const initIotSocketListener = () => {
         }
 
         if (ELECTRICITY_ELP_PREFIX === prefixELP) {
-          const mappedDevices = deviceCache.byDeviceId[fullId];    
+          const mappedDevices = deviceCache.byDeviceId[fullId];
           const deviceId = mappedDevices[0].id;
 
           if (!mappedDevices || mappedDevices.length === 0) {
@@ -230,7 +240,10 @@ export const initIotSocketListener = () => {
   });
 
   ws.on("close", () => {
+    clearTimeout(connectionTimeout);
     if (pingInterval) clearInterval(pingInterval);
+
+    ws.removeAllListeners();
 
     console.warn("[Websocket] IoT connection lost. Retrying in 5s...");
     setTimeout(initIotSocketListener, 5000);

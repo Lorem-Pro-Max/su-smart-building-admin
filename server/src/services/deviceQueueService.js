@@ -111,7 +111,7 @@ const iotWorker = new Worker(
         "schedule",
         "info",
         "EXECUTION_SUCCESS",
-        `Scheduled ${action.toUpperCase()} for ${roomTitle} (${deviceType} | ${deviceId})`,
+        `Scheduled ${action.toUpperCase()} for ${roomTitle} (${deviceType}: ${deviceId})`,
         {
           scheduleId,
           deviceId,

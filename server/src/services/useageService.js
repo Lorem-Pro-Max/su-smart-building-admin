@@ -61,9 +61,9 @@ export const processWaterUsageBuffer = async (waterBuffer, deviceCache) => {
           console.error(`[Error] Upsert failed for ID:${dbId}`, err.message);
         }
       } else {
-        console.warn(
-          `[Mapping Missing] No ID found for ${iotId} with key ${subKey}`,
-        );
+        // console.warn(
+        //   `[Mapping Missing] No ID found for ${iotId} with key ${subKey}`,
+        // );
       }
     }
   }

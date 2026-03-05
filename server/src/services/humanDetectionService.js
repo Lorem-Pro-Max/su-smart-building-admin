@@ -153,7 +153,7 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
           "human-detection",
           "info",
           "ROOM_SHUTDOWN",
-          `Shutting down room. No motion for: ${idleMinutes.toFixed(2)} mins.`,
+          `Shutting down ${roomId}. No motion for: ${idleMinutes.toFixed(2)} mins.`,
           { roomId, sensorId, idleMinutes },
         );
         await triggerShutdownAction(roomId);
@@ -256,7 +256,7 @@ const executeRoomAction = async (roomId, action) => {
             "human-detection",
             "info",
             "EXECUTION_SUCCESS",
-            `[${action.toUpperCase()}] (F${roomFloor}) ${roomTitle} -> ${successHardwareIds.join(", ")}`,
+            `Auto-Turn ${action.toUpperCase()}: ${roomTitle} (F-${roomFloor}) > [${successHardwareIds.join(", ")}]`,
             {
               roomId,
               roomTitle,
@@ -287,7 +287,7 @@ const executeRoomAction = async (roomId, action) => {
               "human-detection",
               "warn",
               "PARTIAL_EXECUTION_FAIL",
-              `${type.toUpperCase()} execution issues: ${errorDetails}`,
+              `Failed to Auto-Turn ${type} ${action.toUpperCase()}: ${errorDetails}`,
               { failures },
             );
           }
