@@ -71,50 +71,57 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
       const isRoomBooked = await redisConnection.get(BOOKING_KEY);
 
       if (isHumanPresent) {
-        const prevStart = await redisConnection.get(START_TIME_KEY);
-        if (prevStart) {
-          const idleMins = (now - parseInt(prevStart)) / 60000;
-          if (idleMins >= 3) {
-            logSystemEvent(
-              "human-detection",
-              "info",
-              "MOTION_RETURN",
-              `Motion detected. Resetting timer after ${idleMins.toFixed(2)} mins idle.`,
-              { roomId, sensorId, idleMins },
-            );
-          }
-        }
+        // const prevStart = await redisConnection.get(START_TIME_KEY);
+        // if (prevStart) {
+        //   const idleMins = (now - parseInt(prevStart)) / 60000;
+        //   if (idleMins >= 3) {
+        //     logSystemEvent(
+        //       "human-detection",
+        //       "info",
+        //       "MOTION_RETURN",
+        //       `Motion detected. Resetting timer after ${idleMins.toFixed(2)} mins idle.`,
+        //       { roomId, sensorId, idleMins },
+        //     );
+        //   }
+        // }
 
         await redisConnection.set(START_TIME_KEY, now);
         const currentLevel = await redisConnection.get(LEVEL_KEY);
 
-        if (
-          currentLevel === ROOM_STATE.CLOSED ||
-          currentLevel === ROOM_STATE.NOTIFIED
-        ) {
-          const acquiredLock = await redisConnection.set(
-            LOCK_KEY,
-            "true",
-            "EX",
-            5,
-            "NX",
-          );
+        // Uncomment below to restore Auto-Reopen feature back
 
-          if (!acquiredLock) {
-            continue;
-          }
+        // if (
+        //   currentLevel === ROOM_STATE.CLOSED ||
+        //   currentLevel === ROOM_STATE.NOTIFIED
+        // ) {
+        //   const acquiredLock = await redisConnection.set(
+        //     LOCK_KEY,
+        //     "true",
+        //     "EX",
+        //     5,
+        //     "NX",
+        //   );
 
-          logSystemEvent(
-            "human-detection",
-            "info",
-            "ATTEMPT_UNLOCK",
-            `Unlocking room. State was ${currentLevel}.`,
-            { roomId },
-          );
+        //   if (!acquiredLock) {
+        //     continue;
+        //   }
 
-          await handleHumanReentry(roomId);
+        //   logSystemEvent(
+        //     "human-detection",
+        //     "info",
+        //     "ATTEMPT_UNLOCK",
+        //     `Unlocking room. State was ${currentLevel}.`,
+        //     { roomId },
+        //   );
+
+        //   await handleHumanReentry(roomId);
+        //   await redisConnection.del(LEVEL_KEY);
+        // }
+
+        if (currentLevel) {
           await redisConnection.del(LEVEL_KEY);
         }
+
         continue;
       }
 
@@ -149,24 +156,24 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
           continue;
         }
 
-        logSystemEvent(
-          "human-detection",
-          "info",
-          "ROOM_SHUTDOWN",
-          `Shutting down ${roomId}. No motion for: ${idleMinutes.toFixed(2)} mins.`,
-          { roomId, sensorId, idleMinutes },
-        );
-        await triggerShutdownAction(roomId);
+        // logSystemEvent(
+        //   "human-detection",
+        //   "info",
+        //   "ROOM_SHUTDOWN",
+        //   `Shutting down ${roomId}. No motion for: ${idleMinutes.toFixed(2)} mins.`,
+        //   { roomId, sensorId, idleMinutes },
+        // );
+        await triggerShutdownAction(roomId, idleMinutes.toFixed(2));
         await redisConnection.set(LEVEL_KEY, ROOM_STATE.CLOSED);
       } else if (idleMinutes >= NOTI_MINUTE_TRIGGER && !currentLevel) {
         const currentTime = getFormattedDateTime();
-        logSystemEvent(
-          "human-detection",
-          "info",
-          "ROOM_WARNING",
-          `Warning sent. No motion for: ${idleMinutes.toFixed(2)} mins.`,
-          { roomId, sensorId, idleMinutes },
-        );
+        // logSystemEvent(
+        //   "human-detection",
+        //   "info",
+        //   "ROOM_WARNING",
+        //   `Warning sent. No motion for: ${idleMinutes.toFixed(2)} mins.`,
+        //   { roomId, sensorId, idleMinutes },
+        // );
         await triggerNotiAction(meta, currentTime);
         await redisConnection.set(LEVEL_KEY, ROOM_STATE.NOTIFIED);
       }
@@ -194,7 +201,7 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
   }
 };
 
-const executeRoomAction = async (roomId, action) => {
+const executeRoomAction = async (roomId, action, idleMinutes = null) => {
   try {
     const roomDevices = getDevicesByRoomId(roomId);
 
@@ -256,7 +263,7 @@ const executeRoomAction = async (roomId, action) => {
             "human-detection",
             "info",
             "EXECUTION_SUCCESS",
-            `Auto-Turn ${action.toUpperCase()}: ${roomTitle} (F-${roomFloor}) > [${successHardwareIds.join(", ")}]`,
+            `Auto-Turn ${action.toUpperCase()}: ${roomTitle} (F-${roomFloor}) > [${successHardwareIds.join(", ")}]. ${idleMinutes ? `No motion for ${idleMinutes} mins` : ""}`,
             {
               roomId,
               roomTitle,
@@ -321,7 +328,7 @@ const triggerNotiAction = async (meta, datetime) => {
   try {
     const io = getIO();
     io.emit("idle_warning", {
-      title: "แจ้งเตือนการล็อคห้องอัตโนมัติ",
+      title: "แจ้งเตือนการปิดห้องอัตโนมัติ",
       room: meta.title,
       floor: meta.floor,
       date: datetime.date,
@@ -335,8 +342,8 @@ const triggerNotiAction = async (meta, datetime) => {
   }
 };
 
-const triggerShutdownAction = async (roomId) => {
-  await executeRoomAction(roomId, "off");
+const triggerShutdownAction = async (roomId, idleMinutes) => {
+  await executeRoomAction(roomId, "off", idleMinutes);
 };
 
 const handleHumanReentry = async (roomId) => {

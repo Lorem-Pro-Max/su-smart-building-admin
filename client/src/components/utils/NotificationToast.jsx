@@ -61,7 +61,7 @@ export const useIdleWarning = () => {
           </span>
           <span className="text-[#000000D9] font-normal">
             {" "}
-            กำลังจะล็อคภายใน {data.remaining_time} นาที
+            กำลังจะปิดภายใน {data.remaining_time} นาที
           </span>
           <div className=" text-[#000000D9] font-normal text-sm ">
             เนื่องจากระบบไม่พบความเคลื่อนไหวภายในห้อง
