@@ -37,15 +37,17 @@ function HistoryPage() {
 
   return (<>
     {loading && <LoadingScreen />}
-    <div className=" bg-white w-full h-full px-7 py-6 flex justify-center">
-      <div className="w-full h-full flex flex-col gap-4">
-        <div className="w-full h-max flex gap-2 items-center">
+    <div className="bg-white w-full h-full min-w-0 min-h-0 px-7 py-6 flex justify-center overflow-hidden">
+      <div className="w-full h-full min-w-0 min-h-0 flex flex-col gap-4 overflow-hidden">
+        <div className="w-full h-max flex gap-2 items-center shrink-0">
           <HistoryPageTitleIcon />
           <h3 className="text-2xl font-medium leading-8">ประวัติ</h3>
         </div>
-        <div className="h-full w-full flex flex-col justify-between">
-          <HistoryTable data={logs} />
-          <div className="w-full h-max flex justify-end">
+        <div className="flex-1 min-h-0 w-full flex flex-col justify-between gap-4 overflow-hidden">
+          <div className="min-h-0 flex-1 overflow-auto">
+            <HistoryTable data={logs} />
+          </div>
+          <div className="w-full h-max flex justify-end shrink-0">
             <HistoryPagination setCurrentPage={setCurrentPage} setLimit={setLimit} total={total} />
           </div>
         </div>

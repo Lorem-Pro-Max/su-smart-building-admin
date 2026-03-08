@@ -74,31 +74,33 @@ function HistoryTable({ data }) {
 
   return (
     <ConfigProvider theme={HistoryTableTheme}>
-      <Table
-        columns={columns}
-        styles={{
-          header: {
-            cell: {
-              fontWeight: "600",
-              fontSize: "14px",
-              lineHeight: "22px",
-              backgroundColor: "#00000005",
-              padding: "8px 16px",
+      <div className="w-full min-w-0">
+        <Table
+          columns={columns}
+          styles={{
+            header: {
+              cell: {
+                fontWeight: "600",
+                fontSize: "14px",
+                lineHeight: "22px",
+                backgroundColor: "#00000005",
+                padding: "8px 16px",
+              },
             },
-          },
-          body: {
-            cell: {
-              fontSize: "14px",
-              fontWeight: "300",
-              fontFamily: "var(--font-main)",
-              color: "#000000E0",
+            body: {
+              cell: {
+                fontSize: "14px",
+                fontWeight: "300",
+                fontFamily: "var(--font-main)",
+                color: "#000000E0",
+              },
             },
-          },
-        }}
-        dataSource={displayData}
-        pagination={false}
-        scroll={{ y: 800 }}
-      />
+          }}
+          dataSource={displayData}
+          pagination={false}
+          scroll={{ x: "max-content", y: "100%" }}
+        />
+      </div>
     </ConfigProvider>
   );
 }
