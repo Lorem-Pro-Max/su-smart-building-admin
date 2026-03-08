@@ -4,7 +4,11 @@ import { protectAction } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.get("/status", LightController.getLightsStatus);
-router.post("/batch-control", protectAction, LightController.lightsBatchControl);
+router.get("/status", protectAction, LightController.getLightsStatus);
+router.post(
+  "/batch-control",
+  protectAction,
+  LightController.lightsBatchControl,
+);
 
 export default router;

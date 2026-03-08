@@ -4,7 +4,7 @@ import { protectAction } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.get("/status", DoorController.getDoorsStatus);
+router.get("/status", protectAction, DoorController.getDoorsStatus);
 router.post("/batch-control", protectAction, DoorController.doorsBatchControl);
 
 export default router;
