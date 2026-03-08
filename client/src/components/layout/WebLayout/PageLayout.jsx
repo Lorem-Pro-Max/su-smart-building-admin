@@ -11,8 +11,8 @@ function Layout() {
       <div className="flex flex-1 overflow-y-auto">
         <SideBar collapsed={collapsed} />
 
-        <main className="flex-1 pl-6 transition-all duration-300">
-          <div className="mx-auto w-full h-full">
+        <main className="flex-1 min-w-0 pl-6 transition-all duration-300 overflow-hidden">
+          <div className="mx-auto w-full h-full min-w-0 min-h-0 overflow-hidden">
             <Outlet />
           </div>
         </main>

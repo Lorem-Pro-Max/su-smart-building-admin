@@ -205,11 +205,7 @@ export const fetchDailyByFloor = async (floor) => {
 
 export const fetchHourlyByFloor = async (date, floor) => {
   try {
-    const utcTime = new Date(date);
-
-    const thailandTime = new Date(utcTime.getTime() + 7 * 60 * 60 * 1000);
-
-    const dateOnly = new Date(date).toISOString().slice(0, 10);
+    const dateStr = typeof date === "string" && date.includes("T") ? date.split("T")[0] : date;
     const query = `
       SELECT 
         vuh.id,
@@ -222,12 +218,12 @@ export const fetchHourlyByFloor = async (date, floor) => {
       FROM valves_useage_hourly vuh
       JOIN room_device rd ON rd.id = vuh.device_id
       JOIN room r ON r.id = rd.room_id
-      WHERE vuh.recorded_hour >= $1::date
+      WHERE (vuh.recorded_hour AT TIME ZONE 'Asia/Bangkok')::date = $1::date
         AND r.floor = $2
       ORDER BY r.id, vuh.recorded_hour;
     `;
 
-    const res = await pool.query(query, [thailandTime, floor]);
+    const res = await pool.query(query, [dateStr, floor]);
 
     const data = {};
     res.rows.forEach((row) => {
@@ -252,6 +248,7 @@ export const fetchHourlyByFloor = async (date, floor) => {
 
 export const fetchHourlyByRoom = async (date, floor, room_id) => {
   try {
+    const dateStr = typeof date === "string" && date.includes("T") ? date.split("T")[0] : date;
     const query = `
         SELECT 
           vuh.id,
@@ -264,12 +261,12 @@ export const fetchHourlyByRoom = async (date, floor, room_id) => {
         FROM valves_useage_hourly vuh
         JOIN room_device rd ON rd.id = vuh.device_id
         JOIN room r ON r.id = rd.room_id
-        WHERE vuh.recorded_hour >= $1::date
+        WHERE (vuh.recorded_hour AT TIME ZONE 'Asia/Bangkok')::date = $1::date
           AND r.floor = $2
           AND r.id = $3
         ORDER BY r.id, vuh.recorded_hour;
   `;
-    const res = await pool.query(query, [date, floor, room_id]);
+    const res = await pool.query(query, [dateStr, floor, room_id]);
 
     const data = {};
 
