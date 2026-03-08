@@ -197,12 +197,7 @@ export const fetchDailyUsage = async ({ floor, device }) => {
 
 export const fetchHourlyUsage = async (date, floor, device) => {
   try {
-    const start = new Date(`${date}T00:00:00`);
-    start.setHours(start.getHours() - 7);
-
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
-    end.setDate(end.getDate() + 1);
+    const dateStr = typeof date === "string" && date.includes("T") ? date.split("T")[0] : date;
 
     let query = `
       SELECT
@@ -214,12 +209,11 @@ export const fetchHourlyUsage = async (date, floor, device) => {
       FROM electricity_useage_hourly euh
       JOIN room_device rd ON rd.id = euh.device_id
       JOIN room r ON r.id = rd.room_id
-      WHERE euh.recorded_hour >= $1
-        AND euh.recorded_hour < $2
+      WHERE (euh.recorded_hour AT TIME ZONE 'Asia/Bangkok')::date = $1::date
     `;
 
-    const params = [start.toISOString(), end.toISOString()];
-    let paramIndex = 3;
+    const params = [dateStr];
+    let paramIndex = 2;
 
     if (floor !== "all") {
       query += ` AND r.floor = $${paramIndex}`;
@@ -234,7 +228,7 @@ export const fetchHourlyUsage = async (date, floor, device) => {
     }
 
     query += `
-      GROUP BY rd.id, r.title, euh.recorded_hour, euh.phase
+      GROUP BY rd.id, rd.device_id, euh.recorded_hour, euh.phase
       ORDER BY rd.id, euh.recorded_hour;
     `;
 

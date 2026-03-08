@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Line, Area } from "@ant-design/plots";
-import { full30MinDomain, visibleTicks } from "@components/utils";
+import { visibleTicks } from "@components/utils";
 
 const transformChartData = (usageData) => {
   if (!usageData) return [];
@@ -63,17 +63,31 @@ const transformHourlyData = (usageData, selectedDevice) => {
   }
 
   const chartData = [];
+  const hoursSet = new Set();
+
+  for (const deviceId in deviceMap) {
+    const { label, points } = deviceMap[deviceId];
+    Object.keys(points).forEach((h) => hoursSet.add(h));
+  }
+
+  const sortedHours = [...hoursSet].sort((a, b) => {
+    const [ah] = a.split(":").map(Number);
+    const [bh] = b.split(":").map(Number);
+    return ah - bh;
+  });
 
   for (const deviceId in deviceMap) {
     const { label, points } = deviceMap[deviceId];
 
-    full30MinDomain.forEach((hour) => {
+    sortedHours.forEach((hour) => {
       ["a", "b", "c"].forEach((phase) => {
-        chartData.push({
-          hour,
-          value: points[hour]?.[phase] ?? 0,
-          label: `${label}-${phase.toUpperCase()}`,
-        });
+        if (points[hour]?.[phase] !== undefined) {
+          chartData.push({
+            hour,
+            value: points[hour][phase],
+            label: `${label}-${phase.toUpperCase()}`,
+          });
+        }
       });
     });
   }
@@ -149,7 +163,7 @@ export function ElectricHoursGraphRenderer({
     legend: false,
     stack: false,
     scale: {
-      x: { domain: full30MinDomain, padding: 0.4 },
+      x: { padding: 0.4 },
       color: {
         range: colorList,
       },
