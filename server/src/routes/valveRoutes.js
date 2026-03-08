@@ -10,8 +10,8 @@ router.post(
   protectAction,
   ValveController.ValvesBatchControl,
 );
-router.get("/usage/daily", ValveController.getDailyUsage);
-router.get("/usage/hourly", ValveController.getHourlyUsage);
-router.get("/usage/metadata", ValveController.getMetadata);
+router.get("/usage/daily", protectAction, ValveController.getDailyUsage);
+router.get("/usage/hourly", protectAction, ValveController.getHourlyUsage);
+router.get("/usage/metadata", protectAction, ValveController.getMetadata);
 
 export default router;

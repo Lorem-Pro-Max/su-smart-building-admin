@@ -4,7 +4,11 @@ import { protectAction } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.get("/status", ExhaustFanController.getExhaustFansStatus);
-router.post("/batch-control", protectAction, ExhaustFanController.exhaustFansBatchControl);
+router.get("/status", protectAction, ExhaustFanController.getExhaustFansStatus);
+router.post(
+  "/batch-control",
+  protectAction,
+  ExhaustFanController.exhaustFansBatchControl,
+);
 
 export default router;

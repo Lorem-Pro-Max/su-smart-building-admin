@@ -1,9 +1,10 @@
 import express from "express";
 import * as userController from "../controllers/userController.js";
+import { protectAction } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.post("/users", async (req, res) => {
+router.post("/users", protectAction, async (req, res) => {
   try {
     await userController.createUser(req, res);
   } catch (error) {
@@ -15,7 +16,7 @@ router.post("/users", async (req, res) => {
   }
 });
 
-router.patch("/users/:id", async (req, res) => {
+router.patch("/users/:id", protectAction, async (req, res) => {
   try {
     await userController.updateUser(req, res);
   } catch (error) {
@@ -27,7 +28,7 @@ router.patch("/users/:id", async (req, res) => {
   }
 });
 
-router.get("/users", async (req, res) => {
+router.get("/users", protectAction, async (req, res) => {
   try {
     await userController.getUsers(req, res);
   } catch (error) {
