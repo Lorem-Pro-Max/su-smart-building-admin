@@ -33,14 +33,14 @@ const transformHourlyData = (usageData) => {
     for (let i = 0; i < room.data.length; i++) {
       const p = room.data[i];
       const date = new Date(p.time);
-
       const hour = date.toLocaleTimeString("en-GB", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
+        timeZone: "Asia/Bangkok",
       });
       chartData.push({
-        hour: hour,
+        hour,
         value: p.value,
         label: room.label,
       });
@@ -97,8 +97,6 @@ export function DaysGraphRenderer({ data, measurementUnit, colorList }) {
 }
 
 export function HoursGraphRenderer({ data, colorList }) {
-
-
   const chartData = useMemo(() => transformHourlyData(data), [data]);
   const roomCount = Object.keys(data || {}).length;
 
