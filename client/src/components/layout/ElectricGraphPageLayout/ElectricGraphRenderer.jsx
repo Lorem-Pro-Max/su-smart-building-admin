@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Line, Area } from "@ant-design/plots";
-import { visibleTicks } from "@components/utils";
+import { full30MinDomain, visibleTicks } from "@components/utils";
 
 const transformChartData = (usageData) => {
   if (!usageData) return [];
@@ -163,7 +163,7 @@ export function ElectricHoursGraphRenderer({
     legend: false,
     stack: false,
     scale: {
-      x: { padding: 0.4 },
+      x: { domain: full30MinDomain, padding: 0.4 },
       color: {
         range: colorList,
       },
