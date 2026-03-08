@@ -2,6 +2,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import {
   findUserByUsername,
+  findUserById,
+  isUserBlocked,
   saveRefreshToken,
   deleteRefreshToken,
 } from "../services/authService.js";
@@ -21,6 +23,13 @@ export const login = async (req, res) => {
       return res
         .status(401)
         .json({ message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
+
+    if (isUserBlocked(user.status)) {
+      return res.status(403).json({
+        access: false,
+        message: "บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ",
+      });
+    }
 
     if (user.role_id !== 1) {
       return res.status(403).json({
@@ -77,6 +86,12 @@ export const refreshToken = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const user = await findUserById(decoded.id);
+    if (!user || isUserBlocked(user.status)) {
+      return res.status(403).json({
+        message: "บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ",
+      });
+    }
     const newAccessToken = jwt.sign(
       { id: decoded.id, role: decoded.role },
       process.env.JWT_ACCESS_SECRET,
