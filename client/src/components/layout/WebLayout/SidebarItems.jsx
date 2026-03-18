@@ -61,7 +61,7 @@ function SideBarMenu({ collapsed }) {
         },
         {
           key: "/air-conditioners",
-          label: <span className={SideBarChildrenStyle}>อุณหภูมิ</span>,
+          label: <span className={SideBarChildrenStyle}>เครื่องปรับอากาศ</span>,
         },
         {
           key: "/air-quality",

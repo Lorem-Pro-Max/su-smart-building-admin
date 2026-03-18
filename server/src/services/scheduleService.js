@@ -195,6 +195,7 @@ export const getRoomById = async (roomId) => {
     INNER JOIN device_type dt ON rd.device_type_id = dt.id
     INNER JOIN room r ON rd.room_id = r.id
     WHERE rd.room_id = $1
+      AND rd.device_type_id NOT IN (6, 7, 8, 9, 10)
   `;
 
   const { rows } = await pool.query(query, [roomId]);

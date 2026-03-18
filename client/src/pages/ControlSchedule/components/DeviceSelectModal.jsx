@@ -88,6 +88,10 @@ function DeviceSelectModal({ open, onClose, onConfirm, roomId }) {
           <div className="flex justify-center py-10">
             <Spin />
           </div>
+        ) : devices.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+            <p className="text-base">อุปกรณ์ในห้องนี้ไม่รองรับการตั้งเวลาเปิด-ปิด</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {devices.map((item) => {
@@ -98,9 +102,8 @@ function DeviceSelectModal({ open, onClose, onConfirm, roomId }) {
                 <div
                   key={item.id}
                   onClick={() => toggleDevice(item)}
-                  className={`p-4 rounded-2xl cursor-pointer flex gap-3 items-center transition border ${
-                    active ? "border-[2px] border-[#13C2C2]" : "border-gray-200"
-                  }`}
+                  className={`p-4 rounded-2xl cursor-pointer flex gap-3 items-center transition border ${active ? "border-[2px] border-[#13C2C2]" : "border-gray-200"
+                    }`}
                 >
                   <div
                     className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl"
