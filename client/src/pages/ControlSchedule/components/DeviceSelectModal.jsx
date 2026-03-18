@@ -55,8 +55,11 @@ function DeviceSelectModal({ open, onClose, onConfirm, roomId }) {
   };
 
   useEffect(() => {
-    if (open && roomId) fetchDevices();
-  }, [open]);
+    if (open && roomId) {
+      setSelected([]);
+      fetchDevices();
+    }
+  }, [open, roomId]);
 
   const toggleDevice = (device) => {
     if (selected.find((d) => d.id === device.id)) {
