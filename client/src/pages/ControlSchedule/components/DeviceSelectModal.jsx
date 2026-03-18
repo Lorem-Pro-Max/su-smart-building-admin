@@ -93,7 +93,7 @@ function DeviceSelectModal({ open, onClose, onConfirm, roomId }) {
           </div>
         ) : devices.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-            <p className="text-base">อุปกรณ์ในห้องนี้ไม่รองรับการตั้งเวลาเปิด-ปิด</p>
+            <p className="text-base text-center">ไม่พบอุปกรณ์ หรือ อุปกรณ์ในห้องนี้ไม่รองรับการตั้งเวลาเปิด-ปิด</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
