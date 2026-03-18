@@ -54,6 +54,11 @@ function SchedulePanel({ selectedDate, onClose }) {
   const removeDevice = (id) =>
     setDevices((prev) => prev.filter((d) => d.id !== id));
 
+  const handleSelectRoom = (selectedRoom) => {
+    setRoom(selectedRoom);
+    setDevices([]);
+  };
+
   const handleConfirmDevices = (selected) => {
     return setDevices((prev) => [
       ...prev,
@@ -186,7 +191,7 @@ function SchedulePanel({ selectedDate, onClose }) {
 
                     <Button
                       size="small"
-                      className="!bg-red-500 !text-white  p-3 rounded-[px] text-xs font-medium hover:opacity-90 transition"
+                      className="bg-red-500! text-white!  p-3 rounded-[px] text-xs font-medium hover:opacity-90 transition"
                       onClick={() => removeDevice(device.id)}
                     >
                       ลบอุปกรณ์
@@ -208,8 +213,8 @@ function SchedulePanel({ selectedDate, onClose }) {
                   type="button"
                   onClick={() => setSettingType("on")}
                   className={`flex-1 rounded-l-2xl text-base font-semibold transition ${settingType === "on"
-                      ? "bg-white text-green-500 shadow"
-                      : "text-gray-500"
+                    ? "bg-white text-green-500 shadow"
+                    : "text-gray-500"
                     }`}
                 >
                   เปิด
@@ -219,8 +224,8 @@ function SchedulePanel({ selectedDate, onClose }) {
                   type="button"
                   onClick={() => setSettingType("off")}
                   className={`flex-1 py-1 rounded-r-2xl text-base font-semibold transition ${settingType === "off"
-                      ? "bg-white text-gray-700 shadow"
-                      : "text-gray-500"
+                    ? "bg-white text-gray-700 shadow"
+                    : "text-gray-500"
                     }`}
                 >
                   ปิด
@@ -281,7 +286,7 @@ function SchedulePanel({ selectedDate, onClose }) {
       <RoomSelectModal
         open={openRoomModal}
         onClose={() => setOpenRoomModal(false)}
-        onSelect={setRoom}
+        onSelect={handleSelectRoom}
       />
 
       <DeviceSelectModal
