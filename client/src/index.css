@@ -73,7 +73,9 @@
 }
 
 @layer base {
-  html {
+  html,
+  body {
+    font-family: "Kanit", sans-serif;
     -webkit-font-smoothing: auto;
     -moz-osx-font-smoothing: auto;
   }
