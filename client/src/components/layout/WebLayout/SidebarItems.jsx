@@ -61,7 +61,7 @@ function SideBarMenu({ collapsed }) {
         },
         {
           key: "/air-conditioners",
-          label: <span className={SideBarChildrenStyle}>อุณหภูมิ</span>,
+          label: <span className={SideBarChildrenStyle}>เครื่องปรับอากาศ</span>,
         },
         {
           key: "/air-quality",
@@ -122,13 +122,13 @@ function SideBarMenu({ collapsed }) {
           selectedKeys={[activeKey]}
           defaultOpenKeys={rootSubmenuKeys}
         />
-        <div className="mt-auto w-full px-3 pb-4">
+        <div className="mt-auto w-full pb-4">
           <div
             onClick={() => setIsLogoutModalOpen(true)}
-            className="group flex items-center gap-3 h-10 rounded-lg cursor-pointer text-primary-dark hover:bg-mint-light hover:text-primary-main transition-colors"
+            className={`group flex items-center h-10 rounded-lg cursor-pointer text-primary-dark hover:bg-mint-light hover:text-primary-main transition-colors ${collapsed ? "justify-center w-10" : "gap-3"}`}
           >
-            <img src={Logout} className="w-[18px] h-[18px] color-red-900!" alt="logout" />
-            <p className="text-sm font-medium">ออกจากระบบ</p>
+            <img src={Logout} className="w-[18px] h-[18px] shrink-0" alt="logout" />
+            {!collapsed && <p className="text-sm font-medium">ออกจากระบบ</p>}
           </div>
         </div>
         <LogoutModal handleLogout={handleLogout} isLogoutModalOpen={isLogoutModalOpen} setIsLogoutModalOpen={setIsLogoutModalOpen} />

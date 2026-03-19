@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ConfigProvider } from "antd";
 import { Layout } from "@components/layout";
 import { socket } from "./services/socket";
 import { useEffect, useState } from "react";
@@ -40,40 +41,48 @@ function App() {
 
   const handleClose = () => setSmokeData(null);
 
+  const antdTheme = {
+    token: {
+      fontFamily: '"Kanit", sans-serif',
+    },
+  };
+
   return (
-    <BrowserRouter basename="/admin-dashboard">
-      {idleContext}
-      <SmokeAlertModal
-        visible={!!smokeData}
-        data={smokeData}
-        onClose={handleClose}
-      />
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route element={<AdminProtectedRoute />}>
-          <Route element={<Layout />}>
-            <Route path="/history" element={<HistoryPage />} />
-            <Route path="/device-scheduling" element={<ControlSchedulePage />} />
-            <Route path="/doors" element={<DoorsControlPage />} />
-            <Route path="/lights" element={<LightsControlPage />} />
-            <Route path="/exhaust-fans" element={<ExhaustFansControlPage />} />
-            <Route path="/valves" element={<ValvesControlPage />} />
-            <Route
-              path="/air-conditioners"
-              element={<AirConditionersControlPage />}
-            />
-            <Route path="/air-quality" element={<AirQualityPage />} />
-            <Route path="/electricity" element={<ElectricityPage />} />
-            <Route path="/approve-booking" element={<ApproveBookingPage />} />
-            <Route path="/user-permissions" element={<UserPermissionPage />} />
-            <Route
-              path="*"
-              element={<Navigate to="/approve-booking" replace />}
-            />
+    <ConfigProvider theme={antdTheme}>
+      <BrowserRouter basename="/admin-dashboard">
+        {idleContext}
+        <SmokeAlertModal
+          visible={!!smokeData}
+          data={smokeData}
+          onClose={handleClose}
+        />
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route element={<AdminProtectedRoute />}>
+            <Route element={<Layout />}>
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/device-scheduling" element={<ControlSchedulePage />} />
+              <Route path="/doors" element={<DoorsControlPage />} />
+              <Route path="/lights" element={<LightsControlPage />} />
+              <Route path="/exhaust-fans" element={<ExhaustFansControlPage />} />
+              <Route path="/valves" element={<ValvesControlPage />} />
+              <Route
+                path="/air-conditioners"
+                element={<AirConditionersControlPage />}
+              />
+              <Route path="/air-quality" element={<AirQualityPage />} />
+              <Route path="/electricity" element={<ElectricityPage />} />
+              <Route path="/approve-booking" element={<ApproveBookingPage />} />
+              <Route path="/user-permissions" element={<UserPermissionPage />} />
+              <Route
+                path="*"
+                element={<Navigate to="/approve-booking" replace />}
+              />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </ConfigProvider>
   );
 }
 
