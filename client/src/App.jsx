@@ -12,6 +12,7 @@ import {
   ElectricityPage,
   AirQualityPage,
   HistoryPage,
+  ClassroomNamePage,
   LoginPage
 } from "./pages";
 import ApproveBookingPage from "./pages/ApproveBookingPage/ApproveBooking";
@@ -62,6 +63,7 @@ function App() {
             <Route element={<Layout />}>
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/device-scheduling" element={<ControlSchedulePage />} />
+              <Route path="/classroom-names" element={<ClassroomNamePage />} />
               <Route path="/doors" element={<DoorsControlPage />} />
               <Route path="/lights" element={<LightsControlPage />} />
               <Route path="/exhaust-fans" element={<ExhaustFansControlPage />} />

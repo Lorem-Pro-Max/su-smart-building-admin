@@ -44,6 +44,10 @@ function SideBarMenu({ collapsed }) {
           label: <span className={SideBarChildrenStyle}>ตั้งเวลาเปิด-ปิด</span>,
         },
         {
+          key: "/classroom-names",
+          label: <span className={SideBarChildrenStyle}>ชื่อห้อง</span>,
+        },
+        {
           key: "/history",
           label: <span className={SideBarChildrenStyle}>ประวัติ</span>,
         },
