@@ -126,3 +126,24 @@ export const fetchActiveBookings = async () => {
   const { rows } = await pool.query(query);
   return rows;
 };
+
+export const logHpsStatus = (deviceDbId, status) => {
+  const query = `
+    INSERT INTO hps_status_log (device_id, status, recorded_at)
+    VALUES ($1, $2, NOW())
+  `;
+  pool.query(query, [deviceDbId, status]).catch((err) => {
+    console.error(`[HPS_LOG_FAIL] DB ID ${deviceDbId}: ${err.message}`);
+  });
+};
+
+export const logSdDetection = (deviceDbId, status = 'detected') => {
+  const query = `
+    INSERT INTO sd_status_log (device_id, status, recorded_at)
+    VALUES ($1, $2, NOW())
+  `;
+  
+  pool.query(query, [deviceDbId, status]).catch((err) => {
+    console.error(`[SD_LOG_FAIL] DB ID ${deviceDbId}: ${err.message}`);
+  });
+};

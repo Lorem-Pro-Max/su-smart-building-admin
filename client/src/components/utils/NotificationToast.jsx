@@ -3,7 +3,7 @@ import { WarningSignIcon } from "@assets/icons";
 
 export const useToast = () => {
   const [api, contextHolder] = notification.useNotification({
-    stack: { threshold: 0 },
+    stack: { threshold: 2 },
   });
 
   const notify = (type, message, duration = 3) => {

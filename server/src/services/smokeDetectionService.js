@@ -1,5 +1,5 @@
 import { getIO } from "../config/socket.js";
-import { logSystemEvent } from "./dbService.js";
+import { logSystemEvent, logSdDetection } from "./dbService.js";
 import { getDeviceByHardwareId } from "../utils/deviceMap.js";
 
 const alertThrottles = new Map();
@@ -11,7 +11,6 @@ export const processSmokeDetection = (sensorId, payload) => {
     if (!alert) return;
 
     const deviceMetaList = getDeviceByHardwareId(sensorId);
-
     if (!deviceMetaList || deviceMetaList.length === 0) {
       throw new Error(`Smoke trigger from unmapped Sensor ID: ${sensorId}`);
     }
@@ -25,6 +24,8 @@ export const processSmokeDetection = (sensorId, payload) => {
 
       if (now - lastLogged > ALERT_LOG_INTERVAL) {
         alertThrottles.set(throttleKey, now);
+
+        logSdDetection(deviceMeta.id, "detected");
 
         io.emit("smoke_alert", {
           sensorId: sensorId,
