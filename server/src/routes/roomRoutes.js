@@ -10,4 +10,10 @@ router.get(
   roomController.getClassroomRoomsByFloor.bind(roomController),
 );
 
+router.patch(
+  "/:id",
+  protectAction,
+  roomController.patchRoomTitle.bind(roomController),
+);
+
 export default router;

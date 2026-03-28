@@ -9,7 +9,7 @@ export default function RoomBox({ room, onEdit }) {
       <button
         type="button"
         aria-label="แก้ไขชื่อห้อง"
-        className="shrink-0 p-1 rounded-md text-black/45 hover:text-[#FAAD14] hover:bg-black/4 transition-colors cursor-pointer border-0 bg-transparent leading-none"
+        className="shrink-0 p-1 rounded-md text-black/45 hover:text-[#11A8A8]! cursor-pointer border-0 bg-transparent leading-none"
         onClick={() => onEdit(room)}
       >
         <EditOutlined className="text-lg" />

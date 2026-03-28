@@ -60,3 +60,23 @@ export const getRoomsByFloorForDirectory = async (buildingId = null) => {
       return { floor, left, right };
     });
 };
+
+export const updateRoomTitle = async (id, title) => {
+  const roomId = Number(id);
+  if (!Number.isFinite(roomId) || roomId <= 0) {
+    throw new Error("รหัสห้องไม่ถูกต้อง");
+  }
+  const raw = title == null ? "" : String(title);
+  const normalized = raw.trim();
+  const titleValue = normalized === "" ? null : normalized;
+
+  const query = `
+    UPDATE room
+    SET title = $1
+    WHERE id = $2
+    RETURNING id, title, floor, is_bookable, building_id
+  `;
+  const { rows } = await pool.query(query, [titleValue, roomId]);
+  if (!rows.length) return null;
+  return rows[0];
+};
