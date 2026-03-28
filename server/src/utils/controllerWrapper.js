@@ -2,6 +2,8 @@ import * as IoTService from "../services/iotService.js";
 import { syncIotDevice } from "../services/socketService.js";
 import { formatDeviceUpdate } from "../utils/responseFormatter.js";
 import { handleError } from "../utils/errorFormatter.js";
+import { logIotAction, logSystemEvent } from "../services/dbService.js";
+import { getDeviceByHardwareId } from "./deviceMap.js";
 
 export const EXECUTION_REGISTRY = {
   valves: IoTService.executeValveAction,
@@ -29,6 +31,7 @@ export const getStatusHandler = (deviceType) => async (req, res) => {
 
 export const handleBatchCommand = (deviceType) => async (req, res) => {
   const { deviceIds, action, value = null } = req.body;
+  const userId = req.user?.id || null;
 
   try {
     if (!deviceIds || !Array.isArray(deviceIds) || !action) {
@@ -55,15 +58,65 @@ export const handleBatchCommand = (deviceType) => async (req, res) => {
       value,
     );
 
-    const failedItems = result.filter(
+    const successes = result.filter(
+      (r) => r && r.status === 200 && r.data?.success === true,
+    );
+    const failures = result.filter(
       (r) => !r || r.status !== 200 || r.data?.success !== true,
     );
 
+    successes.forEach((resItem) => {
+      const mappings = getDeviceByHardwareId(resItem.id);
+      mappings?.forEach((meta) => {
+        logIotAction(meta.id, action, userId);
+        logSystemEvent(
+          "device-control",
+          "info",
+          "CONTROL_SUCCESS",
+          `User ${userId} Switched ${action.toUpperCase()} ${meta.device_id}`,
+          {
+            roomId: meta.room_id,
+            action: action,
+            device: meta.device_id,
+            action_time: new Date().toISOString(),
+            action_by: userId,
+          },
+        );
+      });
+    });
+
+    failures.forEach((f) => {
+      const mappings = getDeviceByHardwareId(f.id);
+
+      const errorMessage =
+        f.data?.detail ||
+        f.data?.error ||
+        f.error ||
+        f.data?.message ||
+        `Hardware error (Status ${f.status || "???"})`;
+
+      mappings?.forEach((meta) => {
+        logSystemEvent(
+          "device-control",
+          "warn",
+          "CONTROL_FAIL",
+          `User ${userId} failed to turn ${action.toUpperCase()} ${meta.device_id}`,
+          {
+            roomId: meta.room_id,
+            action: action,
+            device: meta.device_id,
+            action_time: new Date().toISOString(),
+            action_by: userId,
+            error: errorMessage,
+          },
+        );
+      });
+    });
+
     await syncIotDevice(deviceType);
 
-    if (failedItems.length > 0) {
-      const first = failedItems[0];
-
+    if (successes.length === 0 && failures.length > 0) {
+      const first = failures[0];
       const errorMessage =
         first.data?.detail ||
         first.data?.error ||
@@ -71,15 +124,33 @@ export const handleBatchCommand = (deviceType) => async (req, res) => {
         first.data?.message ||
         `Hardware error (Status ${first.status || "???"})`;
 
-      throw {
-        status: 502,
+      return res.status(502).json({
+        success: false,
         message: errorMessage,
-        failedCount: failedItems.length,
-      };
+        failCount: failures.length,
+      });
+    }
+
+    if (failures.length > 0) {
+      const first = failures[0];
+      const errorMessage =
+        first.data?.detail ||
+        first.data?.error ||
+        first.error ||
+        first.data?.message ||
+        `Hardware error (Status ${first.status || "???"})`;
+
+      return res.status(200).json({
+        success: true,
+        partial: true,
+        message: errorMessage,
+        successCount: successes.length,
+        failCount: failures.length,
+      });
     }
 
     return res.status(200).json({ success: true });
   } catch (error) {
-    return handleError(res, error, `handleBatchCommand [${deviceType}]`);
+    return handleError(res, error, `handleBatchCommand: ${deviceType}`);
   }
 };

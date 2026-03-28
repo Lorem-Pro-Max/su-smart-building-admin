@@ -22,26 +22,35 @@ export function useDeviceControl(config, onRefresh, service) {
       const { data } = response;
 
       if (data?.success) {
-        const successMsg =
-          totalCount > 1
-            ? `${statusThai}ทั้งหมด ${totalCount} รายการที่เลือกแล้ว`
-            : `${statusThai}รายการที่เลือกแล้ว`;
+        if (data.partial) {
+          successToast(`${statusThai}สำเร็จ ${data.successCount} รายการ`, 3);
+          const firstError = data.failures?.[0]?.error || "Hardware Timeout";
+          errorToast(
+            `${statusThai}ไม่สำเร็จ ${data.failCount} รายการ: ${firstError}`,
+            4,
+          );
+        } else {
+          const successMsg =
+            totalCount > 1
+              ? `${statusThai}ทั้งหมด ${totalCount} รายการที่เลือกแล้ว`
+              : `${statusThai}รายการที่เลือกแล้ว`;
+          successToast(successMsg, 2);
+        }
 
-        successToast(successMsg, 1);
         if (onRefresh) setTimeout(() => onRefresh(), 800);
         return;
       }
-
-      throw {
-        message: data.error,
-        failedCount: data?.failedCount,
-      };
     } catch (err) {
       const serverData = err.response?.data;
-      const failedCount = serverData?.failedCount || 0;
-      const serverError = serverData?.error || err.message || "เกิดข้อผิดพลาด";
-      const errorDisplay = `ไม่สามารถ${statusThai}${failedCount > 0 ? ` ${failedCount} รายการที่เลือกได้` : "รายการที่เลือกได้"}: ${serverError}`;
+      const failedCount = serverData?.failCount || totalCount;
+      const serverError =
+        serverData?.message || err.message || "เกิดข้อผิดพลาด";
 
+      const errorDisplay = `ไม่สามารถ${statusThai}${
+        failedCount > 0
+          ? ` ${failedCount} รายการที่เลือกได้`
+          : "รายการที่เลือกได้"
+      }: ${serverError}`;
       errorToast(errorDisplay);
     }
   };

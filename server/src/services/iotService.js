@@ -1,7 +1,6 @@
 import axios from "axios";
 
 const IOT_BASE_URL = process.env.IOT_SERVER_URL;
-
 const DEVICE_MAP = {
   ac: {
     path: "ac",
@@ -29,16 +28,22 @@ const DEVICE_MAP = {
   },
 };
 
+export const apiClient = axios.create({
+  baseURL: `${IOT_BASE_URL}/control`,
+  headers: { "Content-Type": "application/json" },
+  timeout: 5000,
+});
+
 export const fetchStatusByType = async (deviceType) => {
-  const response = await axios.get(
-    `${IOT_BASE_URL}/control/${DEVICE_MAP[deviceType]["path"]}/all`,
+  const response = await apiClient.get(
+    `/${DEVICE_MAP[deviceType]["path"]}/all`,
   );
   return response.data || {};
 };
 
 export const fetchDeviceList = async (baseType, deviceType) => {
-  const response = await axios.get(
-    `${IOT_BASE_URL}/control/${DEVICE_MAP[baseType]["path"]}/${deviceType}/list`,
+  const response = await apiClient.get(
+    `/${DEVICE_MAP[baseType]["path"]}/${deviceType}/list`,
   );
   return response.data || [];
 };
@@ -53,10 +58,10 @@ export const executeBatch = async (
     deviceObjects.map(async ({ id }) => {
       const path = DEVICE_MAP[baseType]?.path;
       const powerValue = DEVICE_MAP[baseType]?.actions[action];
-      const url = `${IOT_BASE_URL}/control/${path}/${id}/command`;
+      const url = `/${path}/${id}/command`;
 
       try {
-        const r = await axios.post(url, { power: powerValue });
+        const r = await apiClient.post(url, { power: powerValue });
 
         if (r.data?.success === false) {
           return {
@@ -94,9 +99,7 @@ export const executeDoorAction = async (
       try {
         const doorResults = await Promise.all(
           indices.map((index) =>
-            axios.post(
-              `${IOT_BASE_URL}/control/door/${id}/${index}/${doorAction}`,
-            ),
+            apiClient.post(`/door/${id}/${index}/${doorAction}`),
           ),
         );
 
@@ -135,9 +138,9 @@ export const executeValveAction = async (
 
   return Promise.all(
     deviceObjects.map(async ({ id, sub_id }) => {
-      const url = `${IOT_BASE_URL}/control/water/${id}/${sub_id}/${valveAction}`;
+      const url = `/water/${id}/${sub_id}/${valveAction}`;
       try {
-        const r = await axios.post(url);
+        const r = await apiClient.post(url);
 
         if (r.data.status !== "success") {
           return {
@@ -161,9 +164,9 @@ export const executeValveAction = async (
 };
 
 export const executeAcTempAdjustment = async (acId, targetTemp) => {
-  const url = `${IOT_BASE_URL}/control/ac/${acId}/command`;
+  const url = `/ac/${acId}/command`;
   try {
-    const r = await axios.post(url, { temp: targetTemp });
+    const r = await apiClient.post(url, { temp: targetTemp });
 
     if (r.data?.success === false) {
       return {

@@ -59,7 +59,7 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
 
   const now = Date.now();
   const isHumanPresent = motionStatus !== "none";
-  const currentStatus = isHumanPresent ? 'detected' : 'none';
+  const currentStatus = isHumanPresent ? "detected" : "none";
 
   for (const meta of sensorMappings) {
     await syncHpsStatusLog(meta.id, currentStatus);
@@ -266,12 +266,13 @@ const executeRoomAction = async (roomId, action, idleMinutes = null) => {
             "human-detection",
             "info",
             "EXECUTION_SUCCESS",
-            `Auto-Turn ${action.toUpperCase()}: ${roomTitle} (F-${roomFloor}) > [${successHardwareIds.join(", ")}]. ${idleMinutes ? `No motion for ${idleMinutes} mins` : ""}`,
+            `Auto-Turn ${action.toUpperCase()} ${successHardwareIds.join(", ")} in ${roomTitle} (Floor ${roomFloor}). ${idleMinutes ? `No motion for ${idleMinutes} mins` : ""}`,
             {
               roomId,
-              roomTitle,
-              floor: roomFloor,
-              success_count: successHardwareIds.length,
+              action: action,
+              device: successHardwareIds.join(", "),
+              action_time: new Date().toISOString(),
+              idle_minute: idleMinutes ? idleMinutes : null,
             },
           );
         }
@@ -298,7 +299,7 @@ const executeRoomAction = async (roomId, action, idleMinutes = null) => {
               "warn",
               "PARTIAL_EXECUTION_FAIL",
               `Failed to Auto-Turn ${type} ${action.toUpperCase()}: ${errorDetails}`,
-              { failures },
+              { error: failures, action_time: new Date().toISOString() },
             );
           }
         }
