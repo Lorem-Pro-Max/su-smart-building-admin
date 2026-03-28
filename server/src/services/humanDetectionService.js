@@ -1,7 +1,7 @@
 import redisConnection from "../config/redis.js";
 import { syncIotDevice } from "./socketService.js";
 import { EXECUTION_REGISTRY } from "../utils/controllerWrapper.js";
-import { logSystemEvent, logIotAction } from "./dbService.js";
+import { logSystemEvent, logIotAction, logHpsStatus } from "./dbService.js";
 import { getIO } from "../config/socket.js";
 import {
   getDeviceByHardwareId,
@@ -59,8 +59,11 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
 
   const now = Date.now();
   const isHumanPresent = motionStatus !== "none";
+  const currentStatus = isHumanPresent ? 'detected' : 'none';
 
   for (const meta of sensorMappings) {
+    await syncHpsStatusLog(meta.id, currentStatus);
+
     const roomId = meta.room_id;
     const START_TIME_KEY = `occupancy:start:room:${roomId}`;
     const LEVEL_KEY = `occupancy:level:room:${roomId}`;
@@ -348,6 +351,23 @@ const triggerShutdownAction = async (roomId, idleMinutes) => {
 
 const handleHumanReentry = async (roomId) => {
   await executeRoomAction(roomId, "on");
+};
+
+const syncHpsStatusLog = async (deviceDbId, currentStatus) => {
+  const STATE_KEY = `devicestate:hps:${deviceDbId}`;
+  const now = Date.now();
+
+  try {
+    const lastStatus = await redisConnection.hget(STATE_KEY, "status");
+    await redisConnection.hset(STATE_KEY, "update_time", now);
+
+    if (lastStatus !== currentStatus) {
+      await redisConnection.hset(STATE_KEY, "status", currentStatus);
+      logHpsStatus(deviceDbId, currentStatus);
+    }
+  } catch (error) {
+    console.error(`[HPS_SYNC_ERROR] ID ${deviceDbId}: ${error.message}`);
+  }
 };
 
 export const isRoomStillInactive = async (roomId, thresholdMinutes = 30) => {
