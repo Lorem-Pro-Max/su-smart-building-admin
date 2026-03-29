@@ -8,6 +8,7 @@ import {
 } from "./dbService.js";
 import * as IoTService from "./iotService.js";
 import * as useageService from "./useageService.js";
+import * as temperatureService from "./temperatureService.js";
 import { processHumanDetection } from "./humanDetectionService.js";
 import { processSmokeDetection } from "./smokeDetectionService.js";
 import { logSystemEvent } from "./dbService.js";
@@ -34,6 +35,8 @@ const HUMAN_DETECTION_PREFIX = "HP";
 const WATER_USEAGE_PREFIX = "VA";
 const ELECTRICITY_ELP_PREFIX = "ELP";
 const ELECTRICITY_LP_PREFIX = "LP";
+const TEMPERATURE_PREFIX = "TES";
+const AIR_QUALITY_PREFIX = "MT";
 
 export const initDeviceMapping = async () => {
   try {
@@ -100,6 +103,7 @@ const throttles = new Map();
 const throttleMillisec = 1000;
 let waterBuffer = {};
 let electricBuffer = {};
+let temperatureBuffer = {};
 
 let lastWsErrorLog = 0;
 const WS_ERROR_LOG_INTERVAL = 5 * 60 * 1000;
@@ -110,6 +114,13 @@ setInterval(async () => {
 
 setInterval(async () => {
   await useageService.processElectricityUsageBuffer(electricBuffer);
+}, useageService.USEAGE_UPSERT_INTERVAL);
+
+setInterval(async () => {
+  await temperatureService.processTemperatureBuffer(
+    temperatureBuffer,
+    deviceCache,
+  );
 }, useageService.USEAGE_UPSERT_INTERVAL);
 
 export const initIotSocketListener = () => {
@@ -163,7 +174,7 @@ export const initIotSocketListener = () => {
       if (fullId) {
         const prefix = fullId.substring(0, 2);
         const deviceType = DEVICE_PREFIX_MAP[prefix];
-        const prefixELP = fullId.substring(0, 3);
+        const prefixThreeChars = fullId.substring(0, 3);
 
         if (SMOKE_DETECTION_PREFIX === prefix) {
           processSmokeDetection(fullId, payload);
@@ -180,7 +191,7 @@ export const initIotSocketListener = () => {
           return;
         }
 
-        if (ELECTRICITY_ELP_PREFIX === prefixELP) {
+        if (ELECTRICITY_ELP_PREFIX === prefixThreeChars) {
           const mappedDevices = deviceCache.byDeviceId[fullId];
           const deviceId = mappedDevices[0].id;
 
@@ -212,6 +223,19 @@ export const initIotSocketListener = () => {
             electricBuffer,
           );
           return;
+        }
+
+        if (TEMPERATURE_PREFIX === prefixThreeChars) {
+          temperatureService.processTemperatureData(
+            fullId,
+            payload,
+            temperatureBuffer,
+          );
+          return;
+        }
+
+        if (AIR_QUALITY_PREFIX === prefix) {
+          //console.log("air quality", fullId, payload);
         }
 
         if (deviceType) {
