@@ -9,6 +9,7 @@ import {
 import * as IoTService from "./iotService.js";
 import * as useageService from "./useageService.js";
 import * as temperatureService from "./temperatureService.js";
+import * as airQualityService from "./airQualityService.js";
 import { processHumanDetection } from "./humanDetectionService.js";
 import { processSmokeDetection } from "./smokeDetectionService.js";
 import { logSystemEvent } from "./dbService.js";
@@ -104,6 +105,7 @@ const throttleMillisec = 1000;
 let waterBuffer = {};
 let electricBuffer = {};
 let temperatureBuffer = {};
+let airQualityBuffer = {};
 
 let lastWsErrorLog = 0;
 const WS_ERROR_LOG_INTERVAL = 5 * 60 * 1000;
@@ -119,6 +121,13 @@ setInterval(async () => {
 setInterval(async () => {
   await temperatureService.processTemperatureBuffer(
     temperatureBuffer,
+    deviceCache,
+  );
+}, useageService.USEAGE_UPSERT_INTERVAL);
+
+setInterval(async () => {
+  await airQualityService.processAirQualityBuffer(
+    airQualityBuffer,
     deviceCache,
   );
 }, useageService.USEAGE_UPSERT_INTERVAL);
@@ -235,7 +244,12 @@ export const initIotSocketListener = () => {
         }
 
         if (AIR_QUALITY_PREFIX === prefix) {
-          //console.log("air quality", fullId, payload);
+          airQualityService.processAirQualityData(
+            fullId,
+            payload,
+            airQualityBuffer,
+          );
+          return;
         }
 
         if (deviceType) {
