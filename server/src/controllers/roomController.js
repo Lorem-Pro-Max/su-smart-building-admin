@@ -1,4 +1,5 @@
 import * as roomService from "../services/roomService.js";
+import { initDeviceMapping } from "../services/socketService.js";
 
 export const getClassroomRoomsByFloor = async (req, res) => {
   try {
@@ -47,6 +48,8 @@ export const patchRoomTitle = async (req, res) => {
         message: "ไม่พบห้อง",
       });
     }
+
+    initDeviceMapping();
 
     return res.json({
       success: true,

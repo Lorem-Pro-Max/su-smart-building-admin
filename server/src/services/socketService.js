@@ -20,6 +20,7 @@ export let deviceCache = {
   byId: {},
   byDeviceId: {},
   byRoomId: {},
+  byRoomSensor: {},
 };
 
 const DEVICE_PREFIX_MAP = {
@@ -46,12 +47,6 @@ export const initDeviceMapping = async () => {
     const sensorRows = await fetchRoomSensor();
 
     if (!rows || rows.length === 0) {
-      deviceCache = {
-        byId: {},
-        byDeviceId: {},
-        byRoomId: {},
-        byRoomSensor: {},
-      };
       return;
     }
 
@@ -84,7 +79,6 @@ export const initDeviceMapping = async () => {
   } catch (error) {
     logSystemEvent("server", "error", "MAPPING_ERROR", error.message);
     console.error("[Server] Critical Mapping Error. Check system_log");
-    deviceCache = { byId: {}, byDeviceId: {}, byRoomId: {}, byRoomSensor: {} };
   }
 };
 
