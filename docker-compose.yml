@@ -4,6 +4,7 @@ volumes:
 services:
   admin-redis:
     image: redis:alpine
+    container_name: web-app-redis
     restart: always
 
   admin-frontend:
@@ -11,12 +12,14 @@ services:
       context: ./client
       args:
         - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+    container_name: web-app-admin-frontend
     volumes:
       - frontend_dist:/shared-assets
     command: sh -c "cp -rv /app/dist/. /shared-assets/"
 
   admin-backend:
     build: ./server
+    container_name: web-app-admin-backend
     restart: always
     ports:
       - "8124:8124"
@@ -36,6 +39,7 @@ services:
 
   admin-nginx:
     image: nginx:stable-alpine
+    container_name: web-app-admin-nginx
     ports:
       - "7185:80"
     volumes:

@@ -196,7 +196,6 @@ export const initIotSocketListener = () => {
 
         if (ELECTRICITY_ELP_PREFIX === prefixThreeChars) {
           const mappedDevices = deviceCache.byDeviceId[fullId];
-          const deviceId = mappedDevices[0].id;
 
           if (!mappedDevices || mappedDevices.length === 0) {
             console.warn(`[Mapping Missing] ${fullId}`);
@@ -205,7 +204,7 @@ export const initIotSocketListener = () => {
 
           useageService.processElecticityData(
             payload,
-            deviceId,
+            mappedDevices[0].id,
             electricBuffer,
           );
           return;
@@ -213,7 +212,6 @@ export const initIotSocketListener = () => {
 
         if (ELECTRICITY_LP_PREFIX === prefix) {
           const mappedDevices = deviceCache.byDeviceId[fullId];
-          const deviceId = mappedDevices[0].id;
 
           if (!mappedDevices || mappedDevices.length === 0) {
             console.warn(`[Mapping Missing] ${fullId}`);
@@ -222,7 +220,7 @@ export const initIotSocketListener = () => {
 
           useageService.processElecticityData(
             payload,
-            deviceId,
+            mappedDevices[0].id,
             electricBuffer,
           );
           return;
