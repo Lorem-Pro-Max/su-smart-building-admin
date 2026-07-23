@@ -20,6 +20,7 @@ function AirConditionersControlPage() {
         alternatePageTitle="อุณหภูมิ"
         dataState={dataState}
         control={control}
+        buildingControl={control.buildingControl}
         extraColumn={{
           device: "ac",
           title: "อุณหภูมิ",

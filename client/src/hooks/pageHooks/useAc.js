@@ -12,7 +12,7 @@ export function useAc() {
 
   const config = DEVICE_CONFIGS.AC;
   const { state, refresh, PageToast } = useDeviceServices(config, acService);
-  const control = useDeviceControl(config, refresh, acService);
+  const control = useDeviceControl(config, refresh, acService, state.data);
 
   const handlePopoverChange = (id, isOpen) => {
     setActivePopoverId(isOpen ? id : null);

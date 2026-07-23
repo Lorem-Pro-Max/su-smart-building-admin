@@ -10,6 +10,11 @@ router.post(
   protectAction,
   ValveController.ValvesBatchControl,
 );
+router.post(
+  "/control-all",
+  protectAction,
+  ValveController.valvesControlAll,
+);
 router.get("/usage/daily", protectAction, ValveController.getDailyUsage);
 router.get("/usage/hourly", protectAction, ValveController.getHourlyUsage);
 router.get("/usage/metadata", protectAction, ValveController.getMetadata);

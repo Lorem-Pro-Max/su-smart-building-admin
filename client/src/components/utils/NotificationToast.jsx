@@ -1,4 +1,5 @@
 import { notification } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import { WarningSignIcon } from "@assets/icons";
 
 export const useToast = () => {
@@ -15,6 +16,7 @@ export const useToast = () => {
         : message;
 
     api[type]({
+      key: `${type}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       title: isError ? "ดำเนินการล้มเหลว" : "ดำเนินการสำเร็จ",
       description: String(description),
       placement: "topRight",
@@ -26,9 +28,34 @@ export const useToast = () => {
     });
   };
 
+  const showLoadingToast = (message) => {
+    const key = `loading-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    api.info({
+      key,
+      title: "กำลังดำเนินการ",
+      description: message,
+      placement: "topRight",
+      duration: 0,
+      icon: <LoadingOutlined spin style={{ color: "#13C2C2" }} />,
+      style: {
+        backgroundColor: "#E6FFFB",
+        border: "1px solid #87E8DE",
+      },
+    });
+
+    return key;
+  };
+
+  const dismissToast = (key) => {
+    api.destroy(key);
+  };
+
   return {
     successToast: (msg, duration) => notify("success", msg, duration),
     errorToast: (msg, duration) => notify("error", msg, duration),
+    showLoadingToast,
+    dismissToast,
     contextHolder,
   };
 };

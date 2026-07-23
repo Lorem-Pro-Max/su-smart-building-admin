@@ -6,10 +6,12 @@ export const actionSet = {
 export const DEVICE_CONFIGS = {
   DOORS: {
     type: "doors",
+    label: "ประตู",
     ...actionSet,
   },
   VALVES: {
     type: "valves",
+    label: "น้ำ",
     ...actionSet,
   },
   ELECTRICITY: {
@@ -18,14 +20,17 @@ export const DEVICE_CONFIGS = {
   },
   AC: {
     type: "ac",
+    label: "เครื่องปรับอากาศ",
     ...actionSet,
   },
   LIGHTS: {
     type: "lights",
+    label: "แสงสว่าง",
     ...actionSet,
   },
   EXHAUST_FANS: {
     type: "exhaustfans",
+    label: "พัดลมดูดอากาศ",
     ...actionSet,
   },
   AIR_QUALITY: {

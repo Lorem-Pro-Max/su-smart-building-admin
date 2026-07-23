@@ -17,6 +17,7 @@ function ExhaustFansControlPage() {
         pageTitle="พัดลมดูดอากาศ"
         dataState={dataState}
         control={control}
+        buildingControl={control.buildingControl}
       />
     </>
   );
