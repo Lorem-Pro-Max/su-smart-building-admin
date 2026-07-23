@@ -23,7 +23,7 @@ export const formatDeviceUpdate = (iotStatusData, deviceType) => {
 
     if (metaList && Array.isArray(metaList)) {
       metaList.forEach((meta) => {
-        const { floor, title, type, key, device_sub_id } = meta;
+        const { floor, title, type, key, device_sub_id, room_id } = meta;
 
         if (!grouped[floor]) grouped[floor] = [];
 
@@ -38,6 +38,7 @@ export const formatDeviceUpdate = (iotStatusData, deviceType) => {
           status: finalStatus,
           floor: floor,
           device_sub_id: device_sub_id,
+          room_id: room_id,
         });
       });
     }

@@ -12,6 +12,13 @@ export { ExhaustFansControlButtonIcon } from "./exhaust-fans-control/ExhaustFans
 export { ExhaustFansControlTitleIcon } from "./exhaust-fans-control/ExhaustFansControlIcon";
 export { BuildingOpenIcon } from "./building-control/BuildingOpenIcon";
 export { BuildingCloseIcon } from "./building-control/BuildingCloseIcon";
+export { RoomsOverviewTitleIcon } from "./rooms-overview/RoomsOverviewTitleIcon";
+export { RoomBadgeIcon } from "./rooms-overview/RoomBadgeIcon";
+export { RoomChairIcon } from "./rooms-overview/RoomChairIcon";
+export { RoomsOverviewDoorsIcon } from "./rooms-overview/RoomsOverviewDoorsIcon";
+export { RoomsOverviewFansIcon } from "./rooms-overview/RoomsOverviewFansIcon";
+export { RoomsOverviewLightsIcon } from "./rooms-overview/RoomsOverviewLightsIcon";
+export { RoomsOverviewAcIcon } from "./rooms-overview/RoomsOverviewAcIcon";
 export { LightsControlButtonIcon } from "./lights-control/LightsFansButton";
 export { LightsControlTitleIcon } from "./lights-control/LightsControlIcon";
 export { AirConditionerTemperatureButtonIcon } from "./air-conditioners-control/AirConditionerTemperatureButtonIcon";
