@@ -14,7 +14,8 @@ const formatPayload = (deviceIds) => {
 };
 
 export function useDeviceControl(config, onRefresh, service, roomData = {}) {
-  const { successToast, errorToast, contextHolder } = useToast();
+  const { successToast, errorToast, showLoadingToast, dismissToast, contextHolder } =
+    useToast();
 
   const { onCount, offCount } = useMemo(() => {
     const rooms = Object.values(roomData).flat();
@@ -22,8 +23,13 @@ export function useDeviceControl(config, onRefresh, service, roomData = {}) {
     return { onCount: on, offCount: rooms.length - on };
   }, [roomData]);
 
+  const deviceLabel = config.label || "";
+
   const executeAction = async (deviceIds, apiAction, statusThai) => {
     const totalCount = deviceIds.length;
+    const loadingKey = showLoadingToast(
+      `กำลัง${statusThai}${deviceLabel} ${totalCount} รายการ`,
+    );
 
     try {
       const parsedDeviceIds = formatPayload(deviceIds);
@@ -32,18 +38,21 @@ export function useDeviceControl(config, onRefresh, service, roomData = {}) {
 
       if (data?.success) {
         if (data.partial) {
-          successToast(`${statusThai}สำเร็จ ${data.successCount} รายการ`, 3);
+          successToast(
+            `${statusThai}${deviceLabel}สำเร็จ ${data.successCount} รายการ`,
+            3,
+          );
           const firstError = data.failures?.[0]?.error || "Hardware Timeout";
           errorToast(
-            `${statusThai}ไม่สำเร็จ ${data.failCount} รายการ: ${firstError}`,
-            4,
+            `${statusThai}${deviceLabel}ไม่สำเร็จ ${data.failCount} รายการ: ${firstError}`,
+            6,
           );
         } else {
           const successMsg =
             totalCount > 1
-              ? `${statusThai}ทั้งหมด ${totalCount} รายการที่เลือกแล้ว`
-              : `${statusThai}รายการที่เลือกแล้ว`;
-          successToast(successMsg, 2);
+              ? `${statusThai}${deviceLabel}ทั้งหมด ${totalCount} รายการที่เลือกแล้ว`
+              : `${statusThai}${deviceLabel}รายการที่เลือกแล้ว`;
+          successToast(successMsg, 3);
         }
 
         if (onRefresh) setTimeout(() => onRefresh(), 800);
@@ -55,12 +64,14 @@ export function useDeviceControl(config, onRefresh, service, roomData = {}) {
       const serverError =
         serverData?.message || err.message || "เกิดข้อผิดพลาด";
 
-      const errorDisplay = `ไม่สามารถ${statusThai}${
+      const errorDisplay = `ไม่สามารถ${statusThai}${deviceLabel}${
         failedCount > 0
           ? ` ${failedCount} รายการที่เลือกได้`
           : "รายการที่เลือกได้"
       }: ${serverError}`;
-      errorToast(errorDisplay);
+      errorToast(errorDisplay, 6);
+    } finally {
+      dismissToast(loadingKey);
     }
   };
 
@@ -81,6 +92,10 @@ export function useDeviceControl(config, onRefresh, service, roomData = {}) {
   const handleExecuteAllAction = async (actionKey) => {
     const apiAction = config.actions[actionKey];
     const statusThai = actionKey === "on" ? "เปิด" : "ปิด";
+    const totalCount = onCount + offCount;
+    const loadingKey = showLoadingToast(
+      `กำลัง${statusThai}${deviceLabel}ทั้งอาคาร ${totalCount} รายการ`,
+    );
 
     try {
       const response = await service.controlAll(apiAction);
@@ -88,14 +103,17 @@ export function useDeviceControl(config, onRefresh, service, roomData = {}) {
 
       if (data?.success) {
         if (data.partial) {
-          successToast(`${statusThai}ทั้งอาคารสำเร็จ ${data.successCount} รายการ`, 3);
+          successToast(
+            `${statusThai}${deviceLabel}ทั้งอาคารสำเร็จ ${data.successCount} รายการ`,
+            3,
+          );
           const firstError = data.failures?.[0]?.error || "Hardware Timeout";
           errorToast(
-            `${statusThai}ไม่สำเร็จ ${data.failCount} รายการ: ${firstError}`,
-            4,
+            `${statusThai}${deviceLabel}ไม่สำเร็จ ${data.failCount} รายการ: ${firstError}`,
+            6,
           );
         } else {
-          successToast(`${statusThai}ทั้งอาคารสำเร็จ`, 2);
+          successToast(`${statusThai}${deviceLabel}ทั้งอาคารสำเร็จ`, 3);
         }
 
         if (onRefresh) setTimeout(() => onRefresh(), 800);
@@ -104,7 +122,12 @@ export function useDeviceControl(config, onRefresh, service, roomData = {}) {
       const serverData = err.response?.data;
       const serverError =
         serverData?.message || err.message || "เกิดข้อผิดพลาด";
-      errorToast(`ไม่สามารถ${statusThai}ทั้งอาคารได้: ${serverError}`);
+      errorToast(
+        `ไม่สามารถ${statusThai}${deviceLabel}ทั้งอาคารได้: ${serverError}`,
+        6,
+      );
+    } finally {
+      dismissToast(loadingKey);
     }
   };
 
