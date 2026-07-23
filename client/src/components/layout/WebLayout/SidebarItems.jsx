@@ -129,7 +129,7 @@ function SideBarMenu({ collapsed }) {
         <div className="mt-auto w-full pb-4">
           <div
             onClick={() => setIsLogoutModalOpen(true)}
-            className={`group flex items-center h-10 rounded-lg cursor-pointer text-primary-dark hover:bg-mint-light hover:text-primary-main transition-colors ${collapsed ? "justify-center w-10" : "gap-3"}`}
+            className={`group flex items-center h-10 rounded-lg cursor-pointer text-primary-dark hover:bg-mint-light hover:text-primary-main transition-colors ${collapsed ? "justify-center w-10" : "gap-2.5 pl-4"}`}
           >
             <img src={Logout} className="w-[18px] h-[18px] shrink-0" alt="logout" />
             {!collapsed && <p className="text-sm font-medium">ออกจากระบบ</p>}

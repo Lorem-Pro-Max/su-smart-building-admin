@@ -10,5 +10,10 @@ router.post(
   protectAction,
   ExhaustFanController.exhaustFansBatchControl,
 );
+router.post(
+  "/control-all",
+  protectAction,
+  ExhaustFanController.exhaustFansControlAll,
+);
 
 export default router;

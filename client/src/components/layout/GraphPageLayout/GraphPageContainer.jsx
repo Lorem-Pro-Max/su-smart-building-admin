@@ -28,6 +28,7 @@ function GraphPageContainer({
   displayConfig,
   totalUsageIcon,
   alternateTitle,
+  buildingControl = null,
 }) {
   const { data } = dataState;
   const { multiTabs, defaultPage } = displayConfig;
@@ -82,6 +83,11 @@ function GraphPageContainer({
             </GraphContainer>
           ) : (
             <div key="control-view">
+              {buildingControl && (
+                <div className="w-full flex justify-end pb-4">
+                  {buildingControl}
+                </div>
+              )}
               <TabsMenu>
                 {(floorNum) => {
                   const roomsObj = data[floorNum] || {};

@@ -13,6 +13,7 @@ function LightControlPage() {
       pageTitle="แสงสว่าง"
       dataState={dataState}
       control={control}
+      buildingControl={control.buildingControl}
     /></>
   );
 }

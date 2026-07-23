@@ -1,4 +1,7 @@
+import { useMemo } from "react";
 import { useToast } from "../../components/utils";
+import { BuildingControlMenu } from "../../components/layout/ContentLayout/BuildingControlMenu";
+import { BuildingOpenIcon, BuildingCloseIcon } from "../../assets/icons";
 
 const formatPayload = (deviceIds) => {
   return deviceIds.map((uid) => {
@@ -10,8 +13,14 @@ const formatPayload = (deviceIds) => {
   });
 };
 
-export function useDeviceControl(config, onRefresh, service) {
+export function useDeviceControl(config, onRefresh, service, roomData = {}) {
   const { successToast, errorToast, contextHolder } = useToast();
+
+  const { onCount, offCount } = useMemo(() => {
+    const rooms = Object.values(roomData).flat();
+    const on = rooms.filter((room) => room.isOn).length;
+    return { onCount: on, offCount: rooms.length - on };
+  }, [roomData]);
 
   const executeAction = async (deviceIds, apiAction, statusThai) => {
     const totalCount = deviceIds.length;
@@ -69,5 +78,52 @@ export function useDeviceControl(config, onRefresh, service) {
     await executeAction(deviceIds, apiAction, statusThai);
   };
 
-  return { handleSingleToggle, handleExecuteAction, contextHolder };
+  const handleExecuteAllAction = async (actionKey) => {
+    const apiAction = config.actions[actionKey];
+    const statusThai = actionKey === "on" ? "เปิด" : "ปิด";
+
+    try {
+      const response = await service.controlAll(apiAction);
+      const { data } = response;
+
+      if (data?.success) {
+        if (data.partial) {
+          successToast(`${statusThai}ทั้งอาคารสำเร็จ ${data.successCount} รายการ`, 3);
+          const firstError = data.failures?.[0]?.error || "Hardware Timeout";
+          errorToast(
+            `${statusThai}ไม่สำเร็จ ${data.failCount} รายการ: ${firstError}`,
+            4,
+          );
+        } else {
+          successToast(`${statusThai}ทั้งอาคารสำเร็จ`, 2);
+        }
+
+        if (onRefresh) setTimeout(() => onRefresh(), 800);
+      }
+    } catch (err) {
+      const serverData = err.response?.data;
+      const serverError =
+        serverData?.message || err.message || "เกิดข้อผิดพลาด";
+      errorToast(`ไม่สามารถ${statusThai}ทั้งอาคารได้: ${serverError}`);
+    }
+  };
+
+  const buildingControl = (
+    <BuildingControlMenu
+      openIcon={<BuildingOpenIcon />}
+      closeIcon={<BuildingCloseIcon />}
+      onOpen={() => handleExecuteAllAction("on")}
+      onClose={() => handleExecuteAllAction("off")}
+      onCount={onCount}
+      offCount={offCount}
+    />
+  );
+
+  return {
+    handleSingleToggle,
+    handleExecuteAction,
+    handleExecuteAllAction,
+    buildingControl,
+    contextHolder,
+  };
 }

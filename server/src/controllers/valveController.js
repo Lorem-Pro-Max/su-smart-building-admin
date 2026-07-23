@@ -1,6 +1,7 @@
 import {
   getStatusHandler,
   handleBatchCommand,
+  handleControlAllCommand,
 } from "../utils/controllerWrapper.js";
 import * as waterUseageService from "../services/waterUseageService.js";
 
@@ -8,6 +9,7 @@ const device_type = "valves";
 
 export const getValvesStatus = getStatusHandler(device_type);
 export const ValvesBatchControl = handleBatchCommand(device_type);
+export const valvesControlAll = handleControlAllCommand(device_type);
 
 export const getMetadata = async (req, res) => {
   try {

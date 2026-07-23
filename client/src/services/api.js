@@ -27,6 +27,9 @@ export const createDeviceActions = (device) => ({
 
   acTempControl: (deviceId, temp) =>
     apiClient.post(`/ac/temp-control`, { device_id: deviceId, temp: temp }),
+
+  controlAll: (action, value) =>
+    apiClient.post(`/${device}/control-all`, { action, value }),
 });
 
 export const createDeviceDataFetch = (device) => ({

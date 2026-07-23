@@ -14,6 +14,7 @@ function DoorControlPage() {
         pageTitle="ประตู"
         dataState={dataState}
         control={control}
+        buildingControl={control.buildingControl}
       />
     </>
   );

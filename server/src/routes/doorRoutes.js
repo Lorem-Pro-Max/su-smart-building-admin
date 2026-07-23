@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.get("/status", protectAction, DoorController.getDoorsStatus);
 router.post("/batch-control", protectAction, DoorController.doorsBatchControl);
+router.post("/control-all", protectAction, DoorController.doorsControlAll);
 
 export default router;

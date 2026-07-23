@@ -1,6 +1,7 @@
 import {
   getStatusHandler,
   handleBatchCommand,
+  handleControlAllCommand,
 } from "../utils/controllerWrapper.js";
 import { executeAcTempAdjustment } from "../services/iotService.js";
 import { syncIotDevice } from "../services/socketService.js";
@@ -10,6 +11,7 @@ const deviceType = "ac";
 
 export const getAcStatus = getStatusHandler(deviceType);
 export const acBatchControl = handleBatchCommand(deviceType);
+export const acControlAll = handleControlAllCommand(deviceType);
 
 export const acTempAdjust = async (req, res) => {
   const { device_id, temp } = req.body;

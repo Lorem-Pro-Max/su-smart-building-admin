@@ -20,6 +20,7 @@ function Container({
   control,
   alternatePageTitle = "",
   extraColumn = null,
+  buildingControl = null,
 }) {
   const { data } = dataState;
   const { handleExecuteAction, handleSingleToggle, contextHolder } = control;
@@ -33,6 +34,7 @@ function Container({
         pageIcon={pageIcon}
         pageTitle={pageTitle}
         alternatePageTitle={alternatePageTitle}
+        buildingControl={buildingControl}
       >
         <TabsMenu>
           {(floorNum) => {

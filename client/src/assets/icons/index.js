@@ -10,6 +10,8 @@ export { ValvesControlTitleIcon } from "./valve-control/ValvesControlIcon";
 export { ValvesControlButtonIcon } from "./valve-control/ValvesControlButtonIcon";
 export { ExhaustFansControlButtonIcon } from "./exhaust-fans-control/ExhaustFansButtonIcon";
 export { ExhaustFansControlTitleIcon } from "./exhaust-fans-control/ExhaustFansControlIcon";
+export { BuildingOpenIcon } from "./building-control/BuildingOpenIcon";
+export { BuildingCloseIcon } from "./building-control/BuildingCloseIcon";
 export { LightsControlButtonIcon } from "./lights-control/LightsFansButton";
 export { LightsControlTitleIcon } from "./lights-control/LightsControlIcon";
 export { AirConditionerTemperatureButtonIcon } from "./air-conditioners-control/AirConditionerTemperatureButtonIcon";

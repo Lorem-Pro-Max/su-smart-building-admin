@@ -2,7 +2,7 @@ import { Button } from "antd";
 
 const textStyle = "text-base tracking-[0.005em] leading-6";
 
-export function CardButton({ icon, text, loading = false, bgColor }) {
+export function CardButton({ icon, text, loading = false, bgColor, style }) {
   return (
     <Button
       size="large"
@@ -12,6 +12,7 @@ export function CardButton({ icon, text, loading = false, bgColor }) {
         background: bgColor,
         border: 0,
         color: "#FFF",
+        ...style,
       }}
       icon={icon}
       ghost={false}

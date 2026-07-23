@@ -15,6 +15,7 @@ export const useToast = () => {
         : message;
 
     api[type]({
+      key: `${type}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       title: isError ? "ดำเนินการล้มเหลว" : "ดำเนินการสำเร็จ",
       description: String(description),
       placement: "topRight",

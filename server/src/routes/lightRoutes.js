@@ -10,5 +10,10 @@ router.post(
   protectAction,
   LightController.lightsBatchControl,
 );
+router.post(
+  "/control-all",
+  protectAction,
+  LightController.lightsControlAll,
+);
 
 export default router;
