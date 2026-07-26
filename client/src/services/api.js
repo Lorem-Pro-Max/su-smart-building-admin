@@ -32,6 +32,11 @@ export const createDeviceActions = (device) => ({
     apiClient.post(`/${device}/control-all`, { action, value }),
 });
 
+export const roomActions = {
+  updateRoom: (roomId, fields) =>
+    apiClient.patch(`/classroom-rooms/${roomId}`, fields),
+};
+
 export const createDeviceDataFetch = (device) => ({
   getStatus: async (floor) => {
     const response = await apiClient.get(`/${device}/status`, {

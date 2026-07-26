@@ -36,3 +36,21 @@ export const getAllDeviceIdsByType = (deviceType) => {
 
   return result;
 };
+
+export const getAllDevicesByRoomId = (roomId) => {
+  const seen = new Set();
+  const byType = {};
+
+  Object.values(deviceCache.byId).forEach((row) => {
+    if (String(row.room_id) !== String(roomId)) return;
+
+    const dedupeKey = `${row.key}::${row.device_id}::${row.device_sub_id || ""}`;
+    if (seen.has(dedupeKey)) return;
+    seen.add(dedupeKey);
+
+    if (!byType[row.key]) byType[row.key] = [];
+    byType[row.key].push({ id: row.device_id, sub_id: row.device_sub_id || null });
+  });
+
+  return byType;
+};

@@ -13,6 +13,8 @@ import {
   AirQualityPage,
   HistoryPage,
   ClassroomNamePage,
+  RoomsOverviewPage,
+  RoomDetailPage,
   LoginPage
 } from "./pages";
 import ApproveBookingPage from "./pages/ApproveBookingPage/ApproveBooking";
@@ -63,6 +65,8 @@ function App() {
             <Route element={<Layout />}>
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/device-scheduling" element={<ControlSchedulePage />} />
+              <Route path="/rooms-overview" element={<RoomsOverviewPage />} />
+              <Route path="/rooms-overview/:roomId" element={<RoomDetailPage />} />
               <Route path="/classroom-names" element={<ClassroomNamePage />} />
               <Route path="/doors" element={<DoorsControlPage />} />
               <Route path="/lights" element={<LightsControlPage />} />

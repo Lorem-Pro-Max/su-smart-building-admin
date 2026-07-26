@@ -1,5 +1,8 @@
 import * as roomService from "../services/roomService.js";
 import { initDeviceMapping } from "../services/socketService.js";
+import { handleRoomControlAll } from "../utils/controllerWrapper.js";
+
+export const roomControlAll = handleRoomControlAll;
 
 export const getClassroomRoomsByFloor = async (req, res) => {
   try {
@@ -31,7 +34,7 @@ export const getClassroomRoomsByFloor = async (req, res) => {
 export const patchRoomTitle = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title } = req.body;
+    const { title, study_seats, exam_seats } = req.body;
 
     if (title !== undefined && title !== null && typeof title !== "string") {
       return res.status(400).json({
@@ -40,7 +43,12 @@ export const patchRoomTitle = async (req, res) => {
       });
     }
 
-    const row = await roomService.updateRoomTitle(id, title ?? "");
+    const fields = {};
+    if (title !== undefined) fields.title = title;
+    if (study_seats !== undefined) fields.study_seats = study_seats;
+    if (exam_seats !== undefined) fields.exam_seats = exam_seats;
+
+    const row = await roomService.updateRoom(id, fields);
 
     if (!row) {
       return res.status(404).json({
@@ -49,14 +57,21 @@ export const patchRoomTitle = async (req, res) => {
       });
     }
 
-    initDeviceMapping();
+    // ต้อง await เพื่อให้ cache ใหม่พร้อมก่อนตอบกลับ
+    // (initDeviceMapping สร้าง object ใหม่แล้วสลับทีเดียว จึงไม่กระทบ request อื่นที่กำลังอ่าน cache อยู่)
+    await initDeviceMapping();
 
     return res.json({
       success: true,
       data: row,
     });
   } catch (err) {
-    if (err.message === "รหัสห้องไม่ถูกต้อง") {
+    const clientErrors = [
+      "รหัสห้องไม่ถูกต้อง",
+      "จำนวนที่นั่งไม่ถูกต้อง",
+      "ไม่มีข้อมูลที่ต้องการแก้ไข",
+    ];
+    if (clientErrors.includes(err.message)) {
       return res.status(400).json({
         success: false,
         message: err.message,

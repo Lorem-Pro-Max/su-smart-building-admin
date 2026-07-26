@@ -3,7 +3,11 @@ import { syncIotDevice } from "../services/socketService.js";
 import { formatDeviceUpdate } from "../utils/responseFormatter.js";
 import { handleError } from "../utils/errorFormatter.js";
 import { logIotAction, logSystemEvent } from "../services/dbService.js";
-import { getDeviceByHardwareId, getAllDeviceIdsByType } from "./deviceMap.js";
+import {
+  getDeviceByHardwareId,
+  getAllDeviceIdsByType,
+  getAllDevicesByRoomId,
+} from "./deviceMap.js";
 
 export const EXECUTION_REGISTRY = {
   valves: IoTService.executeValveAction,
@@ -29,14 +33,7 @@ export const getStatusHandler = (deviceType) => async (req, res) => {
   }
 };
 
-const runBatchAndRespond = async (
-  deviceType,
-  normalizedDeviceIds,
-  action,
-  value,
-  userId,
-  res,
-) => {
+const runBatch = async (deviceType, normalizedDeviceIds, action, value, userId) => {
   const execute = EXECUTION_REGISTRY[deviceType] || EXECUTION_REGISTRY.default;
 
   const result = await execute(deviceType, normalizedDeviceIds, action, value);
@@ -98,6 +95,10 @@ const runBatchAndRespond = async (
 
   await syncIotDevice(deviceType);
 
+  return { successes, failures };
+};
+
+const respondWithResults = (successes, failures, res) => {
   if (successes.length === 0 && failures.length > 0) {
     const first = failures[0];
     const errorMessage =
@@ -133,6 +134,25 @@ const runBatchAndRespond = async (
   }
 
   return res.status(200).json({ success: true });
+};
+
+const runBatchAndRespond = async (
+  deviceType,
+  normalizedDeviceIds,
+  action,
+  value,
+  userId,
+  res,
+) => {
+  const { successes, failures } = await runBatch(
+    deviceType,
+    normalizedDeviceIds,
+    action,
+    value,
+    userId,
+  );
+
+  return respondWithResults(successes, failures, res);
 };
 
 export const handleBatchCommand = (deviceType) => async (req, res) => {
@@ -195,5 +215,46 @@ export const handleControlAllCommand = (deviceType) => async (req, res) => {
     );
   } catch (error) {
     return handleError(res, error, `handleControlAllCommand: ${deviceType}`);
+  }
+};
+
+export const handleRoomControlAll = async (req, res) => {
+  const { roomId } = req.params;
+  const { action, value = null } = req.body;
+  const userId = req.user?.id || null;
+
+  try {
+    if (!action) {
+      throw { status: 400, message: "action is required!" };
+    }
+
+    const devicesByType = getAllDevicesByRoomId(roomId);
+    const types = Object.keys(devicesByType);
+
+    if (types.length === 0) {
+      throw {
+        status: 404,
+        message: `No devices found for room ${roomId}.`,
+      };
+    }
+
+    const allSuccesses = [];
+    const allFailures = [];
+
+    for (const deviceType of types) {
+      const { successes, failures } = await runBatch(
+        deviceType,
+        devicesByType[deviceType],
+        action,
+        value,
+        userId,
+      );
+      allSuccesses.push(...successes);
+      allFailures.push(...failures);
+    }
+
+    return respondWithResults(allSuccesses, allFailures, res);
+  } catch (error) {
+    return handleError(res, error, `handleRoomControlAll: room ${roomId}`);
   }
 };

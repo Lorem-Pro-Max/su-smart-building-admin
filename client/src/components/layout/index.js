@@ -5,6 +5,8 @@ export { default as SideBar } from "./WebLayout/PageSidebar";
 export { default as Container } from "./ContentLayout/Container";
 export { default as PageHeader } from "./ContentLayout/PageHeader";
 export { default as TabsMenu } from "./ContentLayout/TabsMenu";
+export { default as FloorDeviceSummary } from "./ContentLayout/FloorDeviceSummary";
+export { BuildingControlMenu } from "./ContentLayout/BuildingControlMenu";
 export {
   RoomControlMenu,
   RoomCard,

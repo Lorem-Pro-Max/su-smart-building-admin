@@ -4,7 +4,8 @@ export const ContentLayoutTheme = {
   },
   components: {
     Tabs: {
-      titleFontSize: 18,
+      titleFontSize: 16,
+      horizontalItemGutter: 16,
       horizontalItemPadding: 12,
       itemColor: "#000000E0",
       itemSelectedColor: "#08979C",
