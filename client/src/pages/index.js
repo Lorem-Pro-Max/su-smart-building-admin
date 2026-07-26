@@ -8,4 +8,5 @@ export { default as AirQualityPage } from "./AirQualityPage/AirQualityPage.jsx";
 export { default as HistoryPage } from "./HistoryPage/HistoryPage.jsx";
 export { default as ClassroomNamePage } from "./ClassroomNamePage/ClassroomNamePage.jsx";
 export { default as RoomsOverviewPage } from "./RoomsOverviewPage/RoomsOverviewPage.jsx";
+export { default as RoomDetailPage } from "./RoomDetailPage/RoomDetailPage.jsx";
 export { default as LoginPage } from "./LoginPage/LoginPage.jsx";

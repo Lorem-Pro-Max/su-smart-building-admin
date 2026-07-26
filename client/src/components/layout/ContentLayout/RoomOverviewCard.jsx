@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { RoomBadgeIcon, RoomChairIcon } from "@assets/icons";
 
 const badgeTextStyle = {
@@ -42,6 +43,8 @@ function DeviceBadge({ Icon, on, total }) {
 }
 
 function RoomOverviewCard({ room, groups }) {
+  const navigate = useNavigate();
+
   return (
     <div
       className="flex flex-col items-start"
@@ -120,7 +123,6 @@ function RoomOverviewCard({ room, groups }) {
         </div>
       </div>
 
-      {/* TODO: room size / seating capacity has no data source yet - placeholder */}
       <div
         className="flex items-center justify-between w-full"
         style={{ height: 40, paddingLeft: 12 }}
@@ -136,18 +138,22 @@ function RoomOverviewCard({ room, groups }) {
             <RoomChairIcon />
             <div className="flex items-center" style={{ gap: 8 }}>
               <span style={metaMediumStyle}>
-                จำนวนนั่งเรียน <span style={{ color: "#08979C" }}>-</span> คน
+                จำนวนนั่งเรียน{" "}
+                <span style={{ color: "#08979C" }}>{room.study_seats ?? "-"}</span>{" "}
+                คน
               </span>
               <span style={{ width: 1, height: 16, background: "#D9D9D9" }} />
               <span style={metaMediumStyle}>
-                จำนวนนั่งสอบ <span style={{ color: "#08979C" }}>-</span> คน
+                จำนวนนั่งสอบ{" "}
+                <span style={{ color: "#08979C" }}>{room.exam_seats ?? "-"}</span>{" "}
+                คน
               </span>
             </div>
           </div>
         </div>
 
         <button
-          disabled
+          onClick={() => navigate(`/rooms-overview/${room.room_id}`)}
           style={{
             background: "#13C2C2",
             color: "#FFFFFF",
@@ -162,7 +168,7 @@ function RoomOverviewCard({ room, groups }) {
             letterSpacing: "0.005em",
             boxShadow: "0px 2px 0px rgba(5, 145, 255, 0.1)",
             border: "none",
-            cursor: "default",
+            cursor: "pointer",
           }}
         >
           ดูข้อมูล

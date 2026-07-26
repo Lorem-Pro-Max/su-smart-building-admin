@@ -17,6 +17,8 @@ const mergeRoomsByFloor = (groups, floorNum) => {
           room_id: roomKey,
           name: room.name,
           floor: room.floor,
+          study_seats: room.study_seats,
+          exam_seats: room.exam_seats,
           counts: {},
         });
       }
