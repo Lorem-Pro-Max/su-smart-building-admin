@@ -36,6 +36,9 @@ services:
       - admin-redis
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      # ให้ชื่อโดเมนสาธารณะ resolve มาที่ host เครื่องนี้แทนการออกอินเทอร์เน็ตแล้ววนกลับ (hairpin NAT)
+      # ทำให้ TLS cert (*.sc.su.ac.th) ตรงกับชื่อที่เรียก แต่เชื่อมต่อ nginx ในเครื่องโดยตรง
+      - "55.sc.su.ac.th:host-gateway"
 
   admin-nginx:
     image: nginx:stable-alpine
