@@ -86,7 +86,7 @@ function AcTypeSection({ label, Icon, devices, control, tempControl }) {
 }
 
 function RoomDetailPage() {
-  const { roomId } = useParams();
+  const { floorParam, roomParam } = useParams();
   const {
     room,
     roomDevices,
@@ -96,7 +96,7 @@ function RoomDetailPage() {
     editModal,
     contextHolder,
     deviceContextHolders,
-  } = useRoomDetail(roomId);
+  } = useRoomDetail({ floorParam, roomParam });
 
   const allDevices = [
     ...roomDevices.doors,

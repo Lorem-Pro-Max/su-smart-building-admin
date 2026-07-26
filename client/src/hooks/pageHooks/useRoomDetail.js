@@ -10,14 +10,15 @@ import {
 import { DEVICE_CONFIGS } from "../../config/devices";
 import { apiClient } from "../../lib/apiClient";
 import { roomActions } from "@services/api";
+import { isDeviceInRoom } from "../../lib/roomSlug";
 import { useToast } from "@components/utils";
 
-const filterByRoom = (data, roomId) =>
+const filterByRoom = (data, routeParams) =>
   Object.values(data)
     .flat()
-    .filter((device) => String(device.room_id) === String(roomId));
+    .filter((device) => isDeviceInRoom(device, routeParams));
 
-export function useRoomDetail(roomId) {
+export function useRoomDetail(routeParams) {
   const doors = useDeviceServices(DEVICE_CONFIGS.DOORS, doorService);
   const fans = useDeviceServices(DEVICE_CONFIGS.EXHAUST_FANS, exhaustFanService);
   const lights = useDeviceServices(DEVICE_CONFIGS.LIGHTS, lightService);
@@ -74,10 +75,10 @@ export function useRoomDetail(roomId) {
   };
 
   const roomDevices = {
-    doors: filterByRoom(doors.state.data, roomId),
-    fans: filterByRoom(fans.state.data, roomId),
-    lights: filterByRoom(lights.state.data, roomId),
-    ac: filterByRoom(ac.state.data, roomId),
+    doors: filterByRoom(doors.state.data, routeParams),
+    fans: filterByRoom(fans.state.data, routeParams),
+    lights: filterByRoom(lights.state.data, routeParams),
+    ac: filterByRoom(ac.state.data, routeParams),
   };
 
   const allRoomDevices = [
@@ -87,6 +88,9 @@ export function useRoomDetail(roomId) {
     ...roomDevices.ac,
   ];
   const room = allRoomDevices[0];
+
+  // API ของห้องยังใช้ numeric id จึงต้องหาจาก device ที่ match ได้
+  const roomId = room?.room_id;
 
   const refreshAll = () => {
     doors.refresh();
