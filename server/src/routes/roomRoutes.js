@@ -16,4 +16,10 @@ router.patch(
   roomController.patchRoomTitle.bind(roomController),
 );
 
+router.post(
+  "/:roomId/control-all",
+  protectAction,
+  roomController.roomControlAll,
+);
+
 export default router;

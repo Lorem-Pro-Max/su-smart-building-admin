@@ -6,9 +6,11 @@ export const fetchDeviceMapping = async () => {
     room_device.device_id, 
     device_type.type, 
     device_type.key, 
-    room.id AS room_id, 
-    room.title, 
-    room.floor, 
+    room.id AS room_id,
+    room.title,
+    room.floor,
+    room.study_seats,
+    room.exam_seats,
     room_device.key AS device_sub_id
     FROM room_device
     INNER JOIN device_type ON room_device.device_type_id = device_type.id

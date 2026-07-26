@@ -61,22 +61,59 @@ export const getRoomsByFloorForDirectory = async (buildingId = null) => {
     });
 };
 
-export const updateRoomTitle = async (id, title) => {
+const normalizeTitle = (title) => {
+  const normalized = (title == null ? "" : String(title)).trim();
+  return normalized === "" ? null : normalized;
+};
+
+const normalizeSeats = (seats) => {
+  if (seats == null || seats === "") return null;
+  const value = Number(seats);
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error("จำนวนที่นั่งไม่ถูกต้อง");
+  }
+  return value;
+};
+
+/**
+ * อัปเดตข้อมูลห้อง เฉพาะฟิลด์ที่ส่งมา (title, study_seats, exam_seats)
+ * ฟิลด์ที่ไม่ได้ส่งมาจะไม่ถูกแตะต้อง
+ */
+export const updateRoom = async (id, fields) => {
   const roomId = Number(id);
   if (!Number.isFinite(roomId) || roomId <= 0) {
     throw new Error("รหัสห้องไม่ถูกต้อง");
   }
-  const raw = title == null ? "" : String(title);
-  const normalized = raw.trim();
-  const titleValue = normalized === "" ? null : normalized;
+
+  const setClauses = [];
+  const params = [];
+
+  if ("title" in fields) {
+    params.push(normalizeTitle(fields.title));
+    setClauses.push(`title = $${params.length}`);
+  }
+  if ("study_seats" in fields) {
+    params.push(normalizeSeats(fields.study_seats));
+    setClauses.push(`study_seats = $${params.length}`);
+  }
+  if ("exam_seats" in fields) {
+    params.push(normalizeSeats(fields.exam_seats));
+    setClauses.push(`exam_seats = $${params.length}`);
+  }
+
+  if (setClauses.length === 0) {
+    throw new Error("ไม่มีข้อมูลที่ต้องการแก้ไข");
+  }
+
+  params.push(roomId);
 
   const query = `
     UPDATE room
-    SET title = $1
-    WHERE id = $2
-    RETURNING id, title, floor, is_bookable, building_id
+    SET ${setClauses.join(", ")}
+    WHERE id = $${params.length}
+    RETURNING id, title, floor, is_bookable, building_id, study_seats, exam_seats
   `;
-  const { rows } = await pool.query(query, [titleValue, roomId]);
+  const { rows } = await pool.query(query, params);
   if (!rows.length) return null;
   return rows[0];
 };
