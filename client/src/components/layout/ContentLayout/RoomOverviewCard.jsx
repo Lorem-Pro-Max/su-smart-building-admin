@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { RoomBadgeIcon, RoomChairIcon } from "@assets/icons";
+import { getRoomPath } from "@/lib/roomSlug";
 
 const badgeTextStyle = {
   fontFamily: "var(--font-main)",
@@ -153,7 +154,7 @@ function RoomOverviewCard({ room, groups }) {
         </div>
 
         <button
-          onClick={() => navigate(`/rooms-overview/${room.room_id}`)}
+          onClick={() => navigate(getRoomPath(room.name, room.floor))}
           style={{
             background: "#13C2C2",
             color: "#FFFFFF",

@@ -66,7 +66,15 @@ function App() {
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/device-scheduling" element={<ControlSchedulePage />} />
               <Route path="/rooms-overview" element={<RoomsOverviewPage />} />
-              <Route path="/rooms-overview/:roomId" element={<RoomDetailPage />} />
+              <Route
+                path="/rooms-overview/:floorParam/:roomParam"
+                element={<RoomDetailPage />}
+              />
+              {/* รองรับลิงก์เดิมที่ใช้ room id */}
+              <Route
+                path="/rooms-overview/:roomParam"
+                element={<RoomDetailPage />}
+              />
               <Route path="/classroom-names" element={<ClassroomNamePage />} />
               <Route path="/doors" element={<DoorsControlPage />} />
               <Route path="/lights" element={<LightsControlPage />} />

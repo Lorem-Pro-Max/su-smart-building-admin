@@ -15,6 +15,13 @@ export const EXECUTION_REGISTRY = {
   default: IoTService.executeBatch,
 };
 
+/**
+ * ประเภทอุปกรณ์ที่ Master switch ของห้องสั่งงานได้
+ * ต้องตรงกับที่หน้า RoomDetailPage แสดงผล เพื่อให้จำนวนใน toast ตรงกับที่ผู้ใช้เห็น
+ * ไม่รวมเซนเซอร์ (mt, hps, sd, tes) เพราะเป็นอุปกรณ์อ่านค่าเท่านั้น สั่ง on/off ไม่ได้
+ */
+export const ROOM_CONTROLLABLE_TYPES = ["doors", "lights", "exhaust-fans", "ac"];
+
 export const getStatusHandler = (deviceType) => async (req, res) => {
   try {
     const data = await IoTService.fetchStatusByType(deviceType);
@@ -229,12 +236,14 @@ export const handleRoomControlAll = async (req, res) => {
     }
 
     const devicesByType = getAllDevicesByRoomId(roomId);
-    const types = Object.keys(devicesByType);
+    const types = Object.keys(devicesByType).filter((type) =>
+      ROOM_CONTROLLABLE_TYPES.includes(type),
+    );
 
     if (types.length === 0) {
       throw {
         status: 404,
-        message: `No devices found for room ${roomId}.`,
+        message: `No controllable devices found for room ${roomId}.`,
       };
     }
 
