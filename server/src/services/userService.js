@@ -67,19 +67,29 @@ class UserService {
 
   async getAllUsers() {
     const query = `
-    SELECT 
+    SELECT
       u.*,
-      r.name AS role_name
+      r.name AS role_name,
+      COALESCE(
+        ARRAY_AGG(ura.room_id) FILTER (WHERE ura.room_id IS NOT NULL),
+        '{}'
+      ) AS allowed_room_ids
     FROM "user" u
     LEFT JOIN roles r
       ON u.role_id = r.id
+    LEFT JOIN user_allowed_room_access ura
+      ON ura.user_id = u.id
     WHERE u.status = 1
+    GROUP BY u.id, r.name
     ORDER BY u.created_at DESC
   `;
 
     const { rows } = await pool.query(query);
 
-    return rows.map((row) => this.mapRow(row));
+    return rows.map((row) => ({
+      ...this.mapRow(row),
+      allowedRoomIds: (row.allowed_room_ids || []).map(Number),
+    }));
   }
 
   async deleteUser(id) {

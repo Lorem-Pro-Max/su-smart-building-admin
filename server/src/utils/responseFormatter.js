@@ -15,7 +15,15 @@ const STATUS_RESOLVERS = {
   },
 };
 
-export const formatDeviceUpdate = (iotStatusData, deviceType) => {
+/**
+ * @param allowedRoomIdSet 
+ *                           
+ */
+export const formatDeviceUpdate = (
+  iotStatusData,
+  deviceType,
+  allowedRoomIdSet = null,
+) => {
   const grouped = {};
 
   for (const [id, status] of Object.entries(iotStatusData)) {
@@ -33,6 +41,8 @@ export const formatDeviceUpdate = (iotStatusData, deviceType) => {
           study_seats,
           exam_seats,
         } = meta;
+
+        if (allowedRoomIdSet && !allowedRoomIdSet.has(Number(room_id))) return;
 
         if (!grouped[floor]) grouped[floor] = [];
 

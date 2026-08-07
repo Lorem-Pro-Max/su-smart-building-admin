@@ -10,6 +10,8 @@ router.get(
   roomController.getClassroomRoomsByFloor.bind(roomController),
 );
 
+router.get("/all", protectAction, roomController.getAllRoomsForPicker);
+
 router.patch(
   "/:id",
   protectAction,

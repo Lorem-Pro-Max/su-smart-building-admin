@@ -34,6 +34,7 @@ function UserPermissionPage() {
       role: u.role,
       email: u.email,
       status: Number(u.status),
+      allowedRoomIds: u.allowedRoomIds ?? [],
     }));
 
   const fetchUsers = useCallback(async () => {
@@ -110,11 +111,11 @@ function UserPermissionPage() {
   }
 
   return (
-    <div>
+    <div className="px-6">
       {!isOpenCreateUser && (
         <>
           <Flex justify="space-between" align="center">
-            <h3 className="text-lg font-semibold flex items-center gap-2 ml-4 mt-4 mb-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2 mt-4 mb-4">
               <TitleIcon />
               กำหนดสิทธิ์ผู้ใช้งาน
             </h3>

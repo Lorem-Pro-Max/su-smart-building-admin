@@ -2,6 +2,7 @@ import { Form, Input, Button, Select, notification } from "antd";
 import { useEffect, useState, useMemo } from "react";
 import { EyeInvisibleOutlined } from "@ant-design/icons";
 import { createUser, updateUser } from "../../../services/user";
+import RoomAccessSelect from "./RoomAccessSelect";
 
 const { Option } = Select;
 
@@ -23,6 +24,7 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
       phone: editData.phone,
       email: editData.email,
       role: editData.position,
+      allowedRoomIds: editData.allowedRoomIds ?? [],
     });
   }, [editData, form]);
 
@@ -49,6 +51,7 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
       phone: values.phone,
       email: values.email,
       role_id: values.role,
+      allowedRoomIds: values.allowedRoomIds ?? [],
     };
   };
 
@@ -73,6 +76,7 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
           email: values.email,
           role_id: values.role,
           status: 1,
+          allowedRoomIds: values.allowedRoomIds ?? [],
         });
 
         notification.success({ message: "เพิ่มผู้ใช้งานสำเร็จ" });
@@ -92,7 +96,12 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
         {isEdit ? "แก้ไขผู้ใช้งาน" : "เพิ่มผู้ใช้งาน"}
       </div>
 
-      <Form form={form} layout="vertical" onFinish={onFinish}>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        autoComplete="off"
+      >
         <div
           className={`grid md:grid-cols-${isEdit ? "1" : "2"} grid-cols-1 gap-4`}
         >
@@ -104,7 +113,8 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
               { min: 4, message: "username ต้องมากกว่า 4 ตัวอักษร" },
             ]}
           >
-            <Input disabled={isEdit} />
+            {/* ใช้ new-password กับช่อง username ด้วย เพราะ Chrome ไม่สนใจ off ในฟอร์มที่ดูเหมือน login */}
+            <Input disabled={isEdit} autoComplete="new-password" />
           </Form.Item>
 
           {!isEdit && (
@@ -115,7 +125,10 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
                 className="flex-1"
                 rules={[{ required: true }]}
               >
-                <Input.Password iconRender={() => <EyeInvisibleOutlined />} />
+                <Input.Password
+                  autoComplete="new-password"
+                  iconRender={() => <EyeInvisibleOutlined />}
+                />
               </Form.Item>
 
               <Button
@@ -155,12 +168,22 @@ function AddUserComponent({ onSuccess, onCancel, editData }) {
           <Input />
         </Form.Item>
 
-        <Form.Item label="Role" name="role" rules={[{ required: true }]}>
-          <Select disabled={isEdit}>
-            <Option value={1}>Admin</Option>
-            <Option value={2}>User</Option>
-          </Select>
-        </Form.Item>
+        <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
+          <Form.Item label="Role" name="role" rules={[{ required: true }]}>
+            <Select disabled={isEdit}>
+              <Option value={1}>Admin</Option>
+              <Option value={2}>User</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            label="ห้องที่อนุญาตให้เข้าถึง"
+            name="allowedRoomIds"
+            rules={[{ required: true, message: "กรุณาเลือกห้อง" }]}
+          >
+            <RoomAccessSelect />
+          </Form.Item>
+        </div>
 
         <div className="flex justify-end gap-4 mt-20">
           <Button

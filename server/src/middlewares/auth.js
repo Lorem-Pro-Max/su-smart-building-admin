@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { findUserById, isUserBlocked } from "../services/authService.js";
+import { getAllowedRoomIds } from "../services/roomAccessService.js";
 
 export const protectAction = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -23,7 +24,12 @@ export const protectAction = async (req, res, next) => {
         message: "Forbidden: Admin only",
       });
     }
+    const allowedRoomIds = await getAllowedRoomIds(decoded.id);
+
     req.user = decoded;
+    req.allowedRoomIds = allowedRoomIds;
+    req.allowedRoomIdSet = new Set(allowedRoomIds);
+
     next();
   } catch (err) {
     return res.status(403).json({ message: "Access Token Expired" });
