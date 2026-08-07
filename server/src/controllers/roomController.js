@@ -31,6 +31,15 @@ export const getClassroomRoomsByFloor = async (req, res) => {
   }
 };
 
+export const getAllRoomsForPicker = async (req, res) => {
+  try {
+    const data = await roomService.getAllRoomsForPicker();
+    return res.json({ success: true, data });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 export const patchRoomTitle = async (req, res) => {
   try {
     const { id } = req.params;
@@ -57,8 +66,6 @@ export const patchRoomTitle = async (req, res) => {
       });
     }
 
-    // ต้อง await เพื่อให้ cache ใหม่พร้อมก่อนตอบกลับ
-    // (initDeviceMapping สร้าง object ใหม่แล้วสลับทีเดียว จึงไม่กระทบ request อื่นที่กำลังอ่าน cache อยู่)
     await initDeviceMapping();
 
     return res.json({

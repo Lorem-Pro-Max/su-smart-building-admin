@@ -27,3 +27,8 @@ export const deleteUser = async (id) => {
   const res = await apiClient.delete(`/users/${id}`);
   return res.data;
 };
+
+export const getAllRooms = async () => {
+  const res = await apiClient.get("/classroom-rooms/all");
+  return res.data;
+};

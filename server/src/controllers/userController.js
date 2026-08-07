@@ -1,15 +1,24 @@
 import { userService } from "../services/userService.js";
+import { replaceAllowedRooms } from "../services/roomAccessService.js";
 import bcrypt from "bcryptjs";
+
+const normalizeRoomIds = (roomIds) => {
+  if (!Array.isArray(roomIds)) return null;
+  return roomIds.map(Number).filter((id) => Number.isInteger(id) && id > 0);
+};
 
 export const createUser = async (req, res) => {
   try {
-    const { password, ...userData } = req.body;
+    const { password, allowedRoomIds, ...userData } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await userService.createUser({
       ...userData,
       password: hashedPassword,
     });
+
+    const rooms = normalizeRoomIds(allowedRoomIds);
+    if (rooms) await replaceAllowedRooms(user.id, rooms);
 
     res.status(201).json({
       success: true,
@@ -42,8 +51,9 @@ export const deleteUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
+    const { allowedRoomIds, ...userData } = req.body;
 
-    const result = await userService.updateUser(Number(id), req.body);
+    const result = await userService.updateUser(Number(id), userData);
 
     if (!result) {
       return res.status(404).json({
@@ -51,6 +61,9 @@ export const updateUser = async (req, res) => {
         message: "user not found",
       });
     }
+
+    const rooms = normalizeRoomIds(allowedRoomIds);
+    if (rooms) await replaceAllowedRooms(Number(id), rooms);
 
     res.json({
       success: true,

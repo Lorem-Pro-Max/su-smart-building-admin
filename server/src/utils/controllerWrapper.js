@@ -22,6 +22,20 @@ export const EXECUTION_REGISTRY = {
  */
 export const ROOM_CONTROLLABLE_TYPES = ["doors", "lights", "exhaust-fans", "ac"];
 
+/**
+ * กรองอุปกรณ์ให้เหลือเฉพาะที่อยู่ในห้องที่ user มีสิทธิ์
+ * เทียบจาก deviceCache เพราะ payload จาก client ส่งมาแค่ hardware id
+ */
+const filterDevicesByRoomAccess = (deviceObjects, allowedRoomIdSet) => {
+  if (!allowedRoomIdSet) return deviceObjects;
+
+  return deviceObjects.filter(({ id }) => {
+    const mappings = getDeviceByHardwareId(id);
+    if (!mappings?.length) return false;
+    return mappings.some((meta) => allowedRoomIdSet.has(Number(meta.room_id)));
+  });
+};
+
 export const getStatusHandler = (deviceType) => async (req, res) => {
   try {
     const data = await IoTService.fetchStatusByType(deviceType);
@@ -33,7 +47,11 @@ export const getStatusHandler = (deviceType) => async (req, res) => {
       };
     }
 
-    const groupedData = formatDeviceUpdate(data, deviceType);
+    const groupedData = formatDeviceUpdate(
+      data,
+      deviceType,
+      req.allowedRoomIdSet,
+    );
     return res.status(200).json({ success: true, data: groupedData });
   } catch (error) {
     return handleError(res, error, `getStatusHandler [${deviceType}]`);
@@ -174,12 +192,24 @@ export const handleBatchCommand = (deviceType) => async (req, res) => {
       };
     }
 
-    const normalizedDeviceIds = deviceIds.map((item) => {
+    const requestedDeviceIds = deviceIds.map((item) => {
       if (typeof item === "object" && item !== null) {
         return { id: item.id, sub_id: item.sub_id || null };
       }
       return { id: String(item), sub_id: null };
     });
+
+    const normalizedDeviceIds = filterDevicesByRoomAccess(
+      requestedDeviceIds,
+      req.allowedRoomIdSet,
+    );
+
+    if (normalizedDeviceIds.length === 0) {
+      throw {
+        status: 403,
+        message: "ไม่มีสิทธิ์ควบคุมอุปกรณ์ที่เลือก",
+      };
+    }
 
     return await runBatchAndRespond(
       deviceType,
@@ -203,7 +233,10 @@ export const handleControlAllCommand = (deviceType) => async (req, res) => {
       throw { status: 400, message: "action is required!" };
     }
 
-    const normalizedDeviceIds = getAllDeviceIdsByType(deviceType);
+    const normalizedDeviceIds = filterDevicesByRoomAccess(
+      getAllDeviceIdsByType(deviceType),
+      req.allowedRoomIdSet,
+    );
 
     if (normalizedDeviceIds.length === 0) {
       throw {
@@ -233,6 +266,10 @@ export const handleRoomControlAll = async (req, res) => {
   try {
     if (!action) {
       throw { status: 400, message: "action is required!" };
+    }
+
+    if (req.allowedRoomIdSet && !req.allowedRoomIdSet.has(Number(roomId))) {
+      throw { status: 403, message: "ไม่มีสิทธิ์ควบคุมอุปกรณ์ในห้องนี้" };
     }
 
     const devicesByType = getAllDevicesByRoomId(roomId);

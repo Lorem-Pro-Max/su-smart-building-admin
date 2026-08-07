@@ -6,6 +6,7 @@ import {
 import { executeAcTempAdjustment } from "../services/iotService.js";
 import { syncIotDevice } from "../services/socketService.js";
 import { handleError } from "../utils/errorFormatter.js";
+import { getDeviceByHardwareId } from "../utils/deviceMap.js";
 
 const deviceType = "ac";
 
@@ -19,6 +20,17 @@ export const acTempAdjust = async (req, res) => {
   try {
     if (!device_id || !temp) {
       throw { status: 400, message: "device_id and temp are required!" };
+    }
+
+    if (req.allowedRoomIdSet) {
+      const mappings = getDeviceByHardwareId(device_id);
+      const isAllowed = mappings?.some((meta) =>
+        req.allowedRoomIdSet.has(Number(meta.room_id)),
+      );
+
+      if (!isAllowed) {
+        throw { status: 403, message: "ไม่มีสิทธิ์ควบคุมอุปกรณ์ในห้องนี้" };
+      }
     }
 
     const result = await executeAcTempAdjustment(device_id, temp);

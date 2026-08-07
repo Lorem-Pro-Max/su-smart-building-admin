@@ -10,10 +10,7 @@ function splitLeftRight(rooms) {
   };
 }
 
-/**
- * ดึงห้องจากตาราง room จัดกลุ่มตามชั้น แบ่งคอลัมน์ซ้าย/ขวา
- * (จำนวนครึ่งแรกปัดขึ้น — เช่น 11 ห้อง = ซ้าย 6 ขวา 5)
- */
+
 export const getRoomsByFloorForDirectory = async (buildingId = null) => {
   let query = `
     SELECT
@@ -75,10 +72,16 @@ const normalizeSeats = (seats) => {
   return value;
 };
 
-/**
- * อัปเดตข้อมูลห้อง เฉพาะฟิลด์ที่ส่งมา (title, study_seats, exam_seats)
- * ฟิลด์ที่ไม่ได้ส่งมาจะไม่ถูกแตะต้อง
- */
+export const getAllRoomsForPicker = async () => {
+  const query = `
+    SELECT id, title, floor
+    FROM room
+    ORDER BY floor ASC NULLS LAST, title ASC NULLS LAST, id ASC
+  `;
+  const { rows } = await pool.query(query);
+  return rows;
+};
+
 export const updateRoom = async (id, fields) => {
   const roomId = Number(id);
   if (!Number.isFinite(roomId) || roomId <= 0) {
