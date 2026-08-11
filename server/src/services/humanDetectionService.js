@@ -19,7 +19,7 @@ const ROOM_STATE = {
 const INTERACTABLE_DEVICE_LISTS = new Set([
   "ac",
   // "doors",
-  "valves",
+  // "valves",
   "lights",
   "exhaust-fans",
 ]);
