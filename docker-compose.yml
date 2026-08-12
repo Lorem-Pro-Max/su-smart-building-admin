@@ -1,5 +1,6 @@
 volumes:
   frontend_dist:
+  pgadmin_data:
 
 services:
   admin-redis:
@@ -37,6 +38,22 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "55.sc.su.ac.th:host-gateway"
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: web-app-pgadmin
+    restart: always
+    profiles: ["tools"]
+    network_mode: host
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+      - PGADMIN_LISTEN_ADDRESS=127.0.0.1
+      - PGADMIN_LISTEN_PORT=5050
+      - SCRIPT_NAME=/pgadmin
+      - PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION=True
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
 
   admin-nginx:
     image: nginx:stable-alpine
