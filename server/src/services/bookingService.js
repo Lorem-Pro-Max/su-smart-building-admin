@@ -89,6 +89,7 @@ class BookingService {
       r.title,
       r.floor,
       bs.status AS status_name,
+      bt.name AS booking_type,
 
       requester.firstname AS requester_firstname,
       requester.lastname  AS requester_lastname,
@@ -103,6 +104,9 @@ class BookingService {
 
     LEFT JOIN booking_status bs
       ON rb.status_id = bs.id
+
+    LEFT JOIN "booking_type" bt
+      ON rb.booking_type_id = bt.id
 
     LEFT JOIN "user" requester
       ON rb.requester_id = requester.id
@@ -128,6 +132,7 @@ class BookingService {
       createdAt: row.created_at,
       actionDate: row.action_date,
       reason: row.reason,
+      bookingType: row.booking_type,
       bookingDate: row.booking_date,
       isNotified: row.is_notified,
       title: row.title,
