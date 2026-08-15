@@ -11,6 +11,12 @@ router.get(
 );
 
 router.get(
+  "/bookings/filters",
+  protectAction,
+  bookingController.getApproveBookingFilters.bind(bookingController),
+);
+
+router.get(
   "/bookings/:id",
   protectAction,
   bookingController.getBookingById.bind(bookingController),

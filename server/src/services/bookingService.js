@@ -131,7 +131,7 @@ class BookingService {
       phone: row.phone,
       createdAt: row.created_at,
       actionDate: row.action_date,
-      reason: row.reason,
+      approvalReason: row.approval_reason,
       bookingType: row.booking_type,
       bookingDate: row.booking_date,
       isNotified: row.is_notified,
@@ -143,6 +143,7 @@ class BookingService {
         `${row.action_firstname ?? ""} ${row.action_lastname ?? ""}`.trim(),
     }));
   }
+
   async getBookingWithDuplicate(bookingId) {
     const bookingQuery = `
     SELECT 
@@ -234,14 +235,14 @@ class BookingService {
     const statusId = STATUS_ID_MAP[status];
 
     const query = `
-    UPDATE room_booking
-    SET status_id = $1,
-        action_by = $2,
-        action_date = NOW(),
-        reason = $3
-    WHERE id = $4
-    RETURNING *
-  `;
+      UPDATE room_booking
+      SET status_id = $1,
+          action_by = $2,
+          action_date = NOW(),
+          reason = $3
+      WHERE id = $4
+      RETURNING *
+    `;
 
     const { rows } = await pool.query(query, [
       statusId,
@@ -266,6 +267,48 @@ class BookingService {
     }
 
     return this.mapRow(rows[0]);
+  }
+
+  async getApproveBookingFilters() {
+    const floorQuery = `
+      SELECT DISTINCT
+        r.floor
+      FROM room r
+      WHERE r.floor IS NOT NULL
+      ORDER BY r.floor ASC
+    `;
+
+    const bookingTypeQuery = `
+      SELECT
+        bt.*
+      FROM booking_type bt
+      ORDER BY bt.id ASC
+    `;
+
+    const bookingStatusQuery = `
+      SELECT
+        bs.*
+      FROM booking_status bs
+      ORDER BY bs.id ASC
+    `;
+
+    const [floorResult, bookingTypeResult, bookingStatusResult] = await Promise.all([
+      pool.query(floorQuery),
+      pool.query(bookingTypeQuery),
+      pool.query(bookingStatusQuery),
+    ]);
+
+    return {
+      floors: floorResult.rows.map((row) => row.floor),
+      bookingTypes: bookingTypeResult.rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+      })),
+      bookingStatuses: bookingStatusResult.rows.map((row) => ({
+        id: row.id,
+        status: row.status,
+      })),
+    };
   }
 
   mapRow(row) {

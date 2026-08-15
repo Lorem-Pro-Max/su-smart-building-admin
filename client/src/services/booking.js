@@ -22,3 +22,8 @@ export const getBookingById = async (id) => {
 
   return res.data;
 };
+
+export const getApproveBookingFilters = async () => {
+  const res = await apiClient.get("/bookings/filters");
+  return res.data;
+};

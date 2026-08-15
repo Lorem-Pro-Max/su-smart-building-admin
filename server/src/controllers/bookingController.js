@@ -73,3 +73,18 @@ export const updateStatus = async (req, res) => {
     });
   }
 };
+
+export const getApproveBookingFilters = async (req, res) => {
+  try {
+    const filters = await bookingService.getApproveBookingFilters();
+
+    return res.status(200).json(filters);
+  } catch (error) {
+    console.error("[Booking] Get approve booking filters error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get approve booking filters",
+    });
+  }
+};

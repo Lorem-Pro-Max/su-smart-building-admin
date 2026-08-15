@@ -1,0 +1,46 @@
+.booking-approve-table .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #13c2c2 !important;
+  border-color: #13c2c2 !important;
+}
+
+.booking-approve-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+.booking-approve-table .ant-checkbox:hover .ant-checkbox-inner {
+  border-color: #13c2c2 !important;
+}
+
+.booking-approve-table .ant-table-tbody > tr.ant-table-row-selected > td {
+  background: #ffffff !important;
+}
+
+.floor-select-dropdown .ant-select-item-option,
+.booking-type-select-dropdown .ant-select-item-option {
+  background: #ffffff !important;
+}
+
+.floor-select-dropdown .ant-select-item-option:hover,
+.floor-select-dropdown .ant-select-item-option-active,
+.booking-type-select-dropdown .ant-select-item-option:hover,
+.booking-type-select-dropdown .ant-select-item-option-active {
+  background: #f5f5f5 !important;
+}
+
+.floor-select-dropdown
+  .ant-select-item-option-selected:not(.ant-select-item-option-disabled),
+.booking-type-select-dropdown 
+  .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background: #ffffff !important;
+}
+
+.floor-select-dropdown
+  .ant-select-item-option-selected:not(.ant-select-item-option-disabled):hover,
+.booking-type-select-dropdown
+  .ant-select-item-option-selected:not(.ant-select-item-option-disabled):hover {
+  background: #f5f5f5 !important;
+}
+
+.floor-select-dropdown
+  .ant-select-item-option-selected.ant-select-item-option-active,
+.booking-type-select-dropdown
+  .ant-select-item-option-selected.ant-select-item-option-active {
+  background: #f5f5f5 !important;
+}

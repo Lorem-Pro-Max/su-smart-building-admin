@@ -71,16 +71,3 @@
   cursor: default;
 }
 
-.booking-approve-table .ant-checkbox-checked .ant-checkbox-inner {
-  background-color: #13c2c2 !important;
-  border-color: #13c2c2 !important;
-}
-
-.booking-approve-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
-.booking-approve-table .ant-checkbox:hover .ant-checkbox-inner {
-  border-color: #13c2c2 !important;
-}
-
-.booking-approve-table .ant-table-tbody > tr.ant-table-row-selected > td {
-  background: #ffffff !important;
-}
