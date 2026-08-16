@@ -123,16 +123,9 @@ class BookingService {
     const countQuery = `
       SELECT COUNT(*)::int AS total
       FROM room_booking rb
-
-      LEFT JOIN room r
-        ON rb.room_id = r.id
-
-      LEFT JOIN booking_status bs
-        ON rb.status_id = bs.id
-
-      LEFT JOIN booking_type bt
-        ON rb.booking_type_id = bt.id
-
+      LEFT JOIN room r ON rb.room_id = r.id
+      LEFT JOIN booking_status bs ON rb.status_id = bs.id
+      LEFT JOIN booking_type bt ON rb.booking_type_id = bt.id
       WHERE ${whereClause}
     `;
 
@@ -146,41 +139,22 @@ class BookingService {
     const dataQuery = `
       SELECT
         rb.*,
-
         r.title,
         r.floor,
-
         bs.status AS status_name,
-
         bt.name AS booking_type,
-
         requester.firstname AS requester_firstname,
         requester.lastname AS requester_lastname,
-
         action_user.firstname AS action_firstname,
         action_user.lastname AS action_lastname
-
       FROM room_booking rb
-
-      LEFT JOIN room r
-        ON rb.room_id = r.id
-
-      LEFT JOIN booking_status bs
-        ON rb.status_id = bs.id
-
-      LEFT JOIN booking_type bt
-        ON rb.booking_type_id = bt.id
-
-      LEFT JOIN "user" requester
-        ON rb.requester_id = requester.id
-
-      LEFT JOIN "user" action_user
-        ON rb.action_by = action_user.id
-
+      LEFT JOIN room r ON rb.room_id = r.id
+      LEFT JOIN booking_status bs ON rb.status_id = bs.id
+      LEFT JOIN booking_type bt ON rb.booking_type_id = bt.id
+      LEFT JOIN "user" requester ON rb.requester_id = requester.id
+      LEFT JOIN "user" action_user ON rb.action_by = action_user.id
       WHERE ${whereClause}
-
       ORDER BY rb.created_at DESC
-
       LIMIT $${limitIndex}
       OFFSET $${offsetIndex}
     `;
@@ -192,42 +166,24 @@ class BookingService {
 
     const data = dataResult.rows.map((row) => ({
       id: row.id,
-
       requesterId: row.requester_id,
-
       roomId: row.room_id,
-
       startTime: row.start_dateTime,
-
       endTime: row.end_dateTime,
-
       statusId: row.status_id,
-
       status: row.status_name,
-
       meetingName: row.meeting_name,
-
       phone: row.phone,
-
       createdAt: row.created_at,
-
       actionDate: row.action_date,
-
       approvalReason: row.approval_reason,
-
       bookingType: row.booking_type,
-
       bookingDate: row.booking_date,
-
       isNotified: row.is_notified,
-
       title: row.title,
-
       floor: row.floor,
-
       bookingBy:
         `${row.requester_firstname ?? ""} ${row.requester_lastname ?? ""}`.trim(),
-
       actionBy:
         `${row.action_firstname ?? ""} ${row.action_lastname ?? ""}`.trim(),
     }));
@@ -244,36 +200,19 @@ class BookingService {
     const bookingQuery = `
       SELECT
         rb.*,
-
         r.title,
         r.floor,
-
         b.name AS building_name,
-
         bs.status AS status_name,
-
         bt.name AS booking_type,
-
         u.firstname,
         u.lastname
-
       FROM room_booking rb
-
-      LEFT JOIN room r
-        ON rb.room_id = r.id
-
-      LEFT JOIN building b
-        ON r.building_id = b.id
-
-      LEFT JOIN booking_status bs
-        ON rb.status_id = bs.id
-
-      LEFT JOIN booking_type bt
-        ON rb.booking_type_id = bt.id
-
-      LEFT JOIN "user" u
-        ON rb.requester_id = u.id
-
+      LEFT JOIN room r ON rb.room_id = r.id
+      LEFT JOIN building b ON r.building_id = b.id
+      LEFT JOIN booking_status bs ON rb.status_id = bs.id
+      LEFT JOIN booking_type bt ON rb.booking_type_id = bt.id
+      LEFT JOIN "user" u ON rb.requester_id = u.id
       WHERE rb.id = $1
     `;
 
@@ -288,46 +227,24 @@ class BookingService {
     const duplicateQuery = `
       SELECT
         rb.*,
-
         r.title,
         r.floor,
-
         b.name AS building_name,
-
         bs.status AS status_name,
-
         bt.name AS booking_type,
-
         u.firstname,
         u.lastname
-
       FROM room_booking rb
-
-      LEFT JOIN room r
-        ON rb.room_id = r.id
-
-      LEFT JOIN building b
-        ON r.building_id = b.id
-
-      LEFT JOIN booking_status bs
-        ON rb.status_id = bs.id
-
-      LEFT JOIN booking_type bt
-        ON rb.booking_type_id = bt.id
-
-      LEFT JOIN "user" u
-        ON rb.requester_id = u.id
-
+      LEFT JOIN room r ON rb.room_id = r.id
+      LEFT JOIN building b ON r.building_id = b.id
+      LEFT JOIN booking_status bs ON rb.status_id = bs.id
+      LEFT JOIN booking_type bt ON rb.booking_type_id = bt.id
+      LEFT JOIN "user" u ON rb.requester_id = u.id
       WHERE rb.room_id = $1
-
         AND rb.status_id = 2
-
         AND rb.id != $2
-
         AND rb."start_dateTime" < $3
-
         AND rb."end_dateTime" > $4
-
       ORDER BY rb."start_dateTime" ASC
     `;
 
@@ -340,46 +257,27 @@ class BookingService {
 
     const map = (row) => ({
       id: row.id,
-
       meetingName: row.meeting_name,
-
       roomId: row.room_id,
-
       title: row.title,
-
       floor: row.floor,
-
       buildingName: row.building_name,
-
       startTime: row.start_dateTime,
-
       endTime: row.end_dateTime,
-
       statusId: row.status_id,
-
       status: row.status_name,
-
       bookingTypeId: row.booking_type_id,
-
       bookingType: row.booking_type,
-
       purpose: row.purpose,
-
       phone: row.phone,
-
       bookingBy: `${row.firstname ?? ""} ${row.lastname ?? ""}`.trim(),
-
       createdAt: row.created_at,
-
       bookingDate: row.booking_date,
     });
 
     return {
       duplicate: duplicateRows.length > 0,
-
       booking: map(bookingRow),
-
-      // สำคัญ: เป็น Array เสมอ
       conflicts: duplicateRows.map(map),
     };
   }
@@ -400,11 +298,6 @@ class BookingService {
         throw new Error("Action user is required");
       }
 
-      /*
-       * ป้องกัน duplicate id
-       * และไม่ให้ id ที่กำลัง approve
-       * ถูกใส่อยู่ใน cancelIds
-       */
       const normalizedCancelIds = Array.from(
         new Set(
           (Array.isArray(cancelIds) ? cancelIds : [])
@@ -434,9 +327,7 @@ class BookingService {
         return undefined;
       }
 
-      /*
-       * Cancel booking ที่ชนทั้งหมด
-       */
+      // Cancel booking ที่ชนทั้งหมด
       if (normalizedCancelIds.length > 0) {
         await client.query(
           `
@@ -505,29 +396,22 @@ class BookingService {
     const floorQuery = `
       SELECT DISTINCT
         r.floor
-
       FROM room r
-
       WHERE r.floor IS NOT NULL
-
       ORDER BY r.floor ASC
     `;
 
     const bookingTypeQuery = `
       SELECT
         bt.*
-
       FROM booking_type bt
-
       ORDER BY bt.id ASC
     `;
 
     const bookingStatusQuery = `
       SELECT
         bs.*
-
       FROM booking_status bs
-
       ORDER BY bs.id ASC
     `;
 
@@ -558,37 +442,21 @@ class BookingService {
 
     return {
       id: row.id,
-
       userId: row.requester_id,
-
       resourceId: row.room_id,
-
       startTime: row.start_dateTime,
-
       endTime: row.end_dateTime,
-
       status: STATUS_MAP[row.status_id] || "pending",
-
       meetingName: row.meeting_name,
-
       floor: row.floor,
-
       createdAt: row.created_at,
-
       actionBy: row.action_by,
-
       reason: row.reason,
-
       approvalReason: row.approval_reason,
-
       phone: row.phone,
-
       statusId: row.status_id,
-
       title: row.title,
-
       bookingBy,
-
       bookingDate: row.booking_date,
     };
   }
