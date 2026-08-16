@@ -27,4 +27,11 @@ router.patch(
   protectAction,
   bookingController.updateStatus.bind(bookingController),
 );
+
+router.delete(
+  "/bookings",
+  protectAction,
+  bookingController.deleteBookings.bind(bookingController),
+);
+
 export default router;

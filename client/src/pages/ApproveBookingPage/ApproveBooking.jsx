@@ -4,9 +4,23 @@ import BookingModal from "./components/BookingModal";
 import DeclinedModal from "./components/DeclinedModal";
 import DuplicatedModal from "./components/DuplicatedModal";
 import FilterModal from "./components/FilterModal";
-import { CheckOutlined, CloseOutlined, DownloadOutlined, DeleteOutlined } from "@ant-design/icons";
+import DeletedModal from "./components/DeletedModal";
+import NoSelectionModal from "./components/NoSelectionModal";
+import {
+  CheckOutlined,
+  CloseOutlined,
+  DownloadOutlined,
+  DeleteOutlined,
+  CheckCircleFilled,
+} from "@ant-design/icons";
 import dayjs from "dayjs";
-import { getBookings, updateBookingStatus, getBookingById, getApproveBookingFilters } from "../../services/booking";
+import {
+  getBookings,
+  updateBookingStatus,
+  getBookingById,
+  getApproveBookingFilters,
+  deleteBookings,
+} from "../../services/booking";
 import { LoadingScreen } from "../../components/utils/LoadingScreen";
 import ApproveIconTitle from "../../assets/icons/schedule/TitleIcon";
 import FilterIcon from "../../assets/icons/approve-booking/FilterIcon";
@@ -27,47 +41,210 @@ const STATUS_FILTER_GROUPS = [
     label: "รออนุมัติ",
     value: "pending",
     statuses: ["pending"],
-    color: "#FFE7BA", 
-    bdColor: "#FAAD14"
+    color: "#FFE7BA",
+    bdColor: "#FAAD14",
   },
   {
     label: "อนุมัติ",
     value: "approved",
     statuses: ["approved", "checked-in", "completed"],
-    color: "#D9F7BE", 
-    bdColor: "#52C41A"
+    color: "#D9F7BE",
+    bdColor: "#52C41A",
   },
   {
     label: "ปฏิเสธ",
     value: "rejected",
     statuses: ["rejectedByAdmin"],
-    color: "#FFCCC7", 
-    bdColor: "#F5222D"
+    color: "#FFCCC7",
+    bdColor: "#F5222D",
   },
   {
     label: "ยกเลิก",
     value: "canceled",
     statuses: ["canceledByAdmin", "canceledByUser"],
     color: "#F0F0F0",
-    bdColor: "#D9D9D9"
+    bdColor: "#D9D9D9",
   },
 ];
+
+const isBookingOverlap = (bookingA, bookingB) => {
+  if (!bookingA || !bookingB) return false;
+
+  if (Number(bookingA.roomId) !== Number(bookingB.roomId)) {
+    return false;
+  }
+
+  const aStart = dayjs(bookingA.startTime).valueOf();
+  const aEnd = dayjs(bookingA.endTime).valueOf();
+  const bStart = dayjs(bookingB.startTime).valueOf();
+  const bEnd = dayjs(bookingB.endTime).valueOf();
+
+  return aStart < bEnd && aEnd > bStart;
+};
+
+const buildDuplicateGroups = (bookingResults) => {
+  const selectedBookings = bookingResults
+    .map((item) => item.booking)
+    .filter(Boolean);
+
+  const bookingMap = new Map();
+  const adjacency = new Map();
+
+  const addBooking = (booking) => {
+    if (!booking?.id) return;
+
+    bookingMap.set(booking.id, booking);
+
+    if (!adjacency.has(booking.id)) {
+      adjacency.set(booking.id, new Set());
+    }
+  };
+
+  const connect = (idA, idB) => {
+    if (!idA || !idB || idA === idB) return;
+
+    if (!adjacency.has(idA)) {
+      adjacency.set(idA, new Set());
+    }
+
+    if (!adjacency.has(idB)) {
+      adjacency.set(idB, new Set());
+    }
+
+    adjacency.get(idA).add(idB);
+    adjacency.get(idB).add(idA);
+  };
+
+  selectedBookings.forEach(addBooking);
+
+  bookingResults.forEach((result) => {
+    const mainBooking = result.booking;
+    const conflicts = Array.isArray(result.conflicts)
+      ? result.conflicts
+      : result.conflicts
+        ? [result.conflicts]
+        : [];
+
+    addBooking(mainBooking);
+
+    conflicts.forEach((conflict) => {
+      addBooking(conflict);
+      connect(mainBooking?.id, conflict.id);
+    });
+  });
+
+  for (let i = 0; i < selectedBookings.length; i += 1) {
+    for (let j = i + 1; j < selectedBookings.length; j += 1) {
+      const bookingA = selectedBookings[i];
+      const bookingB = selectedBookings[j];
+
+      if (isBookingOverlap(bookingA, bookingB)) {
+        connect(bookingA.id, bookingB.id);
+      }
+    }
+  }
+
+  const visited = new Set();
+  const duplicateGroups = [];
+  const normalBookings = [];
+
+  selectedBookings.forEach((selectedBooking) => {
+    if (visited.has(selectedBooking.id)) return;
+
+    const stack = [selectedBooking.id];
+    const componentIds = [];
+
+    while (stack.length > 0) {
+      const currentId = stack.pop();
+
+      if (visited.has(currentId)) continue;
+
+      visited.add(currentId);
+      componentIds.push(currentId);
+
+      const neighbors = adjacency.get(currentId) ?? new Set();
+
+      neighbors.forEach((neighborId) => {
+        if (!visited.has(neighborId)) {
+          stack.push(neighborId);
+        }
+      });
+    }
+
+    const componentBookings = componentIds
+      .map((id) => bookingMap.get(id))
+      .filter(Boolean)
+      .sort(
+        (a, b) => dayjs(a.startTime).valueOf() - dayjs(b.startTime).valueOf(),
+      );
+
+    if (componentBookings.length > 1) {
+      duplicateGroups.push({
+        duplicate: true,
+        booking: selectedBooking,
+        conflicts: componentBookings.filter(
+          (booking) => booking.id !== selectedBooking.id,
+        ),
+      });
+      return;
+    }
+
+    normalBookings.push(selectedBooking);
+  });
+
+  return { duplicateGroups, normalBookings };
+};
+
+const showSuccessNotification = ({ message, description }) => {
+  notification.success({
+    message,
+    description,
+    placement: "topRight",
+    duration: 3,
+    className: "booking-success-notification",
+
+    style: {
+      width: 460,
+      minHeight: 72,
+      padding: "16px 20px",
+      background: "#F6FFED",
+      border: "1px solid #B7EB8F",
+      borderRadius: 8,
+      boxShadow: "none",
+    },
+  });
+};
 
 function ApproveBookingPage() {
   const [isOpenConfirmModal, setIsOpenConfirmModal] = useState(false);
   const [isOpenDeclinedModal, setIsOpenDeclinedModal] = useState(false);
   const [isOpenDuplicatedModal, setIsOpenDuplicatedModal] = useState(false);
   const [isOpenFilterModal, setIsOpenFilterModal] = useState(false);
+  const [isOpenDeletedModal, setIsOpenDeletedModal] = useState(false);
+  const [isOpenNoSelectionModal, setIsOpenNoSelectionModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [filters, setFilters] = useState({ bookingTypes: null, floors: null, statuses: [], statusGroups: []});
+  const [filters, setFilters] = useState({
+    bookingTypes: null,
+    floors: null,
+    statuses: [],
+    statusGroups: [],
+  });
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0});
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
   const [floorOptions, setFloorOptions] = useState([]);
   const [bookingTypeOptions, setBookingTypeOptions] = useState([]);
   const [statusOptions, setStatusOptions] = useState([]);
+  const [declineBookings, setDeclineBookings] = useState([]);
+  const [approveBookings, setApproveBookings] = useState([]);
+  const [duplicateQueue, setDuplicateQueue] = useState([]);
+  const [duplicateIndex, setDuplicateIndex] = useState(0);
 
   const fetchApproveBookingFilters = async () => {
     try {
@@ -83,10 +260,16 @@ function ApproveBookingPage() {
         value: item.id,
       }));
 
-      const availableStatuses = new Set((res?.bookingStatuses || []).map((item) => item.status));
+      const availableStatuses = new Set(
+        (res?.bookingStatuses || []).map((item) => item.status),
+      );
 
       const statuses = STATUS_FILTER_GROUPS.map((group) => ({
-          ...group, statuses: group.statuses.filter((status) => availableStatuses.has(status))})).filter((group) => group.statuses.length > 0);
+        ...group,
+        statuses: group.statuses.filter((status) =>
+          availableStatuses.has(status),
+        ),
+      })).filter((group) => group.statuses.length > 0);
 
       setFloorOptions(floors);
       setBookingTypeOptions(bookingTypes);
@@ -103,9 +286,11 @@ function ApproveBookingPage() {
       const res = await getBookings({
         page: pagination.current,
         limit: pagination.pageSize,
-        bookingTypes: filters.bookingTypes?.length ? filters.bookingTypes : undefined,
+        bookingTypes: filters.bookingTypes?.length
+          ? filters.bookingTypes
+          : undefined,
         floors: filters.floors?.length ? filters.floors : undefined,
-        status: filters.statuses?.length ? filters.statuses : undefined,
+        statuses: filters.statuses?.length ? filters.statuses : undefined,
       });
 
       setTableData(res?.data || []);
@@ -120,7 +305,7 @@ function ApproveBookingPage() {
   useEffect(() => {
     fetchBookings();
   }, [pagination.current, pagination.pageSize, filters]);
-  
+
   useEffect(() => {
     fetchApproveBookingFilters();
   }, []);
@@ -128,138 +313,287 @@ function ApproveBookingPage() {
   const handleConfirmFilter = (values) => {
     setFilters(values);
 
-    setPagination((prev) => ({...prev, current: 1}));
+    setPagination((prev) => ({ ...prev, current: 1 }));
 
     setIsOpenFilterModal(false);
   };
 
-  const handleUpdateStatus = async (
-    bookingId,
-    status,
-    reason = "",
-    cancelId = null,
-  ) => {
-    if (!bookingId) return;
-
-    try {
-      setActionLoading(true);
-
-      await updateBookingStatus(bookingId, status, reason, cancelId);
-
-      await fetchBookings();
-
-      setSelectedRowKeys([]);
-
-      notification.success({
-        message:
-          status === BookingStatusEnum.REJECTED_BY_ADMIN
-            ? "ไม่อนุมัติการจองสำเร็จ"
-            : "อนุมัติการจองเรียบร้อยแล้ว",
-        description: cancelId
-          ? "ระบบได้ส่งข้อความแจ้งยกเลิกไปยังรายการที่จองซ้ำซ้อนแล้ว"
-          : "ระบบได้ส่งการแจ้งเตือนและเหตุผลไปยังผู้จองเรียบร้อยแล้ว",
-      });
-    } catch {
-      notification.error({ message: "อัปเดตสถานะไม่สำเร็จ" });  
-    } finally {
-      setActionLoading(false);
-      setIsOpenConfirmModal(false);
-      setIsOpenDeclinedModal(false);
-      setIsOpenDuplicatedModal(false);
-      setSelectedBooking(null);
-    }
+  const getSelectedBookings = () => {
+    return tableData.filter((item) => selectedRowKeys.includes(item.id));
   };
 
-  const clickGetConfirmBooking = async (bookingId) => {
-    try {
-      setActionLoading("approve");
+  const handleApproveSelected = async () => {
+    const bookings = getSelectedBookings();
 
-      const result = await getBookingById(bookingId);
-
-      setSelectedBooking(result.data);
-
-      if (result.data?.duplicate) {
-        setIsOpenDuplicatedModal(true);
-      } else {
-        setIsOpenConfirmModal(true);
-      }
-    } catch {
-      notification.error({ message: "เกิดข้อผิดพลาด" });
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const clickGetDeclineBooking = async (bookingId) => {
-    try {
-      setActionLoading("reject");
-
-      const result = await getBookingById(bookingId);
-
-      setSelectedBooking(result.data);
-      setIsOpenDeclinedModal(true);
-    } catch {
-      notification.error({ message: "เกิดข้อผิดพลาด" });
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const getSelectedBooking = () => {
-    if (selectedRowKeys.length !== 1) return null;
-
-    return tableData.find(
-      (item) => item.id === selectedRowKeys[0],
-    );
-  };
-
-  const handleApproveSelected = () => {
-    const booking = getSelectedBooking();
-
-    if (!booking) {
-      notification.warning({
-        message: "กรุณาเลือก 1 รายการ",
-      });
+    if (bookings.length === 0) {
+      setIsOpenNoSelectionModal(true);
       return;
     }
 
-    if (booking.status !== BookingStatusEnum.PENDING) {
+    const hasInvalidStatus = bookings.some(
+      (booking) => booking.status !== BookingStatusEnum.PENDING,
+    );
+
+    if (hasInvalidStatus) {
       notification.warning({
         message: "สามารถอนุมัติได้เฉพาะรายการที่รออนุมัติ",
       });
       return;
     }
 
-    clickGetConfirmBooking(booking.id);
+    try {
+      setActionLoading("approve");
+
+      const results = await Promise.all(
+        bookings.map((booking) => getBookingById(booking.id)),
+      );
+
+      const bookingResults = results
+        .map((result) => result?.data)
+        .filter(Boolean);
+
+      const { duplicateGroups, normalBookings } =
+        buildDuplicateGroups(bookingResults);
+
+      setApproveBookings(normalBookings);
+
+      if (duplicateGroups.length > 0) {
+        setDuplicateQueue(duplicateGroups);
+        setDuplicateIndex(0);
+
+        setSelectedBooking(duplicateGroups[0]);
+        setIsOpenDuplicatedModal(true);
+
+        return;
+      }
+
+      if (normalBookings.length > 0) {
+        setIsOpenConfirmModal(true);
+      }
+    } catch (error) {
+      console.error("[Approve] load booking details error:", error);
+
+      notification.error({
+        message: "ไม่สามารถโหลดรายละเอียดการจองได้",
+      });
+    } finally {
+      setActionLoading(null);
+    }
   };
 
-  const handleRejectSelected = () => {
-    const booking = getSelectedBooking();
+  const handleRejectSelected = async () => {
+    const bookings = getSelectedBookings();
 
-    if (!booking) {
-      notification.warning({
-        message: "กรุณาเลือก 1 รายการ",
-      });
+    if (bookings.length === 0) {
+      setIsOpenNoSelectionModal(true);
       return;
     }
 
-    if (booking.status !== BookingStatusEnum.PENDING) {
+    const hasInvalidStatus = bookings.some(
+      (booking) => booking.status !== BookingStatusEnum.PENDING,
+    );
+
+    if (hasInvalidStatus) {
       notification.warning({
         message: "สามารถปฏิเสธได้เฉพาะรายการที่รออนุมัติ",
       });
       return;
     }
 
-    clickGetDeclineBooking(booking.id);
+    try {
+      setActionLoading("reject");
+
+      const results = await Promise.all(
+        bookings.map((booking) => getBookingById(booking.id)),
+      );
+
+      const bookingDetails = results
+        .map((result) => result.data?.booking)
+        .filter(Boolean);
+
+      setDeclineBookings(bookingDetails);
+      setIsOpenDeclinedModal(true);
+    } catch {
+      notification.error({ message: "ไม่สามารถโหลดรายละเอียดการจองได้" });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedRowKeys.length === 0) {
+      setIsOpenNoSelectionModal(true);
+      return;
+    }
+
+    setIsOpenDeletedModal(true);
+  };
+
+  const handleConfirmApprove = async (items) => {
+    try {
+      setActionLoading("approve");
+
+      await Promise.all(
+        items.map((item) =>
+          updateBookingStatus(
+            item.id,
+            BookingStatusEnum.APPROVED,
+            item.note || "",
+          ),
+        ),
+      );
+
+      await fetchBookings();
+
+      setSelectedRowKeys([]);
+      setApproveBookings([]);
+      setIsOpenConfirmModal(false);
+
+      showSuccessNotification({
+        message: "อนุมัติการจองเรียบร้อยแล้ว",
+      });
+    } catch (error) {
+      console.error("[Approve] approve bookings error:", error);
+
+      notification.error({
+        message: "อนุมัติการจองไม่สำเร็จ",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleConfirmReject = async (items) => {
+    try {
+      setActionLoading("reject");
+
+      await Promise.all(
+        items.map((item) =>
+          updateBookingStatus(
+            item.id,
+            BookingStatusEnum.REJECTED_BY_ADMIN,
+            item.rejectReason,
+          ),
+        ),
+      );
+
+      await fetchBookings();
+
+      setSelectedRowKeys([]);
+      setDeclineBookings([]);
+      setIsOpenDeclinedModal(false);
+
+      showSuccessNotification({
+        message: "ไม่อนุมัติการจองสำเร็จ",
+        description: "ระบบได้ส่งการแจ้งเตือนและเหตุผลไปยังผู้จองเรียบร้อยแล้ว",
+      });
+    } catch {
+      notification.error({ message: "ปฏิเสธการจองไม่สำเร็จ" });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleConfirmDuplicate = async ({
+    approveBooking,
+    cancelBookings,
+    note,
+  }) => {
+    try {
+      setActionLoading("approve");
+
+      const cancelIds = cancelBookings.map((item) => item.id);
+
+      await updateBookingStatus(
+        approveBooking.id,
+        BookingStatusEnum.APPROVED,
+        note || "",
+        cancelIds,
+      );
+
+      const nextIndex = duplicateIndex + 1;
+
+      if (nextIndex < duplicateQueue.length) {
+        setDuplicateIndex(nextIndex);
+        setSelectedBooking(duplicateQueue[nextIndex]);
+
+        return;
+      }
+
+      setIsOpenDuplicatedModal(false);
+      setDuplicateQueue([]);
+      setDuplicateIndex(0);
+      setSelectedBooking(null);
+
+      if (approveBookings.length > 0) {
+        setIsOpenConfirmModal(true);
+        return;
+      }
+
+      await fetchBookings();
+
+      setSelectedRowKeys([]);
+
+      showSuccessNotification({
+        message: "อนุมัติการจองเรียบร้อยแล้ว",
+        description:
+          "ระบบได้ส่งข้อความแจ้งเตือนและเหตุผลไปยังผู้จองเรียบร้อยแล้ว",
+      });
+    } catch (error) {
+      console.error("[Approve] Duplicate error:", error);
+
+      notification.error({
+        message: "อนุมัติรายการจองซ้ำซ้อนไม่สำเร็จ",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (selectedRowKeys.length === 0) return;
+
+    const count = selectedRowKeys.length;
+
+    try {
+      setActionLoading("delete");
+
+      await deleteBookings(selectedRowKeys);
+
+      setSelectedRowKeys([]);
+      setIsOpenDeletedModal(false);
+
+      showSuccessNotification({
+        message: "ลบการจองสำเร็จ",
+      });
+
+      if (tableData.length === count && pagination.current > 1) {
+        setPagination((prev) => ({
+          ...prev,
+          current: prev.current - 1,
+        }));
+      } else {
+        await fetchBookings();
+      }
+    } catch (error) {
+      console.error("[Booking] delete error:", error);
+
+      notification.error({
+        message: "ลบการจองไม่สำเร็จ",
+      });
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const renderStatus = (_, record) => {
-    const config = STATUS_FILTER_GROUPS.find(group => group.statuses.includes(record.status));
+    const config = STATUS_FILTER_GROUPS.find((group) =>
+      group.statuses.includes(record.status),
+    );
 
     if (!config) return "-";
 
-    const actionDate =
-      record.bookingDate || record.updatedAt;
+    const actionDate = record.actionDate;
 
     return (
       <div className="flex items-center gap-2 w-full">
@@ -271,29 +605,37 @@ function ApproveBookingPage() {
           <p className="text-[#000000A6]">{config.label}</p>
         </Tag>
 
-        {record.status !== BookingStatusEnum.PENDING &&
-          record.actionBy && (
-            <div className="min-w-0 flex-1 text-[11px] leading-[16px] text-[#595959]">
-              <div className="truncate">
-                {record.actionBy}
-              </div>
+        {record.status !== BookingStatusEnum.PENDING && record.actionBy && (
+          <div className="min-w-0 flex-1 text-[11px] leading-[16px] text-[#595959]">
+            <div className="truncate">{record.actionBy}</div>
 
-              <div className="whitespace-nowrap">
-                {actionDate
-                  ? dayjs(actionDate).format("DD/MM/YY")
-                  : "-"}
-              </div>
+            <div className="whitespace-nowrap">
+              {actionDate ? dayjs(actionDate).format("DD/MM/YY") : "-"}
             </div>
-          )}
+          </div>
+        )}
       </div>
     );
   };
 
   const columns = [
-    { title: "วันที่ทำรายการ", key: "createdAt", width: 120, render: (_, record) => dayjs(record.createdAt).format("DD/MM/YY")},
-    { title: "ชื่อการเรียน/ประชุม", dataIndex: "meetingName", key: "meetingName", width: 170, ellipsis: true},
-    { 
-      title: "วันที่จอง", key: "bookingDate", width: 100,
+    {
+      title: "วันที่ทำรายการ",
+      key: "createdAt",
+      width: 120,
+      render: (_, record) => dayjs(record.createdAt).format("DD/MM/YY"),
+    },
+    {
+      title: "ชื่อการเรียน/ประชุม",
+      dataIndex: "meetingName",
+      key: "meetingName",
+      width: 170,
+      ellipsis: true,
+    },
+    {
+      title: "วันที่จอง",
+      key: "bookingDate",
+      width: 100,
       render: (_, record) => (
         <span className="font-medium">
           {dayjs(record.startTime).format("DD/MM/YY")}
@@ -301,7 +643,9 @@ function ApproveBookingPage() {
       ),
     },
     {
-      title: "เวลา", key: "time", width: 125,
+      title: "เวลา",
+      key: "time",
+      width: 125,
       render: (_, record) => (
         <span className="font-medium text-[#08979C] whitespace-nowrap">
           {dayjs(record.startTime).format("HH:mm")}
@@ -311,33 +655,53 @@ function ApproveBookingPage() {
       ),
     },
     {
-      title: "ชั้น", dataIndex: "floor", key: "floor", width: 60,
+      title: "ชั้น",
+      dataIndex: "floor",
+      key: "floor",
+      width: 60,
       render: (floor) => (
-        <span className="whitespace-nowrap">
-          ชั้น {floor}
-        </span>
+        <span className="whitespace-nowrap">ชั้น {floor}</span>
       ),
     },
-    { title: "ห้อง", dataIndex: "title", key: "title", width: 170, ellipsis: true },
+    {
+      title: "ห้อง",
+      dataIndex: "title",
+      key: "title",
+      width: 170,
+      ellipsis: true,
+    },
     { title: "สถานะ", key: "status", width: 170, render: renderStatus },
-    { 
-      title: "ชื่อผู้จอง", dataIndex: "bookingBy", key: "bookingBy", width: 130,
-      render: (value) => (
-        <div className="max-w-[120px]">
-          {value || "-"}
-        </div>
-      ),
+    {
+      title: "ชื่อผู้จอง",
+      dataIndex: "bookingBy",
+      key: "bookingBy",
+      width: 130,
+      render: (value) => <div className="max-w-[120px]">{value || "-"}</div>,
     },
-    { title: "ประเภทการจอง", dataIndex: "bookingType", key: "bookingType", width: 200 },
-    { title: "เหตุผล", dataIndex: "approvalReason", key: "approvalReason", width: 160, ellipsis: true, render: (reason) => reason || "-" },
+    {
+      title: "ประเภทการจอง",
+      dataIndex: "bookingType",
+      key: "bookingType",
+      width: 200,
+    },
+    {
+      title: "เหตุผล",
+      dataIndex: "approvalReason",
+      key: "approvalReason",
+      width: 160,
+      ellipsis: true,
+      render: (reason) => reason || "-",
+    },
   ];
 
   const rowSelection = {
     selectedRowKeys,
 
-    onChange: (keys) => { setSelectedRowKeys(keys) },
+    onChange: (keys) => {
+      setSelectedRowKeys(keys);
+    },
 
-    getCheckboxProps: (record) => ({ name: record.id}),
+    getCheckboxProps: (record) => ({ name: record.id }),
 
     columnWidth: 32,
   };
@@ -355,17 +719,17 @@ function ApproveBookingPage() {
             </h3>
 
             <ConfigProvider
-                theme={{
-                    components: {
-                      Button: {
-                        defaultHoverBorderColor: "#13C2C2",
-                        defaultHoverColor: "#13C2C2",
-                        defaultActiveBorderColor: "#13C2C2",
-                        defaultActiveColor: "#13C2C2",
-                      },
-                    },
-                }}
-              >
+              theme={{
+                components: {
+                  Button: {
+                    defaultHoverBorderColor: "#13C2C2",
+                    defaultHoverColor: "#13C2C2",
+                    defaultActiveBorderColor: "#13C2C2",
+                    defaultActiveColor: "#13C2C2",
+                  },
+                },
+              }}
+            >
               <Button
                 icon={<FilterIcon size={18} className="block" />}
                 onClick={() => setIsOpenFilterModal(true)}
@@ -409,6 +773,8 @@ function ApproveBookingPage() {
             <Button
               type="primary"
               icon={<DeleteOutlined />}
+              loading={actionLoading === "delete"}
+              onClick={handleDeleteSelected}
               className="!h-[40px] !px-5 !font-medium !bg-[#595959] !border-[#595959]"
             >
               ลบการจอง
@@ -438,7 +804,7 @@ function ApproveBookingPage() {
               total: pagination.total,
               showSizeChanger: false,
               onChange: (page) => {
-                setPagination((prev) => ({ ...prev, current: page}));
+                setPagination((prev) => ({ ...prev, current: page }));
                 setSelectedRowKeys([]);
               },
             }}
@@ -461,53 +827,55 @@ function ApproveBookingPage() {
       )}
 
       <DuplicatedModal
+        key={`${duplicateIndex}-${selectedBooking?.booking?.id ?? "none"}`}
         open={isOpenDuplicatedModal}
+        selectedBooking={selectedBooking}
         onCancel={() => {
           setIsOpenDuplicatedModal(false);
+
+          setDuplicateQueue([]);
+          setDuplicateIndex(0);
+
+          setApproveBookings([]);
           setSelectedBooking(null);
         }}
-        selectedBooking={selectedBooking}
-        onConfirm={() =>
-          handleUpdateStatus(
-            selectedBooking?.booking?.id,
-            BookingStatusEnum.APPROVED,
-            "duplicated",
-            selectedBooking?.conflicts?.id,
-          )
-        }
+        onConfirm={handleConfirmDuplicate}
       />
 
       <BookingModal
         open={isOpenConfirmModal}
+        bookings={approveBookings}
         onCancel={() => {
           setIsOpenConfirmModal(false);
-          setSelectedBooking(null);
+          setApproveBookings([]);
         }}
-        selectedBooking={selectedBooking}
-        onConfirm={() =>
-          handleUpdateStatus(
-            selectedBooking?.booking?.id,
-            BookingStatusEnum.APPROVED,
-          )
-        }
+        onConfirm={handleConfirmApprove}
       />
 
       <DeclinedModal
         open={isOpenDeclinedModal}
+        bookings={declineBookings}
         onCancel={() => {
           setIsOpenDeclinedModal(false);
-          setSelectedBooking(null);
+          setDeclineBookings([]);
         }}
-        selectedBooking={selectedBooking}
-        onConfirm={() =>
-          handleUpdateStatus(
-            selectedBooking?.booking?.id,
-            BookingStatusEnum.REJECTED_BY_ADMIN,
-          )
-        }
+        onConfirm={handleConfirmReject}
       />
 
-       {loading && <LoadingScreen />}
+      <NoSelectionModal
+        open={isOpenNoSelectionModal}
+        onCancel={() => setIsOpenNoSelectionModal(false)}
+      />
+
+      <DeletedModal
+        open={isOpenDeletedModal}
+        count={selectedRowKeys.length}
+        loading={actionLoading === "delete"}
+        onCancel={() => setIsOpenDeletedModal(false)}
+        onConfirm={handleConfirmDelete}
+      />
+
+      {loading && <LoadingScreen />}
     </div>
   );
 }

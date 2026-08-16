@@ -113,7 +113,7 @@ function FilterModal({
                     className="w-full"
                     popupClassName="booking-type-select-dropdown"
                     size="large"
-                    placeholder="เลือกประเภทการจอง"
+                    placeholder="ทั้งหมด"
                     value={bookingTypes}
                     onChange={(values) => {setBookingTypes([...values].sort((a, b) => a - b))}}
                     allowClear
@@ -145,7 +145,7 @@ function FilterModal({
                     className="w-full"
                     popupClassName="floor-select-dropdown"
                     size="large"
-                    placeholder="เลือกชั้น"
+                    placeholder="ทั้งหมด"
                     value={floors}
                     onChange={(values) => {setFloors([...values].sort((a, b) => a - b))}}
                     allowClear
