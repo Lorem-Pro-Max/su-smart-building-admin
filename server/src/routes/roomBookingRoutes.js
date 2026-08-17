@@ -11,6 +11,12 @@ router.get(
 );
 
 router.get(
+  "/bookings/filters",
+  protectAction,
+  bookingController.getApproveBookingFilters.bind(bookingController),
+);
+
+router.get(
   "/bookings/:id",
   protectAction,
   bookingController.getBookingById.bind(bookingController),
@@ -21,4 +27,11 @@ router.patch(
   protectAction,
   bookingController.updateStatus.bind(bookingController),
 );
+
+router.delete(
+  "/bookings",
+  protectAction,
+  bookingController.deleteBookings.bind(bookingController),
+);
+
 export default router;

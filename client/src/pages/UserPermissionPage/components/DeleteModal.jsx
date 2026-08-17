@@ -1,5 +1,5 @@
 import { Modal } from "antd";
-import Delete from "../../../assets/images/Delete";
+import Delete from "../../../assets/images/approve-booking/Delete";
 
 function DeleteConfirmModal({ open, onCancel, onConfirm }) {
   return (
