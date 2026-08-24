@@ -23,6 +23,12 @@ export const EXECUTION_REGISTRY = {
 export const ROOM_CONTROLLABLE_TYPES = ["doors", "lights", "exhaust-fans", "ac"];
 
 /**
+ * ประเภทอุปกรณ์ที่ระบบเปิดให้อัตโนมัติตามเวลาที่จอง
+ * ไม่รวมประตู เพราะเจ้าหน้าที่เป็นคนกดเปิด-ปิดประตูเองทั้งหมด
+ */
+export const BOOKING_AUTO_OPEN_TYPES = ["lights", "exhaust-fans", "ac"];
+
+/**
  * กรองอุปกรณ์ให้เหลือเฉพาะที่อยู่ในห้องที่ user มีสิทธิ์
  * เทียบจาก deviceCache เพราะ payload จาก client ส่งมาแค่ hardware id
  */

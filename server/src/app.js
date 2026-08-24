@@ -37,6 +37,11 @@ app.use("/api/lights", lightRoutes);
 app.use("/api/exhaustfans", exhaustFanRoutes);
 app.use("/api/air-quality", airQualityRoutes);
 app.use("/api/schedule", scheduleRoute);
+/**
+ * เส้นเดิมสมัยที่ฝั่ง booking (user) ยิงเข้ามาตั้งคิวเปิดห้องเองตอนกดเช็คอิน
+ * ตอนนี้ไม่มีผู้เรียกแล้ว เพราะย้ายไปตั้งคิวใน process ตอน admin กด approve
+ * (bookingScheduleService.createBookingOpenSchedules) — คงไว้เป็น API สำรอง ยังไม่ลบ
+ */
 app.use("/api/iot-queue", iotQueueRoute);
 app.use("/api", roomBookingRoutes);
 app.use("/api", userRoute);

@@ -9,6 +9,10 @@ import {
   updateIotScheduleStatus,
   logIotAction,
   fetchActiveBookings,
+  fetchBookingById,
+  fetchIotScheduleStatus,
+  updateBookingStatusId,
+  BOOKING_LIVE_STATUS_IDS,
 } from "./dbService.js";
 
 export const iotQueue = new Queue("iot-scheduling", {
@@ -16,6 +20,10 @@ export const iotQueue = new Queue("iot-scheduling", {
 });
 
 const ON_GRACE_PERIOD = 30 * 60 * 1000;
+
+const BOOKING_OPENED_STATUS_ID = 5;
+
+const isBookingJob = (bookingId) => Boolean(bookingId) && bookingId !== "manual";
 
 const ACTION_MAP = {
   open: "on",
@@ -38,13 +46,48 @@ const iotWorker = new Worker(
       deviceTableId,
       roomTableId,
       actionBy,
+      bookingId,
     } = job.data;
 
     try {
       const now = Date.now();
       const delayAmount = now - scheduledTime;
 
-      if (action === "on" && delayAmount > ON_GRACE_PERIOD) {
+      // ยกเลิกจองระหว่างที่ job รออยู่ในคิว: ฝั่ง booking แค่ mark record ใน DB
+      const recordStatus = await fetchIotScheduleStatus(scheduleId);
+      if (recordStatus && recordStatus !== "pending") {
+        logSystemEvent(
+          "schedule",
+          "info",
+          "SCHEDULE_NOT_PENDING",
+          `Skipped: schedule is already ${recordStatus}`,
+          { scheduleId, roomTitle, recordStatus },
+        );
+        return { skipped: true, reason: "NOT_PENDING" };
+      }
+
+      const booking = isBookingJob(bookingId)
+        ? await fetchBookingById(bookingId)
+        : null;
+
+      if (isBookingJob(bookingId)) {
+        const isLive =
+          booking &&
+          BOOKING_LIVE_STATUS_IDS.includes(Number(booking.status_id)) &&
+          new Date(booking.end_dateTime) > new Date();
+
+        if (!isLive) {
+          logSystemEvent(
+            "schedule",
+            "info",
+            "BOOKING_JOB_SKIPPED",
+            `Skipped: booking ${bookingId} is canceled or already ended`,
+            { scheduleId, bookingId, statusId: booking?.status_id ?? null },
+          );
+          await updateIotScheduleStatus(scheduleId, "canceled");
+          return { skipped: true, reason: "BOOKING_NOT_LIVE" };
+        }
+      } else if (action === "on" && delayAmount > ON_GRACE_PERIOD) {
         logSystemEvent(
           "schedule",
           "warn",
@@ -106,6 +149,12 @@ const iotWorker = new Worker(
 
       await updateIotScheduleStatus(scheduleId, "done");
       logIotAction(deviceTableId, action, actionBy ? String(actionBy) : null);
+
+      // ห้องเปิดแล้ว: ล็อกห้องไว้กัน auto-shutdown จนหมดเวลาจอง แล้วอัปเดตสถานะให้ผู้จองเห็น
+      if (booking && action === "on") {
+        await setActiveRoom(booking.room_id, booking.end_dateTime);
+        await updateBookingStatusId(booking.id, BOOKING_OPENED_STATUS_ID);
+      }
 
       logSystemEvent(
         "schedule",
@@ -184,7 +233,8 @@ export const addIotJob = async (
     const now = Date.now();
     let delay = Math.max(0, scheduledTime - now);
 
-    if (normalizedAction == "on") {
+    // job ของ booking ต้องเปิดตรงเวลาที่จองเป๊ะ ๆ ส่วน schedule ที่ตั้งเองคงบัฟเฟอร์เดิมไว้
+    if (normalizedAction === "on" && !isBookingJob(safeBookingId)) {
       delay += 10000;
     }
 
@@ -203,6 +253,7 @@ export const addIotJob = async (
         deviceTableId: meta.id,
         roomTableId: meta.room_id,
         actionBy,
+        bookingId: safeBookingId,
       },
       {
         delay,
@@ -363,12 +414,20 @@ export const setActiveRoom = async (roomId, endDateTime) => {
     const secondsUntilEnd = Math.floor((endTime - now) / 1000);
 
     if (secondsUntilEnd > 0) {
-      await redisConnection.set(
-        `booking:active:room:${roomId}`,
-        "true",
-        "EX",
-        secondsUntilEnd,
-      );
+      const roomKey = `booking:active:room:${roomId}`;
+
+      /* ห้องเดียวกันอาจมีหลาย booking ซ้อน/ต่อกัน ใบที่จบเร็วกว่าต้องไม่เขียนทับ
+         ให้ lock สั้นลงจนใบที่ยาวกว่าหมดการป้องกันกลางคัน */
+      const currentTtl = await redisConnection.ttl(roomKey);
+
+      if (currentTtl >= secondsUntilEnd) {
+        return {
+          success: true,
+          message: `Active room ${roomId} already locked for ${currentTtl}s`,
+        };
+      }
+
+      await redisConnection.set(roomKey, "true", "EX", secondsUntilEnd);
       return {
         success: true,
         message: `Set Active room ${roomId} for ${secondsUntilEnd}s`,

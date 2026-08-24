@@ -9,6 +9,7 @@ import {
   initColdStartSync,
   initActiveRoomSync,
 } from "./src/services/deviceQueueService.js";
+import { startBookingCompletionSweep } from "./src/services/bookingScheduleService.js";
 
 const PORT = process.env.SERVER_PORT;
 const httpServer = createServer(app);
@@ -20,5 +21,6 @@ httpServer.listen(PORT, async () => {
   await initDeviceMapping();
   await initColdStartSync();
   await initActiveRoomSync();
+  startBookingCompletionSweep();
   console.log(`[Server] Backend running on port ${PORT}`);
 });

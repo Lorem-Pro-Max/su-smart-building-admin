@@ -1,4 +1,9 @@
 import pool from "../config/db.js";
+import { logSystemEvent } from "./dbService.js";
+import {
+  cancelBookingSchedules,
+  createBookingOpenSchedules,
+} from "./bookingScheduleService.js";
 
 const STATUS_MAP = {
   1: "pending",
@@ -343,6 +348,13 @@ class BookingService {
 
       await client.query("COMMIT");
 
+      await this.syncRoomOpenSchedules(
+        Number(id),
+        statusId,
+        normalizedCancelIds,
+        actionBy,
+      );
+
       return this.mapRow(rows[0]);
     } catch (error) {
       await client.query("ROLLBACK");
@@ -350,6 +362,55 @@ class BookingService {
       throw error;
     } finally {
       client.release();
+    }
+  }
+
+  /**
+   * booking ที่อนุมัติแล้วจะเปิดห้องเองตามเวลาที่จอง
+   * ถ้าโดนปฏิเสธ/ยกเลิกก็ต้องถอน job ที่ตั้งไว้ออกจากคิว
+   * ไม่ให้ throw ออกไป เพราะ booking ถูก commit ไปแล้วและกู้เองได้ตอน cold start
+   */
+  async syncRoomOpenSchedules(bookingId, statusId, canceledIds, actionBy) {
+    const canceledBookingIds = [...canceledIds];
+
+    if (statusId === STATUS_ID_MAP.approved) {
+      try {
+        await createBookingOpenSchedules(bookingId, actionBy);
+      } catch (error) {
+        logSystemEvent(
+          "schedule",
+          "error",
+          "BOOKING_SCHEDULE_CREATE_FAIL",
+          `Failed to create open schedule for booking ${bookingId}: ${error.message}`,
+          { bookingId },
+        );
+        console.error(
+          `[Booking Schedule] Failed to create open schedule for ${bookingId}: ${error.message}`,
+        );
+      }
+    } else if (
+      statusId === STATUS_ID_MAP.rejectedByAdmin ||
+      statusId === STATUS_ID_MAP.canceledByAdmin ||
+      statusId === STATUS_ID_MAP.canceledByUser
+    ) {
+      canceledBookingIds.push(bookingId);
+    }
+
+    for (const canceledId of canceledBookingIds) {
+      try {
+        await cancelBookingSchedules(canceledId);
+      } catch (error) {
+        logSystemEvent(
+          "schedule",
+          "error",
+          "BOOKING_SCHEDULE_CANCEL_FAIL",
+          `Failed to cancel schedule for booking ${canceledId}: ${error.message}`,
+          { bookingId: canceledId },
+        );
+        console.error(
+          `[Booking Schedule] Failed to cancel schedule for ${canceledId}: ${error.message}`,
+        );
+      }
     }
   }
 
@@ -362,6 +423,22 @@ class BookingService {
 
     if (bookingIds.length === 0) {
       throw new Error("Invalid booking ids");
+    }
+
+    /* iot_schedule ผูก FK แบบ CASCADE พอลบ booking แถว schedule จะหายไปด้วย
+       ทำให้หา device/schedule id มาถอน job ใน Redis ทีหลังไม่ได้ จึงต้องถอนก่อนลบ */
+    for (const bookingId of bookingIds) {
+      try {
+        await cancelBookingSchedules(bookingId);
+      } catch (error) {
+        logSystemEvent(
+          "schedule",
+          "error",
+          "BOOKING_SCHEDULE_CANCEL_FAIL",
+          `Failed to cancel schedule before deleting booking ${bookingId}: ${error.message}`,
+          { bookingId },
+        );
+      }
     }
 
     const client = await pool.connect();
