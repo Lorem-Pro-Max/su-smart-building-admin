@@ -3,6 +3,7 @@
 @import "./styles/variables/contentLayout";
 @import "./styles/variables/graphLayout";
 @import "./styles/variables/airQualityPage.css";
+@import "./styles/variables/createBooking.css";
 
 @font-face {
   font-family: "Inter";

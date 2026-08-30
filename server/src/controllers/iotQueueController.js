@@ -1,3 +1,9 @@
+/**
+ * [LEGACY - ไม่มีผู้เรียกแล้ว]
+ * ใช้ตอนที่ระบบจองฝั่ง user เป็นคนสั่งเปิดห้องเอง (กดเช็คอิน -> ยิง /add-queue + /set-active-room)
+ * ตอนนี้ห้องเปิดอัตโนมัติตามเวลาจอง คิวถูกตั้งจากฝั่ง admin เองใน bookingScheduleService.js
+ * เก็บไฟล์ไว้เผื่อมี service ภายนอกต้องสั่งคิวโดยตรง ถ้าแน่ใจว่าไม่ใช้แล้วค่อยลบทั้งไฟล์
+ */
 import { addIotJob, setActiveRoom } from "../services/deviceQueueService.js";
 import { handleError } from "../utils/errorFormatter.js";
 

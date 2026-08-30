@@ -10,7 +10,6 @@ function splitLeftRight(rooms) {
   };
 }
 
-
 export const getRoomsByFloorForDirectory = async (buildingId = null) => {
   let query = `
     SELECT
@@ -119,4 +118,69 @@ export const updateRoom = async (id, fields) => {
   const { rows } = await pool.query(query, params);
   if (!rows.length) return null;
   return rows[0];
+};
+
+export const getBookableRooms = async () => {
+  const query = `
+    SELECT
+      r.id,
+      r.title,
+      r.floor,
+      r.building_id,
+      b.name AS building_name,
+      r.study_seats,
+      r.exam_seats
+    FROM room r
+    LEFT JOIN building b ON b.id = r.building_id
+    WHERE r.is_bookable = true
+    ORDER BY r.title ASC
+  `;
+  const { rows } = await pool.query(query);
+  return rows;
+};
+
+const TOTAL_SLOTS_PER_ROOM = 26;
+const SECONDS_PER_SLOT = 1800; // 30 นาทีต่อ 1 slot
+
+/* % ห้องว่างรายวัน ใช้ระบายสีปฏิทินในหน้าสร้างการจอง */
+export const getBuildingAvailabilityByDateRange = async (
+  startDate,
+  endDate,
+) => {
+  const query = `
+    WITH date_series AS (
+      SELECT generate_series($1::date, $2::date, interval '1 day')::date AS booking_date
+    ),
+    room_count AS (
+      SELECT count(*)::int AS total_rooms
+      FROM room
+      WHERE is_bookable = true
+    ),
+    used_slot_per_day AS (
+      SELECT
+        booking_date,
+        SUM(
+          EXTRACT(EPOCH FROM ("end_dateTime" - "start_dateTime")) / ${SECONDS_PER_SLOT}
+        )::int AS used_slots
+      FROM room_booking
+      WHERE booking_date BETWEEN $1::date AND $2::date
+        AND status_id NOT IN (3, 4)
+      GROUP BY booking_date
+    )
+    SELECT
+      ds.booking_date,
+      round(
+        (
+          (rc.total_rooms * ${TOTAL_SLOTS_PER_ROOM} - coalesce(usd.used_slots, 0))::numeric
+          / nullif((rc.total_rooms * ${TOTAL_SLOTS_PER_ROOM}), 0)
+        ) * 100,
+        2
+      ) AS available_percent
+    FROM date_series ds
+    CROSS JOIN room_count rc
+    LEFT JOIN used_slot_per_day usd ON usd.booking_date = ds.booking_date
+    ORDER BY ds.booking_date
+  `;
+  const { rows } = await pool.query(query, [startDate, endDate]);
+  return rows;
 };

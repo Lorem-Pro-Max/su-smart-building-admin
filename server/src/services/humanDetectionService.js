@@ -1,7 +1,12 @@
 import redisConnection from "../config/redis.js";
 import { syncIotDevice } from "./socketService.js";
 import { EXECUTION_REGISTRY } from "../utils/controllerWrapper.js";
-import { logSystemEvent, logIotAction, logHpsStatus } from "./dbService.js";
+import {
+  logSystemEvent,
+  logIotAction,
+  logHpsStatus,
+  hasBookingInProgress,
+} from "./dbService.js";
 import { getIO } from "../config/socket.js";
 import {
   getDeviceByHardwareId,
@@ -159,6 +164,13 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
           continue;
         }
 
+        // เช็คซ้ำกับ DB กันปิดห้องระหว่างช่วงเวลาจอง เผื่อ key ใน redis หายไป
+        if (await hasBookingInProgress(roomId)) {
+          await redisConnection.set(START_TIME_KEY, now);
+          await redisConnection.del(LEVEL_KEY);
+          continue;
+        }
+
         // logSystemEvent(
         //   "human-detection",
         //   "info",
@@ -169,6 +181,12 @@ export const processHumanDetection = async (sensorId, motionStatus) => {
         await triggerShutdownAction(roomId, idleMinutes.toFixed(2));
         await redisConnection.set(LEVEL_KEY, ROOM_STATE.CLOSED);
       } else if (idleMinutes >= NOTI_MINUTE_TRIGGER && !currentLevel) {
+        // อยู่ในช่วงเวลาจอง ห้องไม่ถูกปิด จึงไม่ต้องเตือนว่ากำลังจะปิด
+        if (await hasBookingInProgress(roomId)) {
+          await redisConnection.set(START_TIME_KEY, now);
+          continue;
+        }
+
         const currentTime = getFormattedDateTime();
         // logSystemEvent(
         //   "human-detection",
@@ -378,6 +396,10 @@ export const isRoomStillInactive = async (roomId, thresholdMinutes = 30) => {
   const isBooked = await redisConnection.get(BOOKING_KEY);
 
   if (isBooked) {
+    return false;
+  }
+
+  if (await hasBookingInProgress(roomId)) {
     return false;
   }
 

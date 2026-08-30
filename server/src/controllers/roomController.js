@@ -90,3 +90,44 @@ export const patchRoomTitle = async (req, res) => {
     });
   }
 };
+
+export const getBookableRooms = async (req, res) => {
+  try {
+    const data = await roomService.getBookableRooms();
+    return res.json({ success: true, data });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+export const getBuildingAvailability = async (req, res) => {
+  try {
+    const { start_date: startDate, end_date: endDate } = req.query;
+
+    if (!DATE_PATTERN.test(startDate ?? "") || !DATE_PATTERN.test(endDate ?? "")) {
+      return res.status(400).json({
+        success: false,
+        message: "ต้องระบุ start_date และ end_date ในรูปแบบ YYYY-MM-DD",
+      });
+    }
+
+    const rows = await roomService.getBuildingAvailabilityByDateRange(
+      startDate,
+      endDate,
+    );
+
+    return res.json({
+      success: true,
+      start_date: startDate,
+      end_date: endDate,
+      data: rows.map((row) => ({
+        date: row.booking_date,
+        available_percent: Number(row.available_percent),
+      })),
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
