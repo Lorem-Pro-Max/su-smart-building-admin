@@ -2,7 +2,7 @@ import Building from "@assets/images/create-booking/building.svg";
 import RoomSeatInfo from "./RoomSelection/RoomSeatInfo";
 import dayjs from "dayjs"
 import { createBooking } from "@services/booking";
-import { notification } from 'antd';
+import { notifyBookingError, notifyBookingSuccess } from "../utils/bookingNotify";
 
 export function SubmitModalBody({ formData, setIsSubmitModalOpen, setLoading, onSuccess }) {
     const handleSubmit = async (form) => {
@@ -48,35 +48,16 @@ export function SubmitModalBody({ formData, setIsSubmitModalOpen, setLoading, on
             };
 
             const result = await createBooking(payload);
-            notification.success({
+            notifyBookingSuccess({
                 message: 'จองห้องสำเร็จ',
                 description: 'ระบบอนุมัติการจองให้อัตโนมัติ และตั้งเวลาเปิดห้องตามช่วงเวลาที่จองเรียบร้อยแล้ว',
-                placement: 'topRight',
-                duration: 3,
-                style: {
-                    backgroundColor: '#F6FFED', // พื้นหลังเขียวอ่อน
-                    border: '1px solid #B7EB8F', // ขอบเขียว
-                    borderRadius: '8px',
-                    fontFamily: 'Kanit, sans-serif',
-                },
             });
             setIsSubmitModalOpen(false);
             setLoading(false)
             onSuccess?.();
         } catch (err) {
             setLoading(false)
-            notification.error({
-                message: 'ส่งคำขอการจองห้องไม่สำเร็จ',
-                description: err.response?.data?.error ?? err.response?.data?.message ?? 'กรุณาลองใหม่อีกครั้ง หรือติดต่อผู้ดูแลระบบ',
-                placement: 'topRight',
-                duration: 4,
-                style: {
-                    backgroundColor: '#FFF1F0', // พื้นหลังแดง/ชมพูอ่อน
-                    border: '1px solid #FFCCC7', // ขอบแดงอ่อน
-                    borderRadius: '8px',
-                    fontFamily: 'Kanit, sans-serif',
-                },
-            });
+            notifyBookingError(err);
             console.error(err.message);
         }
     };

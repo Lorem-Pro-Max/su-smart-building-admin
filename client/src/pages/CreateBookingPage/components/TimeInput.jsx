@@ -8,6 +8,7 @@ import {
 import {
     BOOKING_TIME_FORMAT,
     buildDisabledTime,
+    formatBookingRanges,
     formatTime,
 } from "../utils/bookingTime";
 
@@ -132,17 +133,6 @@ function BookedRangesHint({ approvedForRoom, hasRoom }) {
             ช่วงที่ไม่ว่างของห้องนี้: {formatBookingRanges(approvedForRoom)}
         </p>
     );
-}
-
-function formatBookingRanges(bookingList) {
-    return bookingList
-        .slice()
-        .sort((first, second) => dayjs(first.start_dateTime) - dayjs(second.start_dateTime))
-        .map(
-            (booking) =>
-                `${dayjs(booking.start_dateTime).format(BOOKING_TIME_FORMAT)} - ${dayjs(booking.end_dateTime).format(BOOKING_TIME_FORMAT)}`
-        )
-        .join(", ");
 }
 
 export default TimeInput;

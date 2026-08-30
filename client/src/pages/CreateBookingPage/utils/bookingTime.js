@@ -15,6 +15,18 @@ export function toTimeOfDay(timeString, baseDate = dayjs()) {
   return dayjs(baseDate).hour(hour).minute(minute).second(0).millisecond(0);
 }
 
+/* "08:00 - 10:00, 13:00 - 15:00" — ใช้ทั้งใน TimeInput และ preview ของการจองต่อเนื่อง */
+export function formatBookingRanges(bookingList) {
+  return bookingList
+    .slice()
+    .sort((first, second) => dayjs(first.start_dateTime) - dayjs(second.start_dateTime))
+    .map(
+      (booking) =>
+        `${dayjs(booking.start_dateTime).format(BOOKING_TIME_FORMAT)} - ${dayjs(booking.end_dateTime).format(BOOKING_TIME_FORMAT)}`
+    )
+    .join(", ");
+}
+
 export function formatTime(value) {
   return value ? dayjs(value).format(BOOKING_TIME_FORMAT) : null;
 }

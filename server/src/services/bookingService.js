@@ -69,7 +69,8 @@ class BookingService {
     return this.mapRow(rows[0]);
   }
 
-  async createApprovedBooking(data) {
+  /* INSERT อย่างเดียว ไม่แตะ IoT — ให้ bulk เรียกซ้ำได้โดยไม่ต้องรอตั้ง schedule ทีละใบ */
+  async insertApprovedBookingRow(data) {
     const query = `
       INSERT INTO room_booking (
         meeting_name,
@@ -112,18 +113,111 @@ class BookingService {
       data.actionBy,
     ]);
 
-    if (!rows.length) {
+    return rows[0] ?? null;
+  }
+
+  /**
+   * สร้าง booking จากฝั่ง admin: อนุมัติทันที (status 2) ไม่ต้องผ่านหน้าอนุมัติ
+   * INSERT ... SELECT ... WHERE NOT EXISTS ทำให้เช็คเวลาชนกับการเขียนเป็น statement เดียว
+   * ยิงพร้อมกันสองใบในช่วงเวลาเดียวกันจึงเข้าได้ใบเดียว
+   */
+  async createApprovedBooking(data) {
+    const row = await this.insertApprovedBookingRow(data);
+
+    if (!row) {
       return null;
     }
 
+    /* ใช้ตัวเดียวกับตอนกด approve: ห่อ try/catch + log ไว้แล้ว
+       IoT ล่มจึงไม่ทำให้ booking ที่ commit ไปแล้วพัง */
     await this.syncRoomOpenSchedules(
-      Number(rows[0].id),
+      Number(row.id),
       STATUS_ID_MAP.approved,
       [],
       data.actionBy,
     );
 
-    return this.mapRow(rows[0]);
+    return this.mapRow(row);
+  }
+
+  /**
+   * สร้างหลายใบจากรูปแบบจองต่อเนื่อง — แต่ละใบเป็นอิสระ ไม่ห่อ transaction
+   * ใบที่ชนถูกข้าม ใบที่เหลือยังเข้า เพราะ preview ให้ admin อนุมัติรายการไว้แล้ว
+   * (ห่อ transaction จะทำให้ใบที่ 7 ชนแล้วล้างใบดี 6 ใบทิ้ง ซึ่งขัดกับตัวฟีเจอร์)
+   */
+  async createApprovedBookingsBulk({ occurrences, ...shared }) {
+    const created = [];
+    const skipped = [];
+
+    for (const occurrence of occurrences) {
+      let row = null;
+
+      try {
+        row = await this.insertApprovedBookingRow({ ...shared, ...occurrence });
+      } catch (error) {
+        skipped.push({ ...occurrence, reason: "ERROR", message: error.message });
+        continue;
+      }
+
+      if (!row) {
+        skipped.push({ ...occurrence, reason: "CONFLICT" });
+      } else {
+        created.push(row);
+      }
+    }
+
+    /* ตั้งคิวเปิดห้องหลัง insert ครบ และยิงขนานกัน
+       ถ้าทำในลูป แต่ละใบต้องรอ IoT fan-out เสร็จก่อน INSERT ใบถัดไปจะเริ่ม ซึ่งช้าเกินไป
+       syncRoomOpenSchedules ห่อ try/catch + logSystemEvent ไว้แล้ว จึง throw ออกมาไม่ได้ */
+    await Promise.allSettled(
+      created.map((row) =>
+        this.syncRoomOpenSchedules(
+          Number(row.id),
+          STATUS_ID_MAP.approved,
+          [],
+          shared.actionBy,
+        ),
+      ),
+    );
+
+    return { created: created.map((row) => this.mapRow(row)), skipped };
+  }
+
+  /* booking ในช่วงวันที่ สำหรับเช็คเวลาชนของการจองต่อเนื่อง
+     ใช้ SELECT ชุดเดียวกับ getBookingsOnDate เพื่อให้ row shape เหมือนกัน
+     client จะได้ป้อนเข้า getConflictingApprovedBookings ได้โดยไม่ต้องมี adapter */
+  async getBookingsInRange(from, to, roomId = null) {
+    const values = [from, to];
+    let roomFilter = "";
+
+    if (roomId != null) {
+      values.push(roomId);
+      roomFilter = `AND rb.room_id = $${values.length}`;
+    }
+
+    const query = `
+      SELECT
+        rb.*,
+        u.firstname,
+        u.lastname,
+        r.title AS room_title,
+        r.floor AS floor,
+        b.name  AS building_name,
+        bs.status AS booking_status
+      FROM room_booking rb
+      JOIN "user" u ON rb.requester_id = u.id
+      JOIN room  r  ON rb.room_id      = r.id
+      LEFT JOIN building       b  ON r.building_id = b.id
+      LEFT JOIN booking_status bs ON rb.status_id  = bs.id
+      WHERE rb.booking_date BETWEEN $1 AND $2
+        AND rb.status_id NOT IN (3, 4)
+        ${roomFilter}
+      ORDER BY rb."start_dateTime" ASC
+    `;
+
+    const { rows } = await pool.query(query, values);
+
+    return rows;
   }
 
   async getBookingsOnDate(date) {
