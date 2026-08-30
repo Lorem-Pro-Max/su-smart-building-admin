@@ -19,6 +19,7 @@ import {
 } from "./pages";
 import ApproveBookingPage from "./pages/ApproveBookingPage/ApproveBooking";
 import UserPermissionPage from "./pages/UserPermissionPage/UserPermissionPage";
+import CreateBookingPage from "./pages/CreateBookingPage/CreateBooking";
 import ControlSchedulePage from "./pages/ControlSchedule/ControlSchedulePage";
 import { SmokeAlertModal, useIdleWarning } from "./components/utils";
 import AdminProtectedRoute from "./components/common/AdminProtectedRoute"
@@ -87,6 +88,7 @@ function App() {
               <Route path="/air-quality" element={<AirQualityPage />} />
               <Route path="/electricity" element={<ElectricityPage />} />
               <Route path="/approve-booking" element={<ApproveBookingPage />} />
+              <Route path="/create-booking" element={<CreateBookingPage />} />
               <Route path="/user-permissions" element={<UserPermissionPage />} />
               <Route
                 path="*"

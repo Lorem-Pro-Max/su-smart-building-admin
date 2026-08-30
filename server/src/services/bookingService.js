@@ -69,6 +69,87 @@ class BookingService {
     return this.mapRow(rows[0]);
   }
 
+  async createApprovedBooking(data) {
+    const query = `
+      INSERT INTO room_booking (
+        meeting_name,
+        room_id,
+        requester_id,
+        phone,
+        booking_date,
+        "start_dateTime",
+        "end_dateTime",
+        status_id,
+        booking_type_id,
+        purpose,
+        created_at,
+        action_by,
+        action_date
+      )
+      SELECT
+        $1, $2, $3, $4, $5, $6, $7, 2, $8, $9, NOW(), $10, NOW()
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM room_booking
+        WHERE room_id = $2
+          AND status_id IN (2, 5)
+          AND "start_dateTime" < $7
+          AND "end_dateTime"   > $6
+      )
+      RETURNING *
+    `;
+
+    const { rows } = await pool.query(query, [
+      data.meetingName,
+      data.roomId,
+      data.requesterId,
+      data.phone ?? null,
+      data.bookingDate,
+      data.startDateTime,
+      data.endDateTime,
+      data.bookingTypeId,
+      data.purpose ?? null,
+      data.actionBy,
+    ]);
+
+    if (!rows.length) {
+      return null;
+    }
+
+    await this.syncRoomOpenSchedules(
+      Number(rows[0].id),
+      STATUS_ID_MAP.approved,
+      [],
+      data.actionBy,
+    );
+
+    return this.mapRow(rows[0]);
+  }
+
+  async getBookingsOnDate(date) {
+    const query = `
+      SELECT
+        rb.*,
+        u.firstname,
+        u.lastname,
+        r.title AS room_title,
+        r.floor AS floor,
+        b.name  AS building_name,
+        bs.status AS booking_status
+      FROM room_booking rb
+      JOIN "user" u ON rb.requester_id = u.id
+      JOIN room  r  ON rb.room_id      = r.id
+      LEFT JOIN building       b  ON r.building_id = b.id
+      LEFT JOIN booking_status bs ON rb.status_id  = bs.id
+      WHERE rb.booking_date = $1
+      ORDER BY rb."start_dateTime" ASC
+    `;
+
+    const { rows } = await pool.query(query, [date]);
+
+    return rows;
+  }
+
   async getBooking(id) {
     const query = `
       SELECT

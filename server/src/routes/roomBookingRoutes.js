@@ -16,6 +16,18 @@ router.get(
   bookingController.getApproveBookingFilters.bind(bookingController),
 );
 
+router.post(
+  "/bookings",
+  protectAction,
+  bookingController.createBooking.bind(bookingController),
+);
+
+router.get(
+  "/bookings/date/:date",
+  protectAction,
+  bookingController.getBookingsOnDate.bind(bookingController),
+);
+
 router.get(
   "/bookings/:id",
   protectAction,

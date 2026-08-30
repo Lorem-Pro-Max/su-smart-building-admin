@@ -32,6 +32,10 @@ function SideBarMenu({ collapsed }) {
           key: "/approve-booking",
           label: <span className={SideBarChildrenStyle}>อนุมัติการจอง</span>,
         },
+        {
+          key: "/create-booking",
+          label: <span className={SideBarChildrenStyle}>สร้างการจอง</span>,
+        },
       ],
     },
     {

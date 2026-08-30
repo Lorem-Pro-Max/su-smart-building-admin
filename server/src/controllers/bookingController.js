@@ -156,3 +156,109 @@ export const deleteBookings = async (req, res) => {
     });
   }
 };
+
+const MAX_PURPOSE_LENGTH = 500;
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+/* booking ทั้งวัน สำหรับหน้าสร้างการจอง */
+export const getBookingsOnDate = async (req, res) => {
+  try {
+    const { date } = req.params;
+
+    if (!DATE_PATTERN.test(date ?? "")) {
+      return res.status(400).json({
+        error: "date ต้องอยู่ในรูปแบบ YYYY-MM-DD",
+      });
+    }
+
+    const data = await bookingService.getBookingsOnDate(date);
+
+    return res.json({ date, count: data.length, data });
+  } catch (error) {
+    console.error("[Booking] Get bookings on date error:", error);
+
+    return res.status(500).json({
+      error: error.message || "Failed to fetch bookings",
+    });
+  }
+};
+
+export const createBooking = async (req, res) => {
+  try {
+    const {
+      meeting_name,
+      room_id,
+      phone,
+      booking_date,
+      start_dateTime,
+      end_dateTime,
+      booking_type_id,
+      purpose,
+    } = req.body;
+
+    const meetingName = meeting_name?.trim();
+    if (!meetingName) {
+      return res.status(400).json({ error: "กรุณาระบุหัวข้อการจอง" });
+    }
+
+    const roomId = Number(room_id);
+    if (!Number.isInteger(roomId) || roomId <= 0) {
+      return res.status(400).json({ error: "room_id ไม่ถูกต้อง" });
+    }
+
+    const bookingTypeId = Number(booking_type_id);
+    if (!Number.isInteger(bookingTypeId) || bookingTypeId <= 0) {
+      return res.status(400).json({ error: "booking_type_id ไม่ถูกต้อง" });
+    }
+
+    const startAt = new Date(start_dateTime);
+    const endAt = new Date(end_dateTime);
+    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
+      return res.status(400).json({
+        error: "start_dateTime และ end_dateTime ต้องเป็นวันเวลาที่ถูกต้อง",
+      });
+    }
+
+    if (startAt >= endAt) {
+      return res.status(400).json({ error: "เวลาสิ้นสุดต้องมากกว่าเวลาเริ่ม" });
+    }
+
+    const trimmedPurpose = purpose?.trim() || null;
+    if (trimmedPurpose && trimmedPurpose.length > MAX_PURPOSE_LENGTH) {
+      return res.status(400).json({
+        error: `เหตุผลการจองต้องไม่เกิน ${MAX_PURPOSE_LENGTH} ตัวอักษร`,
+      });
+    }
+
+    const bookingDate = DATE_PATTERN.test(booking_date ?? "")
+      ? booking_date
+      : startAt.toISOString().slice(0, 10);
+
+    const booking = await bookingService.createApprovedBooking({
+      meetingName,
+      roomId,
+      requesterId: req.user.id,
+      phone: phone || null,
+      bookingDate,
+      startDateTime: start_dateTime,
+      endDateTime: end_dateTime,
+      bookingTypeId,
+      purpose: trimmedPurpose,
+      actionBy: req.user.id,
+    });
+
+    if (!booking) {
+      return res.status(409).json({
+        error: "ช่วงเวลาที่เลือกถูกจองแล้ว กรุณาเลือกเวลาอื่นหรือเปลี่ยนห้อง",
+      });
+    }
+
+    return res.status(201).json({ success: true, data: booking });
+  } catch (error) {
+    console.error("[Booking] Create booking error:", error);
+
+    return res.status(500).json({
+      error: error.message || "Failed to create booking",
+    });
+  }
+};

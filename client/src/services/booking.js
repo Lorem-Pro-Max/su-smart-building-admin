@@ -67,3 +67,24 @@ export const deleteBookings = async (ids) => {
 
   return response.data;
 };
+
+/* booking ทั้งวัน สำหรับปฏิทิน/รายการ/เช็คเวลาชนในหน้าสร้างการจอง */
+export const getBookingsOnDate = async (date) => {
+  const res = await apiClient.get(`/bookings/date/${date}`);
+
+  return res.data.data;
+};
+
+/* สร้าง booking จากฝั่ง admin — server อนุมัติให้ทันที */
+export const createBooking = async (payload) => {
+  const res = await apiClient.post("/bookings", payload);
+
+  return res.data;
+};
+
+/* ประเภทการจอง reuse จาก endpoint filters ที่หน้าอนุมัติใช้อยู่แล้ว */
+export const getBookingTypes = async () => {
+  const res = await apiClient.get("/bookings/filters");
+
+  return res.data?.bookingTypes ?? [];
+};

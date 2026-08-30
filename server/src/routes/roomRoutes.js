@@ -12,6 +12,10 @@ router.get(
 
 router.get("/all", protectAction, roomController.getAllRoomsForPicker);
 
+router.get("/bookable", protectAction, roomController.getBookableRooms);
+
+router.get("/availability", protectAction, roomController.getBuildingAvailability);
+
 router.patch(
   "/:id",
   protectAction,
