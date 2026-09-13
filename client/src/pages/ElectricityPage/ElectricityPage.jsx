@@ -1,6 +1,8 @@
 import { ElectricGraphPageContainer } from "@components/layout";
 import { ElectricityTitleIcon, TotalUsageIconOrange } from "@assets/icons";
 import { useElectricityGraphServices } from "../../hooks/graph/useElectricGraphServices";
+import DownloadReportButton from "@components/common/DownloadReport/DownloadReportButton";
+import { REPORT_CONFIGS } from "@config/reports";
 
 const displayConfig = {
   multiTabs: false,
@@ -23,6 +25,12 @@ function ElectricityPage() {
       displayConfig={displayConfig}
       graphService={graphService}
       totalUsageIcon={<TotalUsageIconOrange />}
+      headerActions={
+        <DownloadReportButton
+          report={REPORT_CONFIGS.ELECTRICITY}
+          icon={<ElectricityTitleIcon />}
+        />
+      }
     />
   );
 }

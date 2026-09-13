@@ -9,7 +9,6 @@ import NoSelectionModal from "./components/NoSelectionModal";
 import {
   CheckOutlined,
   CloseOutlined,
-  DownloadOutlined,
   DeleteOutlined,
   CheckCircleFilled,
 } from "@ant-design/icons";
@@ -25,6 +24,8 @@ import { LoadingScreen } from "../../components/utils/LoadingScreen";
 import ApproveIconTitle from "../../assets/icons/schedule/TitleIcon";
 import FilterIcon from "../../assets/icons/approve-booking/FilterIcon";
 import "../../styles/variables/approveBooking.css";
+import DownloadReportButton from "@components/common/DownloadReport/DownloadReportButton";
+import { REPORT_CONFIGS } from "@config/reports";
 
 export const BookingStatusEnum = Object.freeze({
   PENDING: "pending",
@@ -647,8 +648,6 @@ function ApproveBookingPage() {
 
     if (!config) return "-";
 
-    const actionDate = record.actionDate;
-
     return (
       <div className="flex items-center gap-2 w-full">
         <Tag
@@ -662,10 +661,6 @@ function ApproveBookingPage() {
         {record.status !== BookingStatusEnum.PENDING && record.actionBy && (
           <div className="min-w-0 flex-1 text-[11px] leading-[16px] text-[#595959]">
             <div className="truncate">{record.actionBy}</div>
-
-            <div className="whitespace-nowrap">
-              {actionDate ? dayjs(actionDate).format("DD/MM/YY") : "-"}
-            </div>
           </div>
         )}
       </div>
@@ -796,12 +791,10 @@ function ApproveBookingPage() {
 
           {/* Right */}
           <div className="flex items-center gap-3">
-            <Button
-              icon={<DownloadOutlined />}
-              className="!h-[40px] !px-5 !font-medium !border-[#13C2C2] !text-[#262626] !bg-[#E6FFFB]"
-            >
-              Download Report
-            </Button>
+            <DownloadReportButton
+              report={REPORT_CONFIGS.BOOKINGS}
+              icon={<ApproveIconTitle size={20} />}
+            />
 
             <Button
               type="primary"

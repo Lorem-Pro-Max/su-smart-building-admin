@@ -7,6 +7,7 @@ function ElectricGraphPageHeader({
   multiTabs,
   onSwitchPage,
   currentPage,
+  headerActions = null,
 }) {
   const getButtonStyle = (isActive) => ({
     bgColor: isActive ? "#36CFC9" : "#FFFFFF",
@@ -23,29 +24,32 @@ function ElectricGraphPageHeader({
             <h3 className="text-page-title leading-page-title">{pageTitle}</h3>
           </div>
 
-          {multiTabs ? (
-            <div className="w-max gap-4 h-10 flex flex-row">
-              <div
-                onClick={() => onSwitchPage("dashboard")}
-                className="cursor-pointer h-full"
-              >
-                <HeaderButton
-                  text="Dashboard"
-                  {...getButtonStyle(currentPage === "dashboard")}
-                />
-              </div>
+          <div className="w-max gap-4 h-10 flex flex-row">
+            {headerActions}
+            {multiTabs ? (
+              <>
+                <div
+                  onClick={() => onSwitchPage("dashboard")}
+                  className="cursor-pointer h-full"
+                >
+                  <HeaderButton
+                    text="Dashboard"
+                    {...getButtonStyle(currentPage === "dashboard")}
+                  />
+                </div>
 
-              <div
-                onClick={() => onSwitchPage("control")}
-                className="cursor-pointer h-full"
-              >
-                <HeaderButton
-                  text={`ควบคุม${pageTitle}`}
-                  {...getButtonStyle(currentPage === "control")}
-                />
-              </div>
-            </div>
-          ) : null}
+                <div
+                  onClick={() => onSwitchPage("control")}
+                  className="cursor-pointer h-full"
+                >
+                  <HeaderButton
+                    text={`ควบคุม${pageTitle}`}
+                    {...getButtonStyle(currentPage === "control")}
+                  />
+                </div>
+              </>
+            ) : null}
+          </div>
         </div>
       </div>
 

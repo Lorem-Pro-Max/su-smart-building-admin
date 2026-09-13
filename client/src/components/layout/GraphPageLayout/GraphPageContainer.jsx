@@ -29,6 +29,7 @@ function GraphPageContainer({
   totalUsageIcon,
   alternateTitle,
   buildingControl = null,
+  headerActions = null,
 }) {
   const { data } = dataState;
   const { multiTabs, defaultPage } = displayConfig;
@@ -61,6 +62,7 @@ function GraphPageContainer({
         multiTabs={multiTabs}
         onSwitchPage={setCurrentPage}
         currentPage={currentPage}
+        headerActions={headerActions}
       >
         <div key="page-content-wrapper" className="w-full h-full">
           {currentPage === "dashboard" ? (

@@ -9,6 +9,8 @@ import {
 } from "@assets/icons";
 import { useRoomsOverview } from "@hooks/pageHooks/useRoomsOverview";
 import { DEVICE_CONFIGS } from "@config/devices";
+import DownloadReportButton from "@components/common/DownloadReport/DownloadReportButton";
+import { REPORT_CONFIGS } from "@config/reports";
 
 function RoomsOverviewPage() {
   const { doorsData, fansData, lightsData, acData, PageToasts } =
@@ -44,7 +46,16 @@ function RoomsOverviewPage() {
   return (
     <>
       {PageToasts}
-      <PageHeader pageIcon={<RoomsOverviewTitleIcon />} pageTitle="ห้องภายในอาคาร">
+      <PageHeader
+        pageIcon={<RoomsOverviewTitleIcon />}
+        pageTitle="ห้องภายในอาคาร"
+        headerActions={
+          <DownloadReportButton
+            report={REPORT_CONFIGS.ROOM_USAGE}
+            icon={<RoomsOverviewTitleIcon />}
+          />
+        }
+      >
         <TabsMenu>
           {(floorNum) => (
             <div className="flex flex-col gap-6 pb-6">

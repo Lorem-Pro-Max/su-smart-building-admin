@@ -5,6 +5,8 @@ import {
   AirConditionerTemperatureButtonIcon,
 } from "@assets/icons";
 import { useAc } from "@hooks/pageHooks/useAc";
+import DownloadReportButton from "@components/common/DownloadReport/DownloadReportButton";
+import { REPORT_CONFIGS } from "@config/reports";
 
 function AirConditionersControlPage() {
   const { dataState, control, tempControl, contextHolder, PageToast } = useAc();
@@ -21,6 +23,12 @@ function AirConditionersControlPage() {
         dataState={dataState}
         control={control}
         buildingControl={control.buildingControl}
+        headerActions={
+          <DownloadReportButton
+            report={REPORT_CONFIGS.AC}
+            icon={<AirConditionerTitleIcon />}
+          />
+        }
         extraColumn={{
           device: "ac",
           title: "อุณหภูมิ",

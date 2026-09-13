@@ -16,7 +16,15 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const errorData = error.response?.data;
+    if (errorData instanceof Blob && errorData.type.includes("json")) {
+      error.response.data = await errorData
+        .text()
+        .then(JSON.parse)
+        .catch(() => errorData);
+    }
+
     if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
       error.message = "Request timeout";
     }

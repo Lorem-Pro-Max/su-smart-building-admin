@@ -27,6 +27,7 @@ function ElectricGraphPageContainer({
   displayConfig,
   totalUsageIcon,
   alternateTitle,
+  headerActions = null,
 }) {
   const { data } = dataState;
   const { multiTabs, defaultPage } = displayConfig;
@@ -58,6 +59,7 @@ function ElectricGraphPageContainer({
         multiTabs={multiTabs}
         onSwitchPage={setCurrentPage}
         currentPage={currentPage}
+        headerActions={headerActions}
       >
         <div key="page-content-wrapper" className="w-full h-full">
           {currentPage === "dashboard" ? (
