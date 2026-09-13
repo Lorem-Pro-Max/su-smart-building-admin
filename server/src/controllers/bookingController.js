@@ -12,9 +12,24 @@ const toArray = (value) => {
   return String(value).split(",");
 };
 
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+const toPattern = (value, pattern) =>
+  pattern.test(String(value ?? "")) ? String(value) : null;
+
 export const getBookings = async (req, res) => {
   try {
-    const { page = 1, limit = 10, bookingTypes, floors, statuses } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      bookingTypes,
+      floors,
+      statuses,
+      date,
+      startTime,
+      endTime,
+    } = req.query;
 
     const result = await bookingService.getAllBookings({
       page: Number(page),
@@ -22,6 +37,9 @@ export const getBookings = async (req, res) => {
       bookingTypes: toArray(bookingTypes).map(Number).filter(Number.isFinite),
       floors: toArray(floors).map(Number).filter(Number.isFinite),
       statuses: toArray(statuses),
+      date: toPattern(date, DATE_PATTERN),
+      startTime: toPattern(startTime, TIME_PATTERN),
+      endTime: toPattern(endTime, TIME_PATTERN),
     });
 
     return res.status(200).json(result);
@@ -158,7 +176,6 @@ export const deleteBookings = async (req, res) => {
 };
 
 const MAX_PURPOSE_LENGTH = 500;
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 /* booking ทั้งวัน สำหรับหน้าสร้างการจอง */
 export const getBookingsOnDate = async (req, res) => {

@@ -4,6 +4,7 @@ function PageHeader({
   children,
   alternatePageTitle,
   buildingControl = null,
+  headerActions = null,
 }) {
   return (
     <div className="h-full flex flex-col bg-page-mint overflow-y-auto">
@@ -18,7 +19,12 @@ function PageHeader({
                 {alternatePageTitle ? alternatePageTitle : pageTitle}
               </h3>
             </div>
-            {buildingControl}
+            {(headerActions || buildingControl) && (
+              <div className="flex items-center gap-4">
+                {headerActions}
+                {buildingControl}
+              </div>
+            )}
           </div>
           {children}
         </div>

@@ -5,6 +5,8 @@ import {
   ValvesControlButtonIcon,
   TotalUsageIconBlue,
 } from "@assets/icons";
+import DownloadReportButton from "@components/common/DownloadReport/DownloadReportButton";
+import { REPORT_CONFIGS } from "@config/reports";
 
 const displayConfig = {
   multiTabs: true,
@@ -26,6 +28,12 @@ function ValvesControlPage() {
         control={control}
         displayConfig={displayConfig}
         graphService={graphService}
+        headerActions={
+          <DownloadReportButton
+            report={REPORT_CONFIGS.WATER}
+            icon={<ValvesControlTitleIcon />}
+          />
+        }
       />
     </>
   );

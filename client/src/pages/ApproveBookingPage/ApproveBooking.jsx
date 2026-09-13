@@ -9,7 +9,6 @@ import NoSelectionModal from "./components/NoSelectionModal";
 import {
   CheckOutlined,
   CloseOutlined,
-  DownloadOutlined,
   DeleteOutlined,
   CheckCircleFilled,
 } from "@ant-design/icons";
@@ -25,6 +24,8 @@ import { LoadingScreen } from "../../components/utils/LoadingScreen";
 import ApproveIconTitle from "../../assets/icons/schedule/TitleIcon";
 import FilterIcon from "../../assets/icons/approve-booking/FilterIcon";
 import "../../styles/variables/approveBooking.css";
+import DownloadReportButton from "@components/common/DownloadReport/DownloadReportButton";
+import { REPORT_CONFIGS } from "@config/reports";
 
 export const BookingStatusEnum = Object.freeze({
   PENDING: "pending",
@@ -66,6 +67,16 @@ const STATUS_FILTER_GROUPS = [
     bdColor: "#D9D9D9",
   },
 ];
+
+const DEFAULT_FILTERS = Object.freeze({
+  bookingTypes: null,
+  floors: null,
+  statuses: [],
+  statusGroups: [],
+  date: null,
+  startTime: null,
+  endTime: null,
+});
 
 const isBookingOverlap = (bookingA, bookingB) => {
   if (!bookingA || !bookingB) return false;
@@ -224,12 +235,7 @@ function ApproveBookingPage() {
   const [isOpenNoSelectionModal, setIsOpenNoSelectionModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [filters, setFilters] = useState({
-    bookingTypes: null,
-    floors: null,
-    statuses: [],
-    statusGroups: [],
-  });
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
@@ -291,6 +297,9 @@ function ApproveBookingPage() {
           : undefined,
         floors: filters.floors?.length ? filters.floors : undefined,
         statuses: filters.statuses?.length ? filters.statuses : undefined,
+        date: filters.date || undefined,
+        startTime: filters.startTime || undefined,
+        endTime: filters.endTime || undefined,
       });
 
       setTableData(res?.data || []);
@@ -314,8 +323,54 @@ function ApproveBookingPage() {
     setFilters(values);
 
     setPagination((prev) => ({ ...prev, current: 1 }));
+    setSelectedRowKeys([]);
 
     setIsOpenFilterModal(false);
+  };
+
+  const handleClearFilters = () => {
+    setFilters(DEFAULT_FILTERS);
+
+    setPagination((prev) => ({ ...prev, current: 1 }));
+    setSelectedRowKeys([]);
+  };
+
+  const hasActiveFilter = Boolean(
+    filters.bookingTypes?.length ||
+      filters.floors?.length ||
+      filters.statusGroups?.length ||
+      filters.date ||
+      filters.startTime ||
+      filters.endTime,
+  );
+
+  const buildFilterSummary = () => {
+    const pickLabels = (options, selected) =>
+      options
+        .filter((option) => selected.includes(option.value))
+        .map((option) => option.label)
+        .join(", ");
+
+    const parts = [
+      filters.bookingTypes?.length
+        ? pickLabels(bookingTypeOptions, filters.bookingTypes)
+        : "ทั้งหมด",
+      filters.floors?.length ? pickLabels(floorOptions, filters.floors) : "ทั้งหมด",
+    ];
+
+    if (filters.statusGroups?.length) {
+      parts.push(`สถานะ: ${pickLabels(statusOptions, filters.statusGroups)}`);
+    }
+
+    if (filters.date) {
+      parts.push(dayjs(filters.date).format("DD MMM YYYY"));
+    }
+
+    if (filters.startTime || filters.endTime) {
+      parts.push(`${filters.startTime ?? "--:--"} - ${filters.endTime ?? "--:--"}`);
+    }
+
+    return parts.join(", ");
   };
 
   const getSelectedBookings = () => {
@@ -593,8 +648,6 @@ function ApproveBookingPage() {
 
     if (!config) return "-";
 
-    const actionDate = record.actionDate;
-
     return (
       <div className="flex items-center gap-2 w-full">
         <Tag
@@ -608,10 +661,6 @@ function ApproveBookingPage() {
         {record.status !== BookingStatusEnum.PENDING && record.actionBy && (
           <div className="min-w-0 flex-1 text-[11px] leading-[16px] text-[#595959]">
             <div className="truncate">{record.actionBy}</div>
-
-            <div className="whitespace-nowrap">
-              {actionDate ? dayjs(actionDate).format("DD/MM/YY") : "-"}
-            </div>
           </div>
         )}
       </div>
@@ -742,12 +791,10 @@ function ApproveBookingPage() {
 
           {/* Right */}
           <div className="flex items-center gap-3">
-            <Button
-              icon={<DownloadOutlined />}
-              className="!h-[40px] !px-5 !font-medium !border-[#13C2C2] !text-[#262626] !bg-[#E6FFFB]"
-            >
-              Download Report
-            </Button>
+            <DownloadReportButton
+              report={REPORT_CONFIGS.BOOKINGS}
+              icon={<ApproveIconTitle size={20} />}
+            />
 
             <Button
               type="primary"
@@ -781,6 +828,25 @@ function ApproveBookingPage() {
             </Button>
           </div>
         </div>
+
+        {hasActiveFilter && (
+          <div className="mt-3 flex items-center gap-2">
+            <span className="shrink-0 text-[14px] text-[#262626]">Filter:</span>
+
+            <div className="flex min-w-0 items-center gap-2 rounded-[6px] border border-[#87E8DE] bg-[#E6FFFB] px-2 py-[3px] text-[13px] text-[#08979C]">
+              <span className="truncate">{buildFilterSummary()}</span>
+
+              <button
+                type="button"
+                aria-label="ล้างตัวกรองทั้งหมด"
+                onClick={handleClearFilters}
+                className="flex shrink-0 cursor-pointer items-center border-0 bg-transparent p-0 text-[#08979C]"
+              >
+                <CloseOutlined className="text-[12px]" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Table */}
