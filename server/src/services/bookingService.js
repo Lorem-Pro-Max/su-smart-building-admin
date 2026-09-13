@@ -275,6 +275,9 @@ class BookingService {
     bookingTypes = [],
     floors = [],
     statuses = [],
+    date = null,
+    startTime = null,
+    endTime = null,
   } = {}) {
     const conditions = [`rb.created_at >= NOW() - INTERVAL '6 months'`];
 
@@ -296,6 +299,36 @@ class BookingService {
       values.push(statuses);
 
       conditions.push(`bs.status = ANY($${values.length}::text[])`);
+    }
+
+    if (date) {
+      values.push(date);
+
+      const dateIndex = values.length;
+
+      let windowStart = `$${dateIndex}::date`;
+
+      if (startTime) {
+        values.push(startTime);
+
+        windowStart = `$${dateIndex}::date + $${values.length}::time`;
+      }
+
+      let windowEnd = `$${dateIndex}::date + INTERVAL '1 day'`;
+
+      if (endTime) {
+        values.push(endTime);
+
+        windowEnd = `$${dateIndex}::date + $${values.length}::time`;
+      }
+
+      conditions.push(
+        `rb."start_dateTime" < ((${windowEnd})::timestamp AT TIME ZONE 'Asia/Bangkok')`,
+      );
+
+      conditions.push(
+        `rb."end_dateTime" > ((${windowStart})::timestamp AT TIME ZONE 'Asia/Bangkok')`,
+      );
     }
 
     const whereClause = conditions.join(" AND ");

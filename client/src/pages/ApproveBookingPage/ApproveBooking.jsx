@@ -67,6 +67,16 @@ const STATUS_FILTER_GROUPS = [
   },
 ];
 
+const DEFAULT_FILTERS = Object.freeze({
+  bookingTypes: null,
+  floors: null,
+  statuses: [],
+  statusGroups: [],
+  date: null,
+  startTime: null,
+  endTime: null,
+});
+
 const isBookingOverlap = (bookingA, bookingB) => {
   if (!bookingA || !bookingB) return false;
 
@@ -224,12 +234,7 @@ function ApproveBookingPage() {
   const [isOpenNoSelectionModal, setIsOpenNoSelectionModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [filters, setFilters] = useState({
-    bookingTypes: null,
-    floors: null,
-    statuses: [],
-    statusGroups: [],
-  });
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
@@ -291,6 +296,9 @@ function ApproveBookingPage() {
           : undefined,
         floors: filters.floors?.length ? filters.floors : undefined,
         statuses: filters.statuses?.length ? filters.statuses : undefined,
+        date: filters.date || undefined,
+        startTime: filters.startTime || undefined,
+        endTime: filters.endTime || undefined,
       });
 
       setTableData(res?.data || []);
@@ -314,8 +322,54 @@ function ApproveBookingPage() {
     setFilters(values);
 
     setPagination((prev) => ({ ...prev, current: 1 }));
+    setSelectedRowKeys([]);
 
     setIsOpenFilterModal(false);
+  };
+
+  const handleClearFilters = () => {
+    setFilters(DEFAULT_FILTERS);
+
+    setPagination((prev) => ({ ...prev, current: 1 }));
+    setSelectedRowKeys([]);
+  };
+
+  const hasActiveFilter = Boolean(
+    filters.bookingTypes?.length ||
+      filters.floors?.length ||
+      filters.statusGroups?.length ||
+      filters.date ||
+      filters.startTime ||
+      filters.endTime,
+  );
+
+  const buildFilterSummary = () => {
+    const pickLabels = (options, selected) =>
+      options
+        .filter((option) => selected.includes(option.value))
+        .map((option) => option.label)
+        .join(", ");
+
+    const parts = [
+      filters.bookingTypes?.length
+        ? pickLabels(bookingTypeOptions, filters.bookingTypes)
+        : "ทั้งหมด",
+      filters.floors?.length ? pickLabels(floorOptions, filters.floors) : "ทั้งหมด",
+    ];
+
+    if (filters.statusGroups?.length) {
+      parts.push(`สถานะ: ${pickLabels(statusOptions, filters.statusGroups)}`);
+    }
+
+    if (filters.date) {
+      parts.push(dayjs(filters.date).format("DD MMM YYYY"));
+    }
+
+    if (filters.startTime || filters.endTime) {
+      parts.push(`${filters.startTime ?? "--:--"} - ${filters.endTime ?? "--:--"}`);
+    }
+
+    return parts.join(", ");
   };
 
   const getSelectedBookings = () => {
@@ -781,6 +835,25 @@ function ApproveBookingPage() {
             </Button>
           </div>
         </div>
+
+        {hasActiveFilter && (
+          <div className="mt-3 flex items-center gap-2">
+            <span className="shrink-0 text-[14px] text-[#262626]">Filter:</span>
+
+            <div className="flex min-w-0 items-center gap-2 rounded-[6px] border border-[#87E8DE] bg-[#E6FFFB] px-2 py-[3px] text-[13px] text-[#08979C]">
+              <span className="truncate">{buildFilterSummary()}</span>
+
+              <button
+                type="button"
+                aria-label="ล้างตัวกรองทั้งหมด"
+                onClick={handleClearFilters}
+                className="flex shrink-0 cursor-pointer items-center border-0 bg-transparent p-0 text-[#08979C]"
+              >
+                <CloseOutlined className="text-[12px]" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Table */}

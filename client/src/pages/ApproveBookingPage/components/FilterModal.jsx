@@ -1,7 +1,38 @@
 import { useState } from "react";
-import { Modal, Select, Button, ConfigProvider, Checkbox } from "antd";
+import {
+  Modal,
+  Select,
+  Button,
+  ConfigProvider,
+  Checkbox,
+  DatePicker,
+  TimePicker,
+} from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 import FilterIcon from "../../../assets/icons/approve-booking/FilterIcon";
+import {
+  BOOKING_TIME_FORMAT,
+  formatTime,
+  toTimeOfDay,
+} from "../../CreateBookingPage/utils/bookingTime";
+
+const DATE_FORMAT = "DD MMM YYYY";
+
+const range = (start, end) =>
+  Array.from({ length: end - start }, (_, index) => start + index);
+
+const buildEndTimeDisabled = (minTime) => () => {
+  if (!minTime) return {};
+
+  const [minHour, minMinute] = minTime.split(":").map(Number);
+
+  return {
+    disabledHours: () => range(0, minHour),
+    disabledMinutes: (selectedHour) =>
+      selectedHour === minHour ? range(0, minMinute + 1) : [],
+  };
+};
 
 function FilterModal({
   open,
@@ -18,6 +49,9 @@ function FilterModal({
   const [statusGroups, setStatusGroups] = useState(initialFilters?.statusGroups ?? []);
   const [floors, setFloors] = useState(initialFilters?.floors?.length ? initialFilters.floors : allFloorValues);
   const [bookingTypes, setBookingTypes] = useState(initialFilters?.bookingTypes?.length ? initialFilters.bookingTypes : allBookingTypeValues);
+  const [date, setDate] = useState(initialFilters?.date ? dayjs(initialFilters.date) : null);
+  const [startTime, setStartTime] = useState(initialFilters?.startTime ?? null);
+  const [endTime, setEndTime] = useState(initialFilters?.endTime ?? null);
 
 
   const handleToggleStatus = (value) => {
@@ -31,10 +65,32 @@ function FilterModal({
   const isAllFloorsSelected = floorOptions.length > 0 && floorOptions.every((item) => floors.includes(item.value));
   const isAllBookingTypesSelected = bookingTypeOptions.length > 0 && bookingTypeOptions.every((item) => bookingTypes.includes(item.value));
 
+  const handleChangeDate = (value) => {
+    setDate(value);
+
+    if (!value) {
+      setStartTime(null);
+      setEndTime(null);
+    }
+  };
+
+  const handleChangeStartTime = (value) => {
+    const nextStartTime = formatTime(value);
+
+    setStartTime(nextStartTime);
+
+    if (nextStartTime && endTime && endTime <= nextStartTime) {
+      setEndTime(null);
+    }
+  };
+
   const handleReset = () => {
     setBookingTypes(allBookingTypeValues);
     setFloors(allFloorValues);
     setStatusGroups([]);
+    setDate(null);
+    setStartTime(null);
+    setEndTime(null);
   };
 
   const handleConfirm = () => {
@@ -47,6 +103,9 @@ function FilterModal({
         floors: isAllFloorsSelected ? null : floors,
         statuses: selectedStatuses,
         statusGroups,
+        date: date ? date.format("YYYY-MM-DD") : null,
+        startTime,
+        endTime,
     });
   };
 
@@ -60,7 +119,6 @@ function FilterModal({
       closable
       styles={{
         content: {
-          height: 428,
           borderRadius: 8,
           padding: 24,
         },
@@ -79,6 +137,12 @@ function FilterModal({
                     activeOutlineColor: "transparent",
                     optionSelectedBg: "#FFFFFF",
                     optionActiveBg: "#F5F5F5",
+                },
+
+                DatePicker: {
+                    hoverBorderColor: "#13C2C2",
+                    activeBorderColor: "#13C2C2",
+                    activeOutlineColor: "transparent",
                 },
 
                 Button: {
@@ -198,6 +262,64 @@ function FilterModal({
                         </button>
                     );
                 })}
+                </div>
+            </div>
+
+            {/* Date */}
+            <div className="mt-4">
+                <label className="mb-2 block text-[16px] font-semibold">
+                วันที่
+                </label>
+
+                <DatePicker
+                    className="w-full"
+                    size="large"
+                    placeholder="วันที่"
+                    format={DATE_FORMAT}
+                    value={date}
+                    onChange={handleChangeDate}
+                />
+            </div>
+
+            {/* Time range */}
+            <div className="mt-4 flex gap-4">
+                <div className="min-w-0 flex-1">
+                    <label className="mb-2 block text-[16px] font-semibold">
+                    เวลาเริ่มต้น
+                    </label>
+
+                    <TimePicker
+                        className="w-full"
+                        size="large"
+                        placeholder="เวลาเริ่มต้น"
+                        format={BOOKING_TIME_FORMAT}
+                        minuteStep={1}
+                        showNow={false}
+                        needConfirm={false}
+                        disabled={!date}
+                        value={toTimeOfDay(startTime, date ?? undefined)}
+                        onChange={handleChangeStartTime}
+                    />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                    <label className="mb-2 block text-[16px] font-semibold">
+                    เวลาสิ้นสุด
+                    </label>
+
+                    <TimePicker
+                        className="w-full"
+                        size="large"
+                        placeholder="เวลาสิ้นสุด"
+                        format={BOOKING_TIME_FORMAT}
+                        minuteStep={1}
+                        showNow={false}
+                        needConfirm={false}
+                        disabled={!date}
+                        value={toTimeOfDay(endTime, date ?? undefined)}
+                        disabledTime={buildEndTimeDisabled(startTime)}
+                        onChange={(value) => setEndTime(formatTime(value))}
+                    />
                 </div>
             </div>
             </div>
