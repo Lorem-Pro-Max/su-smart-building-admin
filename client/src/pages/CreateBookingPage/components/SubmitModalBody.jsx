@@ -63,10 +63,10 @@ export function SubmitModalBody({ formData, setIsSubmitModalOpen, setLoading, on
     };
 
     return (
-        <div className="flex flex-col items-center">
-            <h1 className="text-xl">สรุปข้อมูลการจอง</h1>
-            <p>โปรดตรวจสอบรายละเอียดก่อนยืนยันการจอง</p>
-            <div className="w-full mb-5 flex flex-col gap-4 border border-mint-dark rounded-xl p-6 ">
+        <div className="flex max-h-[calc(100vh-160px)] flex-col items-center">
+            <h1 className="shrink-0 text-xl">สรุปข้อมูลการจอง</h1>
+            <p className="shrink-0">โปรดตรวจสอบรายละเอียดก่อนยืนยันการจอง</p>
+            <div className="w-full min-h-0 overflow-y-auto mb-5 flex flex-col gap-4 border border-mint-dark rounded-xl p-6 ">
                 <h1 className="text-xl">{formData?.title}</h1>
                 <div className="w-full rounded-xl p-5 shadow-md border border-gray-200">
                     <div className="flex gap-2 mb-2">
@@ -118,7 +118,7 @@ export function SubmitModalBody({ formData, setIsSubmitModalOpen, setLoading, on
                     <p className="text-base text-gray-900 font-semibold whitespace-pre-wrap">{formData?.purpose?.trim() || "-"}</p>
                 </div>
             </div>
-            <div className="w-full flex flex-col gap-2">
+            <div className="w-full shrink-0 flex flex-col gap-2">
                 <button
                     className="w-full rounded-lg bg-mint-dark py-2 text-white! hover:cursor-pointer"
                     onClick={() => handleSubmit(formData)}>
