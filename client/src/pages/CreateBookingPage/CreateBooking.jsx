@@ -5,6 +5,7 @@ import { ConfigProvider, message } from "antd";
 
 import { getBookingsOnDate } from "@services/booking";
 import { getBookableRooms } from "@services/classroomRooms";
+import { useBuildingAvailability } from "./hooks/useBuildingAvailability";
 import { LoadingScreen } from "@components/utils/LoadingScreen";
 import BookingIcon from "@assets/images/create-booking/booking.svg";
 
@@ -20,6 +21,8 @@ export default function CreateBookingPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [rooms, setRooms] = useState([]);
+  const { availabilityMap, fetchAvailability } = useBuildingAvailability();
+  const month = date?.format("YYYY-MM");
 
 
   const reloadBookings = useCallback(async () => {
@@ -40,6 +43,15 @@ export default function CreateBookingPage() {
   useEffect(() => {
     reloadBookings();
   }, [reloadBookings]);
+
+  useEffect(() => {
+    if (month) fetchAvailability(dayjs(`${month}-01`));
+  }, [month]);
+
+  const handleCreated = () => {
+    reloadBookings();
+    fetchAvailability(date);
+  };
 
   useEffect(() => {
     getBookableRooms()
@@ -69,6 +81,7 @@ export default function CreateBookingPage() {
               date={date}
               setDate={setDate}
               bookings={bookings}
+              availabilityMap={availabilityMap}
               loading={loading}
             />
           </div>
@@ -80,7 +93,7 @@ export default function CreateBookingPage() {
               rooms={rooms}
               loading={loading}
               setLoading={setLoading}
-              onCreated={reloadBookings}
+              onCreated={handleCreated}
             />
           </div>
         </div>

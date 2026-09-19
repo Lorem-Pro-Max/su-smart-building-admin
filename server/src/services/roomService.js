@@ -164,7 +164,7 @@ export const getBuildingAvailabilityByDateRange = async (
         )::int AS used_slots
       FROM room_booking
       WHERE booking_date BETWEEN $1::date AND $2::date
-        AND status_id NOT IN (3, 4)
+        AND status_id IN (2, 5, 6)
       GROUP BY booking_date
     )
     SELECT

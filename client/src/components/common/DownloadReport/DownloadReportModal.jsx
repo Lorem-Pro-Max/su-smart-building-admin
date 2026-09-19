@@ -34,6 +34,7 @@ function ReportRangeForm({
   label,
   icon,
   maxRangeMonths,
+  allowFutureDates,
   loading,
   onCancel,
   onConfirm,
@@ -53,13 +54,13 @@ function ReportRangeForm({
   };
 
   const disabledFromDate = (date) =>
-    isAfterToday(date) ||
+    (!allowFutureDates && isAfterToday(date)) ||
     (to &&
       (date.isAfter(to, "day") ||
         !date.isAfter(to.subtract(maxRangeMonths, "month"), "day")));
 
   const disabledToDate = (date) =>
-    isAfterToday(date) ||
+    (!allowFutureDates && isAfterToday(date)) ||
     (from && (date.isBefore(from, "day") || !isWithinMaxRange(from, date)));
 
   const handleConfirm = () => {
@@ -148,6 +149,7 @@ function DownloadReportModal({
   label,
   icon,
   maxRangeMonths,
+  allowFutureDates = false,
   loading,
   onCancel,
   onConfirm,
@@ -174,6 +176,7 @@ function DownloadReportModal({
           label={label}
           icon={icon}
           maxRangeMonths={maxRangeMonths}
+          allowFutureDates={allowFutureDates}
           loading={loading}
           onCancel={onCancel}
           onConfirm={onConfirm}
