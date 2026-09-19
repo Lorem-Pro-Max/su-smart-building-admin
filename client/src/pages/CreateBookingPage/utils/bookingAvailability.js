@@ -12,6 +12,13 @@ export function getApprovedBookings(bookings) {
   );
 }
 
+export function getAvailabilityColor(percent) {
+  if (percent == null) return "";
+  if (percent <= 0) return "bg-[#FF4D4F]";
+  if (percent > 0 && percent <= 30) return "bg-[#FAAD14]";
+  return "bg-[#52C41A]";
+}
+
 function timeRangesOverlap(startA, endA, startB, endB) {
   return dayjs(startA).isBefore(endB) && dayjs(endA).isAfter(startB);
 }

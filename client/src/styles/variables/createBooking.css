@@ -36,9 +36,7 @@
   font-size: 1.5rem !important;
 }
 
-.create-booking-calendar
-  .ant-picker-calendar-full
-  .ant-picker-calendar-date-value {
+.create-booking-calendar .ant-picker-calendar-date-value {
   display: inline-block;
   width: 24px;
   height: 24px;

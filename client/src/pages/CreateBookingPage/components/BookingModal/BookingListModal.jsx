@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Modal } from 'antd';
 import BookingCard from './BookingCard';
 import dayjs from 'dayjs'
+import { getAvailabilityColor } from '../../utils/bookingAvailability';
 
 
 function BookingListModal({ isModalOpen, setIsModalOpen, bookings, availabilityMap, loading }) {
@@ -18,13 +19,6 @@ function BookingListModal({ isModalOpen, setIsModalOpen, bookings, availabilityM
         dateKey && availabilityMap?.[dateKey] !== undefined
             ? Number(availabilityMap[dateKey])
             : null;
-
-    const getColor = (percent) => {
-        if (percent === null) return "";
-        if (percent === 0) return "bg-[#FF4D4F]";
-        if (percent > 0 && percent <= 30) return "bg-[#FAAD14]";
-        return "bg-[#52C41A]";
-    };
     return (
         <>
             <Modal
@@ -37,7 +31,7 @@ function BookingListModal({ isModalOpen, setIsModalOpen, bookings, availabilityM
             >
                 <div className='flex gap-2 pb-3'>
                     <div
-                        className={`rounded-full w-7 h-7 ${getColor(percent)}`}
+                        className={`rounded-full w-7 h-7 ${getAvailabilityColor(percent)}`}
                     />
                     <span className="text-2xl">
                         {dateKey
