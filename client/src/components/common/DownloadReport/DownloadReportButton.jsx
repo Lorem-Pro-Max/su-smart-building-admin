@@ -46,6 +46,7 @@ function DownloadReportButton({ report, icon }) {
         label={report.label}
         icon={icon}
         maxRangeMonths={report.maxRangeMonths ?? REPORT_MAX_RANGE_MONTHS}
+        allowFutureDates={report.allowFutureDates ?? false}
         loading={loading}
         onCancel={() => setOpen(false)}
         onConfirm={handleConfirm}

@@ -30,7 +30,12 @@ export const REPORT_CONFIGS = {
     label: "ชั่วโมงการใช้ห้อง",
     fileLabel: "ชั่วโมงการใช้ห้อง",
   },
-  BOOKINGS: { type: "bookings", label: "การจอง", fileLabel: "การจอง" },
+  BOOKINGS: {
+    type: "bookings",
+    label: "การจอง",
+    fileLabel: "การจอง",
+    allowFutureDates: true,
+  },
 };
 
 // ต้องตรงกับ DEFAULT_MAX_RANGE_MONTHS ใน server/src/controllers/reportController.js
