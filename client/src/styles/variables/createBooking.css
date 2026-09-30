@@ -1,0 +1,46 @@
+@theme {
+  --color-primary-dark: #00474f;
+  --color-primary-main: #08979c;
+  --color-mint-dark: #13c2c2;
+  --color-mint-darker: #08979c;
+  --color-mint-light: #e6fffb;
+}
+
+.booking-hours-panel
+  .ant-picker-time-panel-column:first-child
+  li:nth-child(-n + 8),
+.booking-hours-panel
+  .ant-picker-time-panel-column:first-child
+  li:nth-child(n + 23) {
+  display: none;
+}
+
+.custom-booking-input.ant-input-affix-wrapper {
+  border: none !important;
+  border-bottom: 2px solid #ffc53d !important;
+  border-radius: 0 !important;
+  padding-bottom: 8px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.custom-booking-input .ant-input::placeholder {
+  color: #000000 !important;
+  font-weight: 600 !important;
+  font-size: 1.5rem !important;
+}
+
+.custom-booking-input .ant-input {
+  color: #000000 !important;
+  font-weight: 600 !important;
+  font-size: 1.5rem !important;
+}
+
+.create-booking-calendar .ant-picker-calendar-date-value {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  border-radius: 50%;
+}

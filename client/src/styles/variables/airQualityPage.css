@@ -1,0 +1,13 @@
+@theme {
+  --background-image-top-section-gradient: linear-gradient(
+    247.87deg,
+    #fbfbfb 15.36%,
+    #ffffff 73.23%
+  );
+  --shadow-grid-items: 1px 2px 10px 0px rgba(142, 142, 142, 0.25);
+  --background-image-bottom-section-gradient: linear-gradient(
+    166.27deg,
+    #ffffff 22.55%,
+    #e6fffb 106.14%
+  );
+}

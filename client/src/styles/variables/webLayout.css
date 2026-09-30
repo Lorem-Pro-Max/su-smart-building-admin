@@ -1,0 +1,46 @@
+@theme {
+  --color-navbar-dark-green: #002329;
+  --color-navbar-name-card: #00474f;
+
+  --text-sidebar-menu-font-size: 16px;
+
+  --color-sidebar-menu-title: #00474f;
+  --color-sidebar-children-color: #000000d9;
+  --color-sidebar-selected-children-bg: #e6fffb;
+  --color-sidebar-selected-children-bg-hover: #f7fcfc;
+  --color-sidebar-selected-children-text: #08979c;
+  --color-sidebar-selected-arrow: #000000d9;
+  --color-sidebar-menu-right-border: #13c2c2;
+}
+
+.ant-menu-item-selected::after {
+  border-right-color: var(--color-sidebar-menu-right-border) !important;
+  border-right-width: 3px !important;
+}
+
+.ant-menu-inline-collapsed .ant-menu-item-selected,
+.ant-menu-inline-collapsed .ant-menu-submenu-selected {
+  background-color: #fffbe6 !important;
+  color: #faad14 !important;
+  border-radius: 8px !important;
+}
+
+.ant-menu-inline-collapsed .ant-menu-item-selected .anticon,
+.ant-menu-inline-collapsed
+  .ant-menu-submenu-selected
+  .ant-menu-submenu-title
+  .anticon {
+  color: #faad14 !important;
+}
+
+.ant-menu-inline-collapsed .ant-menu-item:hover,
+.ant-menu-inline-collapsed .ant-menu-submenu-title:hover {
+  background-color: #fffbe6ad !important;
+  border-radius: 8px !important;
+}
+
+.ant-menu-inline-collapsed .ant-menu-item:hover .anticon,
+.ant-menu-inline-collapsed .ant-menu-submenu-title:hover .anticon {
+  color: #faad14aa !important;
+}
+
